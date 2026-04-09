@@ -1,0 +1,28 @@
+{
+    "name": "osu-interactive-server",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "tsx watch src/server.ts",
+        "build": "tsc",
+        "start": "tsx src/server.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/osu-Interactive/osu-interactive-server.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/osu-Interactive/osu-interactive-server/issues"
+    },
+    "homepage": "https://github.com/osu-Interactive/osu-interactive-server#readme",
+    "description": "",
+    "dependencies": {
+        "fastify": "^5.8.4"
+    },
+    "devDependencies": {
+        "@types/node": "^25.5.2",
+        "tsx": "^4.21.0",
+        "typescript": "^6.0.2"
+    }
+}
