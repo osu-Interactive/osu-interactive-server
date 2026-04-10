@@ -5,7 +5,7 @@ import 'dotenv/config'
 
 export function buildApp() {
     const app = Fastify({
-        logger: true
+        logger: true,
     })
 
     app.register(routes)
