@@ -18,6 +18,7 @@
     "homepage": "https://github.com/osu-Interactive/osu-interactive-server#readme",
     "description": "",
     "dependencies": {
+        "axios": "^1.15.0",
         "dotenv": "^17.4.1",
         "fastify": "^5.8.4"
     },
