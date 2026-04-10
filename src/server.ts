@@ -1,7 +1,7 @@
 import { buildApp } from './app'
 
 const start = async () => {
-    const app = buildApp()
+    const app = await buildApp()
 
     try {
         await app.listen({ port: 3000, host: '0.0.0.0' })
