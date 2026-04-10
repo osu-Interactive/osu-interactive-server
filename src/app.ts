@@ -5,7 +5,7 @@ import cors from '@fastify/cors'
 
 export async function buildApp() {
     const app = Fastify({
-        logger: true,
+        logger: false,
     })
 
     await app.register(cors, {

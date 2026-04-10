@@ -6,7 +6,8 @@ export default async function authRoutes(app: FastifyInstance) {
         return { authLink: getOsuApiAuthLink() }
     })
 
-    app.post('/login', async () => {
-        return login()
+    app.post('/login', async (req, res) => {
+        const { osuApiCode } = req.body as { osuApiCode: string }
+        return login(osuApiCode)
     })
 }
