@@ -1,6 +1,18 @@
 import axios from 'axios'
-import OsuApiUserClient from '../integrations/osu-api-user-client'
+import OsuApiUserClient, { OsuApiUser } from '../integrations/osu-api-user-client'
 const api = new OsuApiUserClient()
+
+
+type OsuUserExtracted = {
+    id: number
+    username: string
+    avatar_url: string
+    country: {
+        code: string
+        name: string
+    }
+    pp: number
+}
 
 export function getOsuApiAuthLink() {
     const osuApiClientId: string = String(process.env.CLIENT_ID)
@@ -18,10 +30,11 @@ export function getOsuApiAuthLink() {
 export async function login(userOsuApiCode: string) {
     try {
         const authResult = await api.fetchAccessTokenCodeGrant(userOsuApiCode)
-        console.log(authResult.token)
-
         const userData = await api.getUserDataFromOsuApi(authResult.token)
-        console.log(123, userData)
+        console.log(userData)
+        const extractedData = extractUserData(userData)
+
+        console.log(123, extractedData)
     } catch (err) {
         if (axios.isAxiosError(err)) {
             console.log(err.response?.data)
@@ -29,5 +42,18 @@ export async function login(userOsuApiCode: string) {
         } else {
             console.log(err)
         }
+    }
+}
+
+function extractUserData(raw: OsuApiUser): OsuUserExtracted {
+    return {
+        id: raw.id,
+        username: raw.username,
+        avatar_url: raw.avatar_url,
+        country: {
+            code: raw.country.code,
+            name: raw.country.name,
+        },
+        pp: raw.statistics.pp
     }
 }

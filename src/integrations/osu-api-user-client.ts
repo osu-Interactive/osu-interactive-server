@@ -1,11 +1,31 @@
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import BaseOsuApiClient from './base-osu-api-client'
 
-interface OsuCodeGrantTokenResponse {
+type OsuCodeGrantTokenResponse = {
     access_token: string
     expires_in: number
     refresh_token: string
     token_type: string
+}
+
+//osu api '/me' contains a lot of fields, but currently we need only these
+export type OsuApiUser = {
+    id: number
+    username: string
+    avatar_url: string
+    country: {
+        code: string
+        name: string
+    }
+    statistics: {
+        pp: number
+    }
+}
+
+type OsuAuthToken = {
+    token: string
+    expiresIn: number
+    refreshToken: string
 }
 
 class OsuApiUserClient extends BaseOsuApiClient {
@@ -13,27 +33,20 @@ class OsuApiUserClient extends BaseOsuApiClient {
         super()
     }
 
-    public async getUserDataFromOsuApi(userToken: string) {
-        const res: AxiosResponse = await axios.get(
+    public async getUserDataFromOsuApi(userToken: string): Promise<OsuApiUser> {
+        const res = await axios.get<OsuApiUser>(
             `${this.baseUrl}/api/v2/me`,
             {
                 headers: {
                     Authorization: `Bearer ${userToken}`,
                 },
-            },
+            }
         )
-
-        console.log(res.data)
 
         return res.data
     }
 
-    public async fetchAccessTokenCodeGrant(userOsuApiCode: string): Promise<{
-        token: string
-        expiresIn: number
-        refreshToken: string
-    }> {
-
+    public async fetchAccessTokenCodeGrant(userOsuApiCode: string): Promise<OsuAuthToken> {
         const params = new URLSearchParams({
             client_id: this.clientId,
             client_secret: this.clientSecret,
@@ -43,7 +56,7 @@ class OsuApiUserClient extends BaseOsuApiClient {
             redirect_uri: `http://localhost:5173/login`,
         });
 
-        const res: AxiosResponse<OsuCodeGrantTokenResponse> = await axios.post(
+        const res = await axios.post<OsuCodeGrantTokenResponse>(
             `${this.baseUrl}/oauth/token/`,
             params,
             {
