@@ -1,5 +1,6 @@
-import { osuApiClient } from '../osu-api-client'
 import axios from 'axios'
+import OsuApiUserClient from '../integrations/osu-api-user-client'
+const api = new OsuApiUserClient()
 
 export function getOsuApiAuthLink() {
     const osuApiClientId: string = String(process.env.CLIENT_ID)
@@ -16,13 +17,10 @@ export function getOsuApiAuthLink() {
 
 export async function login(userOsuApiCode: string) {
     try {
-        const authResult =
-            await osuApiClient.fetchAccessTokenCodeGrant(userOsuApiCode)
+        const authResult = await api.fetchAccessTokenCodeGrant(userOsuApiCode)
         console.log(authResult.token)
 
-        const userData = await osuApiClient.getUserDataFromOsuApi(
-            authResult.token,
-        )
+        const userData = await api.getUserDataFromOsuApi(authResult.token)
         console.log(123, userData)
     } catch (err) {
         if (axios.isAxiosError(err)) {
