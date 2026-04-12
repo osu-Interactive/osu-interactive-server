@@ -8,15 +8,9 @@ interface OsuCredentialTokenResponse {
 }
 
 class OsuApiAppClient extends BaseOsuApiClient {
-    private appTokenState: {
-        token: string | null
-        expiresAt: number | null
-        tokenPromise: Promise<string> | null
-    } = {
-        token: null,
-        expiresAt: null,
-        tokenPromise: null
-    }
+    private token: string | null = null
+    private expiresAt: number | null = null
+    private tokenPromise: Promise<string> | null = null
 
     public constructor() {
         super()
@@ -26,9 +20,16 @@ class OsuApiAppClient extends BaseOsuApiClient {
         token: string
         expiresIn: number
     }> {
+        const params = new URLSearchParams({
+            client_id: this.clientId,
+            client_secret: this.clientSecret,
+            grant_type: 'client_credentials',
+            scope: 'public',
+        })
+
         const res: AxiosResponse<OsuCredentialTokenResponse> = await axios.post(
             `${this.baseUrl}/oauth/token`,
-            `client_id=${this.clientId}&client_secret=${this.clientSecret}&grant_type=client_credentials&scope=public`,
+            params,
             {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -45,28 +46,31 @@ class OsuApiAppClient extends BaseOsuApiClient {
 
     private async ensureToken(): Promise<string> {
         if (
-            this.appTokenState.token &&
-            this.appTokenState.expiresAt &&
-            Date.now() < this.appTokenState.expiresAt
+            this.token &&
+            this.expiresAt &&
+            Date.now() < this.expiresAt
         ) {
-            return this.appTokenState.token
+            return this.token
         }
 
-        if (this.appTokenState.tokenPromise) {
-            return this.appTokenState.tokenPromise
+        if (this.tokenPromise) {
+            return this.tokenPromise
         }
 
-        this.appTokenState.tokenPromise = this.fetchAccessTokenCredential().then(
+        this.tokenPromise = this.fetchAccessTokenCredential().then(
             ({ token, expiresIn }) => {
-                this.appTokenState.token = token
-                this.appTokenState.expiresAt = Date.now() + expiresIn * 1000 - 5000
+                this.token = token
+                this.expiresAt = Date.now() + expiresIn * 1000 - 5000
 
-                this.appTokenState.tokenPromise = null
+                this.tokenPromise = null
                 return token
             },
-        )
+        ).catch((err) => {
+            this.tokenPromise = null
+            throw err
+        })
 
-        return this.appTokenState.tokenPromise
+        return this.tokenPromise
     }
 
     public async get<T = any>(endpoint: string): Promise<AxiosResponse<T>> {
