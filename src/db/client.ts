@@ -1,10 +1,12 @@
 import { Pool } from 'pg'
 import { drizzle, NodePgDatabase} from 'drizzle-orm/node-postgres'
+import * as schema from '../db/schema'
+
 
 class DBClient {
     private static instance: DBClient
     private readonly pool: Pool
-    public db: NodePgDatabase
+    public db: NodePgDatabase<typeof schema>
 
     private constructor() {
         const {
@@ -31,7 +33,7 @@ class DBClient {
             console.error('Unexpected DB error', err)
         })
 
-        this.db = drizzle(this.pool)
+        this.db = drizzle(this.pool, { schema })
     }
 
     static getInstance(): DBClient {
