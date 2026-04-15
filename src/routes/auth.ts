@@ -8,6 +8,6 @@ export default async function authRoutes(app: FastifyInstance) {
 
     app.post('/login', async (req, res) => {
         const { osuApiCode } = req.body as { osuApiCode: string }
-        return login(osuApiCode)
+        return login(app.db, osuApiCode)
     })
 }
