@@ -6,6 +6,7 @@ export const usersTokens = pgTable('users_tokens', {
 
     user_id: integer('user_id')
         .notNull()
+        .unique()
         .references(() => users.id, { onDelete: 'cascade' }),
 
     access_token: text('access_token').notNull(),

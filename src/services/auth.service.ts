@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { eq } from 'drizzle-orm'
-import { users } from '../db/schema'
-import { usersTokens } from '../db/schema'
-import OsuApiUserClient, { OsuApiUser } from '../integrations/osu-api-user-client'
+import { users, usersTokens } from '../db/schema'
+import { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import OsuApiUserClient, {
+    OsuApiUser,
+} from '../integrations/osu-api-user-client'
+
 const api = new OsuApiUserClient()
 
 type OsuUserExtracted = {
@@ -29,23 +32,23 @@ export function getOsuApiAuthLink() {
     )
 }
 
-
-export async function login(db: any, userOsuApiCode: string) {
+export async function login(db: NodePgDatabase, userOsuApiCode: string) {
     try {
         const { authResult, extractedData } = await fetchOsuUser(userOsuApiCode)
 
-        let user = await getUserByOsuId(db, extractedData.id)
+        return await db.transaction(async (tx: any) => {
+            let user = await getUserByOsuId(tx, extractedData.id)
 
-        if (!user) {
-            user = await createUser(db, extractedData)
-        } else {
-            await updateUser(db, user.id, extractedData)
-        }
+            if (!user) {
+                user = await upsertUser(tx, extractedData)
+            } else {
+                await updateUser(tx, user.id, extractedData)
+            }
 
-        await saveUserToken(db, user.id, authResult)
+            await saveUserToken(tx, user.id, authResult)
 
-        return user
-
+            return user
+        })
     } catch (err) {
         if (axios.isAxiosError(err)) {
             console.log(err.response?.data)
@@ -56,19 +59,41 @@ export async function login(db: any, userOsuApiCode: string) {
     }
 }
 
-async function saveUserToken(db: any, userId: number, authResult: any) {
-    const expiresAt = new Date(Date.now() + authResult.expiresIn * 1000)
-
-    await db.insert(usersTokens).values({
-        user_id: userId,
-        access_token: authResult.token,
-        refresh_token: authResult.refreshToken,
-        expires_at: expiresAt,
-    })
+async function getUserByOsuId(db: NodePgDatabase, osuId: number) {
+    return db
+        .select()
+        .from(users)
+        .where(eq(users.osu_id, osuId))
+        .then((res: (typeof users.$inferSelect)[]) => res[0])
 }
 
-async function updateUser(db: any, userId: number, data: any) {
-    await db.update(users)
+async function upsertUser(db: NodePgDatabase, data: any) {
+    const result = await db
+        .insert(users)
+        .values({
+            osu_id: data.id,
+            name: data.username,
+            avatar_url: data.avatar_url,
+            pp: Math.floor(data.pp),
+            country: data.country,
+        })
+        .onConflictDoUpdate({
+            target: users.osu_id,
+            set: {
+                name: data.username,
+                avatar_url: data.avatar_url,
+                pp: Math.floor(data.pp),
+                country: data.country,
+            },
+        })
+        .returning()
+
+    return result[0]
+}
+
+async function updateUser(db: NodePgDatabase, userId: number, data: any) {
+    await db
+        .update(users)
         .set({
             name: data.username,
             avatar_url: data.avatar_url,
@@ -78,24 +103,25 @@ async function updateUser(db: any, userId: number, data: any) {
         .where(eq(users.id, userId))
 }
 
-async function createUser(db: any, data: any) {
-    const inserted = await db.insert(users).values({
-        osu_id: data.id,
-        name: data.username,
-        avatar_url: data.avatar_url,
-        pp: Math.floor(data.pp),
-        country: data.country,
-    }).returning()
+async function saveUserToken(db: NodePgDatabase, userId: number, authResult: any) {
+    const expiresAt = new Date(Date.now() + authResult.expiresIn * 1000)
 
-    return inserted[0]
-}
-
-async function getUserByOsuId(db: any, osuId: number) {
-    return db
-        .select()
-        .from(users)
-        .where(eq(users.osu_id, osuId))
-        .then((res: typeof users.$inferSelect[]) => res[0])
+    await db
+        .insert(usersTokens)
+        .values({
+            user_id: userId,
+            access_token: authResult.token,
+            refresh_token: authResult.refreshToken,
+            expires_at: expiresAt,
+        })
+        .onConflictDoUpdate({
+            target: usersTokens.user_id,
+            set: {
+                access_token: authResult.token,
+                refresh_token: authResult.refreshToken,
+                expires_at: expiresAt,
+            },
+        })
 }
 
 async function fetchOsuUser(userOsuApiCode: string) {
@@ -117,6 +143,6 @@ function extractUserData(raw: OsuApiUser): OsuUserExtracted {
             code: raw.country.code,
             name: raw.country.name,
         },
-        pp: raw.statistics.pp
+        pp: raw.statistics.pp,
     }
 }
