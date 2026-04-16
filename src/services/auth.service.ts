@@ -19,7 +19,7 @@ type OsuUserExtracted = {
     pp: number
 }
 
-export function getOsuApiAuthLink() {
+export function getOsuApiAuthLink(state: string) {
     const osuApiClientId: string = String(process.env.CLIENT_ID)
 
     return (
@@ -28,7 +28,7 @@ export function getOsuApiAuthLink() {
         '&redirect_uri=http://localhost:5173/login' +
         '&response_type=code' +
         '&scope=public+identify' +
-        '&state=randomval'
+        `&state=${state}`
     )
 }
 
