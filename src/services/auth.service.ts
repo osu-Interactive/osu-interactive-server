@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import { users, usersTokens } from '../db/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import type { DB } from "../types/drizzle-pg-db";
 import OsuApiUserClient, {
     OsuApiUser,
 } from '../integrations/osu-api-user-client'
@@ -32,7 +32,7 @@ export function getOsuApiAuthLink() {
     )
 }
 
-export async function login(db: NodePgDatabase, userOsuApiCode: string) {
+export async function login(db: DB, userOsuApiCode: string) {
     try {
         const { authResult, extractedData } = await fetchOsuUser(userOsuApiCode)
 
@@ -59,7 +59,7 @@ export async function login(db: NodePgDatabase, userOsuApiCode: string) {
     }
 }
 
-async function getUserByOsuId(db: NodePgDatabase, osuId: number) {
+async function getUserByOsuId(db: DB, osuId: number) {
     return db
         .select()
         .from(users)
@@ -67,7 +67,7 @@ async function getUserByOsuId(db: NodePgDatabase, osuId: number) {
         .then((res: (typeof users.$inferSelect)[]) => res[0])
 }
 
-async function upsertUser(db: NodePgDatabase, data: any) {
+async function upsertUser(db: DB, data: any) {
     const result = await db
         .insert(users)
         .values({
@@ -91,7 +91,7 @@ async function upsertUser(db: NodePgDatabase, data: any) {
     return result[0]
 }
 
-async function updateUser(db: NodePgDatabase, userId: number, data: any) {
+async function updateUser(db: DB, userId: number, data: any) {
     await db
         .update(users)
         .set({
@@ -103,7 +103,7 @@ async function updateUser(db: NodePgDatabase, userId: number, data: any) {
         .where(eq(users.id, userId))
 }
 
-async function saveUserToken(db: NodePgDatabase, userId: number, authResult: any) {
+async function saveUserToken(db: DB, userId: number, authResult: any) {
     const expiresAt = new Date(Date.now() + authResult.expiresIn * 1000)
 
     await db
