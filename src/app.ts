@@ -5,6 +5,7 @@ import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import osuApiPlugin from './plugins/osu-api'
 import dbPlugin from './plugins/db'
+import models from './plugins/models'
 
 export async function buildApp() {
     const app = Fastify({
@@ -19,6 +20,7 @@ export async function buildApp() {
     await app.register(cookie)
     await app.register(dbPlugin)
     await app.register(osuApiPlugin)
+    await app.register(models)
     await app.register(routes)
 
     return app

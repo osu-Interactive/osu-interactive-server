@@ -32,11 +32,12 @@ export default async function authRoutes(app: FastifyInstance) {
         Body: { osuApiCode: string; osuApiState?: string }
     }>('/login', async (req, reply) => {
         if (!checkState(req, reply)) {
+            console.log('Invalid CSRF Credentials from client')
             return
         }
 
         const { osuApiCode } = req.body
-        return login(app.db, osuApiCode)
+        return login(app.models.user, app.db, osuApiCode)
     })
 }
 
@@ -49,7 +50,6 @@ function checkState(
 
     if (!osuApiState || !cookieState || osuApiState !== cookieState) {
         reply.code(403).send({ error: 'Invalid CSRF state' })
-        console.log(1231231)
         return false
     }
 

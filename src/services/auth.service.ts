@@ -1,9 +1,8 @@
 import axios from 'axios'
-import { eq } from 'drizzle-orm'
-import { users, usersTokens } from '../db/schema'
 import type { DB } from "../types/drizzle-pg-db";
 import OsuApiUserClient from '../integrations/osu-api-user-client'
 import { OsuApiUser, OsuUserExtracted } from '../types/osu'
+import type { Models } from '../types/models'
 
 const api = new OsuApiUserClient()
 
@@ -20,21 +19,25 @@ export function getOsuApiAuthLink(state: string) {
     )
 }
 
-export async function login(db: DB, userOsuApiCode: string) {
+export async function login(
+    userModel: Models['user'],
+    db: DB,
+    userOsuApiCode: string
+) {
     try {
-        const { authResult, extractedData } = await fetchOsuUser(userOsuApiCode)
-
-        return await db.transaction(async (tx: any) => {
-            let user = await getUserByOsuId(tx, extractedData.id)
-
+        const { authResult, extractedData } =
+            await fetchOsuUser(userOsuApiCode)
+        console.log(extractedData)
+        return await db.transaction(async () => {
+            let user = await userModel.getByOsuId(extractedData.id)
             if (!user) {
-                user = await upsertUser(tx, extractedData)
+                user = await userModel.upsertFromOsu(extractedData)
             } else {
-                await updateUser(tx, user.id, extractedData)
+                await userModel.updateById(user.id, extractedData)
             }
 
-            await saveUserToken(tx, user.id, authResult)
-
+            await userModel.saveToken(user.id, authResult)
+            console.log('user saved successfully')
             return user
         })
     } catch (err) {
@@ -45,71 +48,6 @@ export async function login(db: DB, userOsuApiCode: string) {
             console.log(err)
         }
     }
-}
-
-async function getUserByOsuId(db: DB, osuId: number) {
-    return db
-        .select()
-        .from(users)
-        .where(eq(users.osu_id, osuId))
-        .then((res: (typeof users.$inferSelect)[]) => res[0])
-}
-
-async function upsertUser(db: DB, data: any) {
-    const result = await db
-        .insert(users)
-        .values({
-            osu_id: data.id,
-            name: data.username,
-            avatar_url: data.avatar_url,
-            pp: Math.floor(data.pp),
-            country: data.country,
-        })
-        .onConflictDoUpdate({
-            target: users.osu_id,
-            set: {
-                name: data.username,
-                avatar_url: data.avatar_url,
-                pp: Math.floor(data.pp),
-                country: data.country,
-            },
-        })
-        .returning()
-
-    return result[0]
-}
-
-async function updateUser(db: DB, userId: number, data: any) {
-    await db
-        .update(users)
-        .set({
-            name: data.username,
-            avatar_url: data.avatar_url,
-            pp: Math.floor(data.pp),
-            country: data.country,
-        })
-        .where(eq(users.id, userId))
-}
-
-async function saveUserToken(db: DB, userId: number, authResult: any) {
-    const expiresAt = new Date(Date.now() + authResult.expiresIn * 1000)
-
-    await db
-        .insert(usersTokens)
-        .values({
-            user_id: userId,
-            access_token: authResult.token,
-            refresh_token: authResult.refreshToken,
-            expires_at: expiresAt,
-        })
-        .onConflictDoUpdate({
-            target: usersTokens.user_id,
-            set: {
-                access_token: authResult.token,
-                refresh_token: authResult.refreshToken,
-                expires_at: expiresAt,
-            },
-        })
 }
 
 async function fetchOsuUser(userOsuApiCode: string) {
