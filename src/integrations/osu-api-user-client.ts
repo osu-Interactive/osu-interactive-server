@@ -1,32 +1,6 @@
 import axios from 'axios'
 import BaseOsuApiClient from './base-osu-api-client'
-
-type OsuCodeGrantTokenResponse = {
-    access_token: string
-    expires_in: number
-    refresh_token: string
-    token_type: string
-}
-
-//osu api '/me' contains a lot of fields, but currently we need only these
-export type OsuApiUser = {
-    id: number
-    username: string
-    avatar_url: string
-    country: {
-        code: string
-        name: string
-    }
-    statistics: {
-        pp: number
-    }
-}
-
-type OsuAuthToken = {
-    token: string
-    expiresIn: number
-    refreshToken: string
-}
+import type { OsuAuthToken, OsuCodeGrantTokenResponse, OsuApiUser } from '../types/osu'
 
 class OsuApiUserClient extends BaseOsuApiClient {
     public constructor() {

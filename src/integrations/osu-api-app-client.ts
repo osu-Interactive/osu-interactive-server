@@ -1,11 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
 import BaseOsuApiClient from './base-osu-api-client'
-
-interface OsuCredentialTokenResponse {
-    access_token: string
-    expires_in: number
-    token_type: string
-}
+import type { OsuCredentialTokenResponse } from '../types/osu'
 
 class OsuApiAppClient extends BaseOsuApiClient {
     private token: string | null = null

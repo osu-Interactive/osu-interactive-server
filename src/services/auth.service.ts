@@ -2,22 +2,10 @@ import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import { users, usersTokens } from '../db/schema'
 import type { DB } from "../types/drizzle-pg-db";
-import OsuApiUserClient, {
-    OsuApiUser,
-} from '../integrations/osu-api-user-client'
+import OsuApiUserClient from '../integrations/osu-api-user-client'
+import { OsuApiUser, OsuUserExtracted } from '../types/osu'
 
 const api = new OsuApiUserClient()
-
-type OsuUserExtracted = {
-    id: number
-    username: string
-    avatar_url: string
-    country: {
-        code: string
-        name: string
-    }
-    pp: number
-}
 
 export function getOsuApiAuthLink(state: string) {
     const osuApiClientId: string = String(process.env.CLIENT_ID)
