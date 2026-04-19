@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { getOsuApiAuthLink, login } from '../services/auth.service'
 import crypto from 'crypto'
+import type { DBUser } from '../types/osu'
+import { authMiddleware } from '../middlewares/auth'
 
 /**
  * In production, HTTPS is expected.
@@ -17,12 +19,12 @@ const cookieOptions = {
 }
 
 export default async function authRoutes(app: FastifyInstance) {
-    app.get('/osuApiAuthLink', async (req, reply) => {
+    app.get('/osuApiAuthLink', async (_, reply) => {
         const state: string = crypto.randomBytes(16).toString('hex')
 
         reply.setCookie('oauth_state', state, {
             ...cookieOptions,
-            maxAge: 30,
+            maxAge: 10 * 60, // 10 min
         })
 
         return { authLink: getOsuApiAuthLink(state) }
@@ -31,17 +33,46 @@ export default async function authRoutes(app: FastifyInstance) {
     app.post<{
         Body: { osuApiCode: string; osuApiState?: string }
     }>('/login', async (req, reply) => {
-        if (!checkState(req, reply)) {
+        if (!checkOAuthState(req, reply)) {
             console.log('Invalid CSRF Credentials from client')
             return
         }
 
         const { osuApiCode } = req.body
-        return login(app.models.user, app.db, osuApiCode)
+        const loginResult = await login(app.models.user, app.db, osuApiCode)
+
+        const tokenTtlSeconds = 60 * 60 * 24 * 14 // Auth token will be for two weeks valid
+        const token = signJwtToken(app, loginResult, tokenTtlSeconds)
+        setClientAuthCookie(reply, token, tokenTtlSeconds)
+        return loginResult
+    })
+
+    app.get('/me', { preHandler: authMiddleware }, async (req, reply) => {
+        const user = await app.models.user.getById(req.user.userId)
+
+        if (!user) {
+            setLogoutCookie(reply)
+            return reply.status(401).send({ error: 'Unauthorized' })
+        }
+
+        return {
+            name: user.name,
+            osu_id: user.osu_id,
+            avatar_url: user.avatar_url,
+            pp: user.pp,
+            country: user.country,
+            survey_result: user.survey_result
+        }
+    })
+
+    app.post('/logout', async (_, reply) => {
+        setLogoutCookie(reply)
+
+        return { success: true }
     })
 }
 
-function checkState(
+function checkOAuthState(
     req: FastifyRequest<{ Body: { osuApiState?: string } }>,
     reply: FastifyReply,
 ): boolean {
@@ -55,4 +86,41 @@ function checkState(
 
     reply.clearCookie('oauth_state', cookieOptions)
     return true
+}
+
+function signJwtToken(
+    app: FastifyInstance,
+    user: DBUser,
+    seconds: number,
+): string {
+    return app.jwt.sign(
+        {
+            userId: user.id,
+            osuId: user.osu_id,
+        },
+        { expiresIn: seconds },
+    )
+}
+
+function setClientAuthCookie(
+    reply: FastifyReply,
+    token: string,
+    seconds: number,
+): void {
+    reply.setCookie('auth', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: seconds,
+    })
+}
+
+function setLogoutCookie(reply: FastifyReply): void {
+    reply.clearCookie('auth', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax',
+        path: '/',
+    })
 }

@@ -1,22 +1,22 @@
 import { eq } from 'drizzle-orm'
 import { users, usersTokens } from '../db/schema'
 import type { DB } from '../types/drizzle-pg-db'
-import type { OsuAuthToken, OsuUserExtracted } from '../types/osu'
+import type { OsuAuthToken, OsuUserExtracted, DBUser } from '../types/osu'
 
 export const userModel = (db: DB) => ({
-    async getById(id: number) {
+    async getById(id: number): Promise<DBUser | undefined> {
         return db.query.users.findFirst({
             where: (users, { eq }) => eq(users.id, id),
         })
     },
 
-    async getByOsuId(osuId: number) {
+    async getByOsuId(osuId: number): Promise<DBUser | undefined>  {
         return db.query.users.findFirst({
             where: (users, { eq }) => eq(users.osu_id, osuId),
         })
     },
 
-    async getByUserName(name: string) {
+    async getByUserName(name: string): Promise<DBUser | undefined>  {
         return db.query.users.findFirst({
             where: (users, { eq }) => eq(users.name, name),
         })
