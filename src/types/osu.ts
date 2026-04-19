@@ -11,15 +11,17 @@ export type OsuCodeGrantTokenResponse = {
     token_type: string
 }
 
+type UserCountry = {
+    code: string
+    name: string
+}
+
 //osu api '/me' contains a lot of fields, but currently we need only these
 export type OsuApiUser = {
     id: number
     username: string
     avatar_url: string
-    country: {
-        code: string
-        name: string
-    }
+    country: UserCountry
     statistics: {
         pp: number
     }
@@ -35,9 +37,17 @@ export type OsuUserExtracted = {
     id: number
     username: string
     avatar_url: string
-    country: {
-        code: string
-        name: string
-    }
+    country: UserCountry
     pp: number
+}
+
+export type DBUser = {
+    id: number,
+    osu_id: number,
+    name: string,
+    avatar_url: string | null,
+    pp: number,
+    country: UserCountry,
+    survey_result: any,
+    created_at: Date
 }

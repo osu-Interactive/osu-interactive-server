@@ -3,6 +3,7 @@ import type { DB } from "../types/drizzle-pg-db";
 import OsuApiUserClient from '../integrations/osu-api-user-client'
 import { OsuApiUser, OsuUserExtracted } from '../types/osu'
 import type { Models } from '../types/models'
+import type { DBUser } from '../types/osu'
 
 const api = new OsuApiUserClient()
 
@@ -23,21 +24,21 @@ export async function login(
     userModel: Models['user'],
     db: DB,
     userOsuApiCode: string
-) {
+): Promise<DBUser> {
     try {
         const { authResult, extractedData } =
             await fetchOsuUser(userOsuApiCode)
-        console.log(extractedData)
         return await db.transaction(async () => {
             let user = await userModel.getByOsuId(extractedData.id)
-            if (!user) {
-                user = await userModel.upsertFromOsu(extractedData)
-            } else {
+
+            if (user) {
                 await userModel.updateById(user.id, extractedData)
+            } else {
+                user = await userModel.upsertFromOsu(extractedData)
             }
 
             await userModel.saveToken(user.id, authResult)
-            console.log('user saved successfully')
+
             return user
         })
     } catch (err) {
@@ -47,6 +48,7 @@ export async function login(
         } else {
             console.log(err)
         }
+        throw err
     }
 }
 
