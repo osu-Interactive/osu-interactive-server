@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
-import { users, usersTokens } from '../db/schema'
-import type { DB } from '../types/drizzle-pg-db'
-import type { OsuAuthToken, OsuUserExtracted, DBUser } from '../types/osu'
+import { users, usersOauthTokens } from '../db/schemas/schema'
+import type { DB } from '../types/drizzle-pg-db.types'
+import type { OsuAuthToken, OsuUserExtracted, DBUser } from '../types/osu.types'
 
 export const userModel = (db: DB) => ({
     async getById(id: number): Promise<DBUser | undefined> {
@@ -65,7 +65,7 @@ export const userModel = (db: DB) => ({
         const expiresAt = new Date(Date.now() + authResult.expiresIn * 1000)
 
         await db
-            .insert(usersTokens)
+            .insert(usersOauthTokens)
             .values({
                 user_id: userId,
                 access_token: authResult.token,
@@ -73,7 +73,7 @@ export const userModel = (db: DB) => ({
                 expires_at: expiresAt,
             })
             .onConflictDoUpdate({
-                target: usersTokens.user_id,
+                target: usersOauthTokens.user_id,
                 set: {
                     access_token: authResult.token,
                     refresh_token: authResult.refreshToken,

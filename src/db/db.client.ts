@@ -1,6 +1,6 @@
 import { Pool } from 'pg'
 import { drizzle, NodePgDatabase} from 'drizzle-orm/node-postgres'
-import * as schema from './schema/index'
+import * as schema from './schemas/schema'
 
 class DBClient {
     private static instance: DBClient

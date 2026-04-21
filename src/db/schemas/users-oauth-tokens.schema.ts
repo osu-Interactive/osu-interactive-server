@@ -1,7 +1,7 @@
 import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users'
+import { users } from './users.schema'
 
-export const usersTokens = pgTable('users_tokens', {
+export const usersOauthTokens = pgTable('users_oauth_tokens', {
     id: serial('id').primaryKey(),
 
     user_id: integer('user_id')

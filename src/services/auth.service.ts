@@ -1,9 +1,8 @@
 import axios from 'axios'
-import type { DB } from "../types/drizzle-pg-db";
+import type { DB } from "../types/drizzle-pg-db.types";
 import OsuApiUserClient from '../integrations/osu-api-user-client'
-import { OsuApiUser, OsuUserExtracted } from '../types/osu'
-import type { Models } from '../types/models'
-import type { DBUser } from '../types/osu'
+import { OsuApiUser, OsuUserExtracted, DBUser } from '../types/osu.types'
+import type { Models } from '../types/models.types'
 
 const api = new OsuApiUserClient()
 

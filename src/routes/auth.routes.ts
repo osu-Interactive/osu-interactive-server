@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { getOsuApiAuthLink, login } from '../services/auth.service'
 import crypto from 'crypto'
-import type { DBUser } from '../types/osu'
-import { authMiddleware } from '../middlewares/auth'
+import type { DBUser } from '../types/osu.types'
+import { authMiddleware } from '../middlewares/auth.middleware'
 
 /**
  * In production, HTTPS is expected.

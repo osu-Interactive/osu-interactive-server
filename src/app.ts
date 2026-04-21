@@ -1,12 +1,12 @@
 import Fastify from 'fastify'
 import 'dotenv/config'
-import routes from './routes'
+import routes from './routes/routes'
 import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
-import osuApiPlugin from './plugins/osu-api'
-import dbPlugin from './plugins/db'
-import models from './plugins/models'
-import authPlugin from './plugins/auth'
+import osuApiPlugin from './plugins/osu-api.plugin'
+import dbPlugin from './plugins/db.plugin'
+import modelsPlugin from './plugins/models.plugin'
+import authPlugin from './plugins/auth.plugin'
 
 export async function buildApp() {
     const app = Fastify({
@@ -22,7 +22,7 @@ export async function buildApp() {
     await app.register(authPlugin)
     await app.register(dbPlugin)
     await app.register(osuApiPlugin)
-    await app.register(models)
+    await app.register(modelsPlugin)
     await app.register(routes)
 
     return app
