@@ -1,1 +1,0 @@
-ALTER TABLE "users_tokens" ADD CONSTRAINT "users_tokens_user_id_unique" UNIQUE("user_id");
