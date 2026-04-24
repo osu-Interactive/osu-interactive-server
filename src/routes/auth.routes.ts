@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { getOsuApiAuthLink, login } from '../services/auth.service'
 import crypto from 'crypto'
-import type { DBUser } from '../types/osu.types'
 import { authMiddleware } from '../middlewares/auth.middleware'
 
 /**
@@ -33,25 +32,51 @@ export default async function authRoutes(app: FastifyInstance) {
     app.post<{
         Body: { osuApiCode: string; osuApiState?: string }
     }>('/login', async (req, reply) => {
-        if (!checkOAuthState(req, reply)) {
-            console.log('Invalid CSRF Credentials from client')
-            return
+        try {
+            if (!checkOAuthState(req, reply)) {
+                console.log('Invalid CSRF Credentials from client')
+                return
+            }
+
+            const { osuApiCode } = req.body
+            const loginResult = await login(app.models.user, app.db, osuApiCode)
+
+            const { accessToken, refreshToken } =
+                await app.authTokens.getJwtAndRefreshToken(
+                    loginResult.id,
+                    loginResult.osu_id,
+                )
+
+            setClientAuthCookie(
+                reply,
+                'auth',
+                accessToken,
+                app.authTokens.accessTokenTtlSeconds,
+            )
+            setClientAuthCookie(
+                reply,
+                'refresh',
+                refreshToken,
+                app.authTokens.refreshTokenTtlSeconds,
+            )
+
+            return {
+                user: loginResult,
+                authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
+                refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
+            }
+        } catch (error) {
+            console.log(error)
+            throw error
         }
-
-        const { osuApiCode } = req.body
-        const loginResult = await login(app.models.user, app.db, osuApiCode)
-
-        const tokenTtlSeconds = 60 * 60 * 24 * 14 // Auth token will be for two weeks valid
-        const token = signJwtToken(app, loginResult, tokenTtlSeconds)
-        setClientAuthCookie(reply, token, tokenTtlSeconds)
-        return loginResult
     })
 
     app.get('/me', { preHandler: authMiddleware }, async (req, reply) => {
         const user = await app.models.user.getById(req.user.userId)
 
         if (!user) {
-            setLogoutCookie(reply)
+            clearAuthCookie(reply, 'auth')
+            clearAuthCookie(reply, 'refresh')
             return reply.status(401).send({ error: 'Unauthorized' })
         }
 
@@ -61,14 +86,48 @@ export default async function authRoutes(app: FastifyInstance) {
             avatar_url: user.avatar_url,
             pp: user.pp,
             country: user.country,
-            survey_result: user.survey_result
+            survey_result: user.survey_result,
         }
     })
 
     app.post('/logout', async (_, reply) => {
-        setLogoutCookie(reply)
+        clearAuthCookie(reply, 'auth')
+        clearAuthCookie(reply, 'refresh')
 
         return { success: true }
+    })
+
+    app.post('/refresh', async (req, reply) => {
+        const refreshToken = req.cookies.refresh
+
+        if (!refreshToken) {
+            return reply.status(401).send({ error: 'No refresh token' })
+        }
+
+        try {
+            const { accessToken, refreshToken: newRefreshToken } =
+                await app.authTokens.refreshTokens(refreshToken)
+
+            setClientAuthCookie(
+                reply,
+                'auth',
+                accessToken,
+                app.authTokens.accessTokenTtlSeconds,
+            )
+            setClientAuthCookie(
+                reply,
+                'refresh',
+                newRefreshToken,
+                app.authTokens.refreshTokenTtlSeconds,
+            )
+
+            return { success: true }
+        } catch {
+            clearAuthCookie(reply, 'refresh')
+            clearAuthCookie(reply, 'refresh')
+
+            return reply.status(401).send({ error: 'Invalid refresh token' })
+        }
     })
 }
 
@@ -88,26 +147,13 @@ function checkOAuthState(
     return true
 }
 
-function signJwtToken(
-    app: FastifyInstance,
-    user: DBUser,
-    seconds: number,
-): string {
-    return app.jwt.sign(
-        {
-            userId: user.id,
-            osuId: user.osu_id,
-        },
-        { expiresIn: seconds },
-    )
-}
-
 function setClientAuthCookie(
     reply: FastifyReply,
+    name: string,
     token: string,
     seconds: number,
 ): void {
-    reply.setCookie('auth', token, {
+    reply.setCookie(name, token, {
         httpOnly: true,
         secure: isProduction,
         sameSite: 'lax',
@@ -116,8 +162,8 @@ function setClientAuthCookie(
     })
 }
 
-function setLogoutCookie(reply: FastifyReply): void {
-    reply.clearCookie('auth', {
+function clearAuthCookie(reply: FastifyReply, cookieName: string): void {
+    reply.clearCookie(cookieName, {
         httpOnly: true,
         secure: isProduction,
         sameSite: 'lax',

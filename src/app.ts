@@ -7,6 +7,8 @@ import osuApiPlugin from './plugins/osu-api.plugin'
 import dbPlugin from './plugins/db.plugin'
 import modelsPlugin from './plugins/models.plugin'
 import authPlugin from './plugins/auth.plugin'
+import authTokensPlugin from './plugins/auth-tokens.plugin'
+
 
 export async function buildApp() {
     const app = Fastify({
@@ -23,6 +25,7 @@ export async function buildApp() {
     await app.register(dbPlugin)
     await app.register(osuApiPlugin)
     await app.register(modelsPlugin)
+    await app.register(authTokensPlugin)
     await app.register(routes)
 
     return app

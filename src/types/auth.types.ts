@@ -5,6 +5,7 @@ declare module '@fastify/jwt' {
         payload: {
             userId: number
             osuId: number
+            tokenId?: string
         }
         user: {
             userId: number
