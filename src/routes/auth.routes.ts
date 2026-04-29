@@ -121,7 +121,10 @@ export default async function authRoutes(app: FastifyInstance) {
                 app.authTokens.refreshTokenTtlSeconds,
             )
 
-            return { success: true }
+            return {
+                authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
+                refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
+            }
         } catch {
             clearAuthCookie(reply, 'refresh')
             clearAuthCookie(reply, 'refresh')
