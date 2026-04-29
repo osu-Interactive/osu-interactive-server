@@ -81,4 +81,15 @@ export const userModel = (db: DB) => ({
                 },
             })
     },
+    async saveSurveyResult(
+        userId: number,
+        surveyResult: { skillsets: number[]; mods: number[] },
+    ) {
+        await db
+            .update(users)
+            .set({
+                survey_result: surveyResult,
+            })
+            .where(eq(users.id, userId))
+    },
 })
