@@ -8,7 +8,7 @@ import dbPlugin from './plugins/db.plugin'
 import modelsPlugin from './plugins/models.plugin'
 import authPlugin from './plugins/auth.plugin'
 import authTokensPlugin from './plugins/auth-tokens.plugin'
-
+import errorPlugin from './plugins/error.plugin'
 
 export async function buildApp() {
     const app = Fastify({
@@ -20,6 +20,7 @@ export async function buildApp() {
         credentials: true,
     })
 
+    await app.register(errorPlugin)
     await app.register(cookie)
     await app.register(authPlugin)
     await app.register(dbPlugin)
