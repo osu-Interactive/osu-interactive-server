@@ -4,7 +4,7 @@ import type {
     ResolvedError,
     ErrorScenario,
     ErrorScenarioResult,
-} from './error-scenarios'
+} from '../types/errors.types'
 
 const handleError = (error: AppError) => {
     const errorCode = error?.code
@@ -30,10 +30,6 @@ const getErrorData = (
     errorCode: string,
     errorData: ErrorScenarioResult,
 ): ResolvedError => {
-    if (isDefaultServerError(errorData)) {
-        return DEFAULT_ERROR
-    }
-
     // Copy the object to prevent mutation of the original
     const result: ResolvedError = {
         ...errorData,
@@ -51,11 +47,6 @@ const getErrorData = (
 
     return result
 }
-
-const isDefaultServerError = (
-    errorData: ErrorScenarioResult,
-): errorData is { defaultServerError: true } =>
-    'defaultServerError' in errorData
 
 const isValidStatusCode = (statusCode: number): statusCode is number =>
     Number.isInteger(statusCode) && statusCode >= 400 && statusCode <= 599
