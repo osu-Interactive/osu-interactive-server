@@ -2,7 +2,7 @@ import fp from 'fastify-plugin'
 import { FastifyInstance } from 'fastify'
 import DBClient from '../db/db.client'
 
-import type { DB } from "../types/drizzle-pg-db.types";
+import type { DB } from '@/types/drizzle-pg-db.types';
 
 declare module 'fastify' {
     interface FastifyInstance {

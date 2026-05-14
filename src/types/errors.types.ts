@@ -1,4 +1,4 @@
-import type { AppError } from '../errors/app-error'
+import type { AppError } from '@/errors/app-error'
 
 export type ErrorData = {
     message: string

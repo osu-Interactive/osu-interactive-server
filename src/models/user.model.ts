@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { users, usersOauthTokens } from '../db/schemas/schema'
-import type { DB } from '../types/drizzle-pg-db.types'
-import type { OsuAuthToken, OsuUserExtracted, DBUser } from '../types/osu.types'
+import type { DB } from '@/types/drizzle-pg-db.types'
+import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
 
 export const userModel = (db: DB) => ({
     async getById(id: number): Promise<DBUser | undefined> {

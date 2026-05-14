@@ -4,7 +4,7 @@ import type {
     ResolvedError,
     ErrorScenario,
     ErrorScenarioResult,
-} from '../types/errors.types'
+} from '@/types/errors.types'
 
 const handleError = (error: AppError) => {
     const errorCode = error?.code

@@ -1,10 +1,10 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance, FastifyReply } from 'fastify'
 
-import { AppError, findErrorInCauseChain } from '../errors/app-error'
-import { DEFAULT_ERROR } from '../errors/error-scenarios'
+import { AppError, findErrorInCauseChain } from '@/errors/app-error'
+import { DEFAULT_ERROR } from '@/errors/error-scenarios'
 import processError from '../errors/error-resolver'
-import type { ResolvedError } from '../types/errors.types'
+import type { ResolvedError } from '@/types/errors.types'
 
 async function errorHandlerPlugin(app: FastifyInstance) {
     app.setErrorHandler(async (error: Error, _, reply: FastifyReply) => {

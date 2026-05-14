@@ -1,7 +1,7 @@
 import type {
     ResolvedError,
     ErrorScenario,
-} from '../types/errors.types'
+} from '@/types/errors.types'
 
 const DEFAULT_ERROR: ResolvedError = {
     message: 'Internal server error',
