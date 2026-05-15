@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { getOsuApiAuthLink, login } from '../services/auth.service'
+import { getOsuApiAuthLink, login } from '@/services/auth.service'
 import crypto from 'crypto'
-import { authMiddleware } from '../middlewares/auth.middleware'
+import { authMiddleware } from '@/middlewares/auth.middleware'
 
 /**
  * In production, HTTPS is expected.

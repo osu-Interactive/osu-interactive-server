@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance } from 'fastify'
-import { AuthTokensService } from '../services/auth-tokens.service'
+import { AuthTokensService } from '@/services/auth-tokens.service'
 
 declare module 'fastify' {
     interface FastifyInstance {

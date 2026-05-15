@@ -1,6 +1,6 @@
 import fp from "fastify-plugin"
-import type { Models } from '../types/models.types'
-import { buildModels } from '../models/models'
+import type { Models } from '@/types/models.types'
+import { buildModels } from '@/models/models'
 
 declare module "fastify" {
     interface FastifyInstance {

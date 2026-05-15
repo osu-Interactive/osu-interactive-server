@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import { and, eq, gt, isNull } from 'drizzle-orm'
-import { usersRefreshTokens } from '../db/schemas/users-refresh-tokens.schema'
+import { usersRefreshTokens } from '@/db/schemas/users-refresh-tokens.schema'
 import { FastifyInstance } from 'fastify'
 
 type RefreshTokenPayload = {
