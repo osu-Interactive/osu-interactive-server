@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import bcrypt from 'bcrypt'
-import { and, eq, gt, isNull } from 'drizzle-orm'
-import { usersRefreshTokens } from '@/db/schemas/users-refresh-tokens.schema'
+import { eq } from 'drizzle-orm'
+import { usersRefreshTokens } from '@/db/schemas/schema'
 import { FastifyInstance } from 'fastify'
 
 type RefreshTokenPayload = {
@@ -42,7 +42,11 @@ export class AuthTokensService {
         )
     }
 
-    signRefreshToken(userId: number, userOsuId: number, tokenId: string): string {
+    signRefreshToken(
+        userId: number,
+        userOsuId: number,
+        tokenId: string,
+    ): string {
         return this.app.jwt.sign(
             { userId, osuId: userOsuId, tokenId },
             { expiresIn: this.refreshTokenTtlSeconds },
@@ -53,8 +57,14 @@ export class AuthTokensService {
         return bcrypt.hash(token, 10)
     }
 
-    async saveRefreshToken(userId: number, tokenId: string, tokenHash: string): Promise<void> {
-        const expiresAt = new Date(Date.now() + this.refreshTokenTtlSeconds * 1000)
+    async saveRefreshToken(
+        userId: number,
+        tokenId: string,
+        tokenHash: string,
+    ): Promise<void> {
+        const expiresAt = new Date(
+            Date.now() + this.refreshTokenTtlSeconds * 1000,
+        )
 
         await this.app.db.insert(usersRefreshTokens).values({
             user_id: userId,
@@ -65,7 +75,8 @@ export class AuthTokensService {
     }
 
     async refreshTokens(currentRefreshToken: string) {
-        const payload = this.app.jwt.verify<RefreshTokenPayload>(currentRefreshToken)
+        const payload =
+            this.app.jwt.verify<RefreshTokenPayload>(currentRefreshToken)
 
         const tokenRow = await this.app.db.query.usersRefreshTokens.findFirst({
             where: (tokens, { and, eq, isNull, gt }) =>
@@ -81,7 +92,10 @@ export class AuthTokensService {
             throw new Error('Refresh token not found')
         }
 
-        const isValid = await bcrypt.compare(currentRefreshToken, tokenRow.token_hash)
+        const isValid = await bcrypt.compare(
+            currentRefreshToken,
+            tokenRow.token_hash,
+        )
 
         if (!isValid) {
             throw new Error('Invalid refresh token')

@@ -1,11 +1,10 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "module": "CommonJS",
-        "moduleResolution": "Node",
-        "baseUrl": ".",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["./src/*"]
         },
         "outDir": "dist",
         "types": ["node"],
