@@ -23,7 +23,15 @@ const ERROR_SCENARIOS = defineErrorScenarios({
         statusCode: 400,
         details: error?.details,
         isOperational: true,
-    })
+    }),
+
+    USER_NOT_FOUND: () => ({
+        message: 'Unauthorized',
+        statusCode: 401,
+        code: 'USER_NOT_FOUND',
+        details: null,
+        isOperational: true,
+    }),
 })
 
 export { DEFAULT_ERROR, ERROR_SCENARIOS }

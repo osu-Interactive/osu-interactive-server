@@ -2,24 +2,56 @@ import { eq } from 'drizzle-orm'
 import { users, usersOauthTokens } from '../db/schemas/schema'
 import type { DB } from '@/types/drizzle-pg-db.types'
 import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
+import { AppError } from '@/errors/app-error'
+
+type FindUserResult<FailIfNotFound extends boolean> =
+    FailIfNotFound extends true ? DBUser : DBUser | undefined
 
 export const userModel = (db: DB) => ({
-    async getById(id: number): Promise<DBUser | undefined> {
-        return db.query.users.findFirst({
+    async getById<FailIfNotFound extends boolean = false>(
+        id: number,
+        failIfNotFound?: FailIfNotFound,
+    ): Promise<FindUserResult<FailIfNotFound>> {
+        const res = await db.query.users.findFirst({
             where: (users, { eq }) => eq(users.id, id),
         })
+
+        return this.failOrReturnUser(res, failIfNotFound)
     },
 
-    async getByOsuId(osuId: number): Promise<DBUser | undefined>  {
-        return db.query.users.findFirst({
+    async getByOsuId<FailIfNotFound extends boolean = false>(
+        osuId: number,
+        failIfNotFound?: FailIfNotFound,
+    ): Promise<FindUserResult<FailIfNotFound>> {
+        const res = await db.query.users.findFirst({
             where: (users, { eq }) => eq(users.osu_id, osuId),
         })
+
+        return this.failOrReturnUser(res, failIfNotFound)
     },
 
-    async getByUserName(name: string): Promise<DBUser | undefined>  {
-        return db.query.users.findFirst({
+    async getByUserName<FailIfNotFound extends boolean = false>(
+        name: string,
+        failIfNotFound?: FailIfNotFound,
+    ): Promise<FindUserResult<FailIfNotFound>> {
+        const res = await db.query.users.findFirst({
             where: (users, { eq }) => eq(users.name, name),
         })
+
+        return this.failOrReturnUser(res, failIfNotFound)
+    },
+
+    failOrReturnUser<FailIfNotFound extends boolean = false>(
+        user: DBUser | undefined,
+        failIfNotFound?: FailIfNotFound,
+    ): FindUserResult<FailIfNotFound> {
+        if (!user && failIfNotFound) {
+            throw new AppError('User not found', {
+                code: 'USER_NOT_FOUND',
+            })
+        }
+
+        return user as FindUserResult<FailIfNotFound>
     },
 
     async upsertFromOsu(data: OsuUserExtracted) {
@@ -46,10 +78,7 @@ export const userModel = (db: DB) => ({
         return result[0]
     },
 
-    async updateById(
-        userId: number,
-        data: OsuUserExtracted,
-    ) {
+    async updateById(userId: number, data: OsuUserExtracted) {
         await db
             .update(users)
             .set({

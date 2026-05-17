@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { getOsuApiAuthLink, login } from '@/services/auth.service'
 import crypto from 'crypto'
-import { authMiddleware } from '@/middlewares/auth.middleware'
+import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
 
 /**
  * In production, HTTPS is expected.
@@ -26,73 +26,49 @@ export default async function authRoutes(app: FastifyInstance) {
             maxAge: 10 * 60, // 10 min
         })
 
+        console.log(getOsuApiAuthLink(state))
         return { authLink: getOsuApiAuthLink(state) }
     })
 
     app.post<{
         Body: { osuApiCode: string; osuApiState?: string }
     }>('/login', async (req, reply) => {
-        try {
-            if (!checkOAuthState(req, reply)) {
-                console.log('Invalid CSRF Credentials from client')
-                return
-            }
+        if (!checkOAuthState(req, reply)) {
+            console.log('Invalid CSRF Credentials from client')
+            return
+        }
 
-            const { osuApiCode } = req.body
-            const loginResult = await login(app.models.user, app.db, osuApiCode)
+        const { osuApiCode } = req.body
+        const loginResult = await login(app.models.user, app.db, osuApiCode)
 
-            const { accessToken, refreshToken } =
-                await app.authTokens.getJwtAndRefreshToken(
-                    loginResult.id,
-                    loginResult.osu_id,
-                )
-
-            setClientAuthCookie(
-                reply,
-                'auth',
-                accessToken,
-                app.authTokens.accessTokenTtlSeconds,
-            )
-            setClientAuthCookie(
-                reply,
-                'refresh',
-                refreshToken,
-                app.authTokens.refreshTokenTtlSeconds,
+        const { accessToken, refreshToken } =
+            await app.authTokens.getJwtAndRefreshToken(
+                loginResult.id,
+                loginResult.osu_id,
             )
 
-            return {
-                user: loginResult,
-                authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
-                refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
-            }
-        } catch (error) {
-            console.log(error)
-            throw error
-        }
-    })
-
-    app.get('/me', { preHandler: authMiddleware }, async (req, reply) => {
-        const user = await app.models.user.getById(req.user.userId)
-
-        if (!user) {
-            clearAuthCookie(reply, 'auth')
-            clearAuthCookie(reply, 'refresh')
-            return reply.status(401).send({ error: 'Unauthorized' })
-        }
+        setAuthCookie(
+            reply,
+            'auth',
+            accessToken,
+            app.authTokens.accessTokenTtlSeconds,
+        )
+        setAuthCookie(
+            reply,
+            'refresh',
+            refreshToken,
+            app.authTokens.refreshTokenTtlSeconds,
+        )
 
         return {
-            name: user.name,
-            osu_id: user.osu_id,
-            avatar_url: user.avatar_url,
-            pp: user.pp,
-            country: user.country,
-            survey_result: user.survey_result,
+            user: loginResult,
+            authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
+            refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
         }
     })
 
     app.post('/logout', async (_, reply) => {
-        clearAuthCookie(reply, 'auth')
-        clearAuthCookie(reply, 'refresh')
+        clearAuthCookies(reply)
 
         return { success: true }
     })
@@ -108,13 +84,13 @@ export default async function authRoutes(app: FastifyInstance) {
             const { accessToken, refreshToken: newRefreshToken } =
                 await app.authTokens.refreshTokens(refreshToken)
 
-            setClientAuthCookie(
+            setAuthCookie(
                 reply,
                 'auth',
                 accessToken,
                 app.authTokens.accessTokenTtlSeconds,
             )
-            setClientAuthCookie(
+            setAuthCookie(
                 reply,
                 'refresh',
                 newRefreshToken,
@@ -126,8 +102,7 @@ export default async function authRoutes(app: FastifyInstance) {
                 refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
             }
         } catch {
-            clearAuthCookie(reply, 'refresh')
-            clearAuthCookie(reply, 'refresh')
+            clearAuthCookies(reply)
 
             return reply.status(401).send({ error: 'Invalid refresh token' })
         }
@@ -148,28 +123,4 @@ function checkOAuthState(
 
     reply.clearCookie('oauth_state', cookieOptions)
     return true
-}
-
-function setClientAuthCookie(
-    reply: FastifyReply,
-    name: string,
-    token: string,
-    seconds: number,
-): void {
-    reply.setCookie(name, token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: seconds,
-    })
-}
-
-function clearAuthCookie(reply: FastifyReply, cookieName: string): void {
-    reply.clearCookie(cookieName, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax',
-        path: '/',
-    })
 }

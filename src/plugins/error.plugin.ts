@@ -6,6 +6,7 @@ import { DEFAULT_ERROR } from '@/errors/error-scenarios'
 import processError from '../errors/error-resolver'
 import logError from '@/utils/logging/error-logger'
 import type { ResolvedError } from '@/types/errors.types'
+import { clearAuthCookies } from '@/utils/auth-cookies'
 
 async function errorHandlerPlugin(app: FastifyInstance) {
     app.setErrorHandler((error: unknown, _, reply: FastifyReply) => {
@@ -16,6 +17,10 @@ async function errorHandlerPlugin(app: FastifyInstance) {
             const errorData = appError ? processError(appError) : null
 
             if (errorData?.isOperational) {
+                if (shouldClearClientAuth(errorData)) {
+                    clearAuthCookies(reply)
+                }
+
                 return sendErrorResponse(reply, errorData)
             }
 
@@ -41,6 +46,10 @@ function sendErrorResponse(reply: FastifyReply, error: ResolvedError) {
         code: error.code,
         details: error.details,
     })
+}
+
+function shouldClearClientAuth(error: ResolvedError): boolean {
+    return error.code === 'USER_NOT_FOUND'
 }
 
 export default fp(errorHandlerPlugin)

@@ -1,19 +1,41 @@
 import { FastifyInstance } from 'fastify'
-import { authMiddleware } from '../middlewares/auth.middleware'
+import { authMiddleware } from '@/middlewares/auth.middleware'
+import { AppError } from '@/errors/app-error'
 
 export default async function userRoutes(app: FastifyInstance) {
+    app.get('/', { preHandler: authMiddleware }, async (req) => {
+        const user = await app.models.user.getById(req.user.userId, true)
+
+        return {
+            name: user.name,
+            osu_id: user.osu_id,
+            avatar_url: user.avatar_url,
+            pp: user.pp,
+            country: user.country,
+            survey_result: user.survey_result,
+        }
+    })
+
     app.post<{
         Body: {
             skillsets: number[]
             mods: number[]
         }
-    }>('/survey/save', { preHandler: authMiddleware }, async (req, reply) => {
-        const { skillsets, mods } = req.body
+    }>('/survey/save', { preHandler: authMiddleware }, async (req, _) => {
+        const { skillsets, mods } = req.body ?? {}
 
-        if (!Array.isArray(skillsets) || !Array.isArray(mods)) {
-            return reply.status(400).send({
-                error: 'Invalid survey payload',
-            })
+        const errors: Record<string, string> = {}
+
+        if (!Array.isArray(skillsets)) {
+            errors.skillsets = 'skillsets must be an array'
+        }
+
+        if (!Array.isArray(mods)) {
+            errors.mods = 'mods must be an array'
+        }
+
+        if (Object.keys(errors).length > 0) {
+            throw AppError.validationError(errors)
         }
 
         const surveyResult = {
@@ -22,20 +44,10 @@ export default async function userRoutes(app: FastifyInstance) {
         }
 
         await app.models.user.saveSurveyResult(req.user.userId, surveyResult)
-
-        return {
-            status: 'ok',
-        }
     })
-    app.get('/survey', { preHandler: authMiddleware }, async (req, reply) => {
-        const user = await app.models.user.getById(req.user.userId)
 
-        if (!user) {
-            console.log("12313123")
-            return reply.status(404).send({
-                error: 'User not found',
-            })
-        }
+    app.get('/survey', { preHandler: authMiddleware }, async (req) => {
+        const user = await app.models.user.getById(req.user.userId, true)
 
         return {
             surveyResult: user.survey_result ?? {
