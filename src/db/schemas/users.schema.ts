@@ -12,8 +12,6 @@ export const users  = pgTable('users', {
         code: string
         name: string
     }>().notNull(),
-
-    survey_result: jsonb('survey_result'),
-
+    
     created_at: timestamp('created_at').defaultNow().notNull()
 })
