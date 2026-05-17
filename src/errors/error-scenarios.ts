@@ -19,7 +19,6 @@ const ERROR_SCENARIOS = defineErrorScenarios({
     TEST_ERROR: DEFAULT_ERROR,
 
     VALIDATION_ERROR: (error) => ({
-        message: 'Validation failed',
         statusCode: 400,
         details: error?.details,
         isOperational: true,
@@ -28,10 +27,13 @@ const ERROR_SCENARIOS = defineErrorScenarios({
     USER_NOT_FOUND: () => ({
         message: 'Unauthorized',
         statusCode: 401,
-        code: 'USER_NOT_FOUND',
-        details: null,
         isOperational: true,
     }),
+
+    MISSING_REFRESH_TOKEN: () => ({
+        statusCode: 401,
+        isOperational: true,
+    })
 })
 
 export { DEFAULT_ERROR, ERROR_SCENARIOS }

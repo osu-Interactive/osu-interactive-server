@@ -3,7 +3,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify'
 
 import { AppError, findErrorInCauseChain } from '@/errors/app-error'
 import { DEFAULT_ERROR } from '@/errors/error-scenarios'
-import processError from '../errors/error-resolver'
+import handleError from '../errors/error-resolver'
 import logError from '@/utils/logging/error-logger'
 import type { ResolvedError } from '@/types/errors.types'
 import { clearAuthCookies } from '@/utils/auth-cookies'
@@ -14,7 +14,7 @@ async function errorHandlerPlugin(app: FastifyInstance) {
             console.error('An error occurred:', error)
 
             const appError = findErrorInCauseChain(error, AppError)
-            const errorData = appError ? processError(appError) : null
+            const errorData = appError ? handleError(appError) : null
 
             if (errorData?.isOperational) {
                 if (shouldClearClientAuth(errorData)) {
@@ -33,7 +33,7 @@ async function errorHandlerPlugin(app: FastifyInstance) {
 }
 
 function handleNonOperationalError(error: unknown, reply: FastifyReply) {
-    console.error(`The error is unrecoverable.`) //We don't have to log the error in console because of previous code
+    console.error(`The error is unrecoverable.`) //We don't have to log the error in the console because of previous code
     logError(error)
     return sendErrorResponse(reply, DEFAULT_ERROR)
 }

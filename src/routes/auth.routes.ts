@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { getOsuApiAuthLink, login } from '@/services/auth.service'
 import crypto from 'crypto'
 import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
+import { AppError } from '@/errors/app-error'
 
 /**
  * In production, HTTPS is expected.
@@ -77,7 +78,7 @@ export default async function authRoutes(app: FastifyInstance) {
         const refreshToken = req.cookies.refresh
 
         if (!refreshToken) {
-            return reply.status(401).send({ error: 'No refresh token' })
+            throw new AppError('Refresh token is missing', { code: 'MISSING_REFRESH_TOKEN' })
         }
 
         try {

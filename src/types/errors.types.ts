@@ -1,7 +1,7 @@
 import type { AppError } from '@/errors/app-error'
 
 export type ErrorData = {
-    message: string
+    message?: string
     statusCode: number
     code?: string
     details?: unknown
