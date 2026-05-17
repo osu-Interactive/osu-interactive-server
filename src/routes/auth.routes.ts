@@ -78,7 +78,9 @@ export default async function authRoutes(app: FastifyInstance) {
         const refreshToken = req.cookies.refresh
 
         if (!refreshToken) {
-            throw new AppError('Refresh token is missing', { code: 'MISSING_REFRESH_TOKEN' })
+            throw new AppError('Refresh token is missing', {
+                code: 'MISSING_REFRESH_TOKEN',
+            })
         }
 
         try {
@@ -102,10 +104,9 @@ export default async function authRoutes(app: FastifyInstance) {
                 authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
                 refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
             }
-        } catch {
+        } catch(error) {
             clearAuthCookies(reply)
-
-            return reply.status(401).send({ error: 'Invalid refresh token' })
+            throw error
         }
     })
 }
