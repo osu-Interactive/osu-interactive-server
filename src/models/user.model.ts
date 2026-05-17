@@ -1,13 +1,13 @@
 import { eq } from 'drizzle-orm'
 import { users, usersOauthTokens } from '../db/schemas/schema'
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
 import { AppError } from '@/errors/app-error'
 
 type FindUserResult<FailIfNotFound extends boolean> =
     FailIfNotFound extends true ? DBUser : DBUser | undefined
 
-export const userModel = (db: DB) => ({
+export const userModel = (db: DBExecutor) => ({
     async getById<FailIfNotFound extends boolean = false>(
         id: number,
         failIfNotFound?: FailIfNotFound,
@@ -122,3 +122,5 @@ export const userModel = (db: DB) => ({
             .where(eq(users.id, userId))
     },
 })
+
+export type UserModel = ReturnType<typeof userModel>

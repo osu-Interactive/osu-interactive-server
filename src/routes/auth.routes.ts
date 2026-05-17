@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { getOsuApiAuthLink, login } from '@/services/auth.service'
+import { getOsuApiAuthLink, loginWithOsu } from '@/services/auth.service'
 import crypto from 'crypto'
 import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
 import { AppError } from '@/errors/app-error'
@@ -27,7 +27,6 @@ export default async function authRoutes(app: FastifyInstance) {
             maxAge: 10 * 60, // 10 min
         })
 
-        console.log(getOsuApiAuthLink(state))
         return { authLink: getOsuApiAuthLink(state) }
     })
 
@@ -40,7 +39,7 @@ export default async function authRoutes(app: FastifyInstance) {
         }
 
         const { osuApiCode } = req.body
-        const loginResult = await login(app.models.user, app.db, osuApiCode)
+        const loginResult = await loginWithOsu(app.db, osuApiCode)
 
         const { accessToken, refreshToken } =
             await app.authTokens.getJwtAndRefreshToken(
@@ -104,7 +103,7 @@ export default async function authRoutes(app: FastifyInstance) {
                 authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
                 refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
             }
-        } catch(error) {
+        } catch (error) {
             clearAuthCookies(reply)
             throw error
         }
