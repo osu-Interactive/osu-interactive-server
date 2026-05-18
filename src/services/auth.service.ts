@@ -1,4 +1,4 @@
-import { LoginWithOsu } from '@/services/login-with-osu.service'
+import { LoginWithOsu } from '@/services/auth/login-with-osu.service'
 import type { DB } from '@/types/drizzle-pg-db.types'
 
 export function getOsuApiAuthLink(state: string) {
