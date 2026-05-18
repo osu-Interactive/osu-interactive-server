@@ -10,6 +10,7 @@ import authPlugin from './plugins/auth.plugin'
 import authTokensPlugin from './plugins/auth-tokens.plugin'
 import errorPlugin from './plugins/error.plugin'
 import successResponsePlugin from '@/plugins/success-response.plugin'
+import { initCommands } from '@/commands/command-handler'
 
 export async function buildApp() {
     const app = Fastify({
@@ -30,6 +31,8 @@ export async function buildApp() {
     await app.register(authTokensPlugin)
     await app.register(successResponsePlugin)
     await app.register(routes)
+    initCommands()
+
 
     return app
 }

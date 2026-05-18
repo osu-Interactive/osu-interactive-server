@@ -2,7 +2,7 @@
     "name": "osu-interactive-server",
     "version": "1.0.0",
     "scripts": {
-        "dev": "tsx watch src/server.ts",
+        "dev": "node --watch-path=src --import tsx src/server.ts",
         "build": "tsc",
         "start": "tsx src/server.ts"
     },

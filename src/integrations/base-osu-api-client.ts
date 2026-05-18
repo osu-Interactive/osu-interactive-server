@@ -14,4 +14,4 @@ abstract class BaseApiClient {
     }
 }
 
-export default BaseApiClient;
+export default BaseApiClient
