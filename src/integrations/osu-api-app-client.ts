@@ -6,9 +6,49 @@ class OsuApiAppClient extends BaseOsuApiClient {
     private token: string | null = null
     private expiresAt: number | null = null
     private tokenPromise: Promise<string> | null = null
+    private refreshPromise: Promise<string> | null = null
 
     public constructor() {
         super()
+    }
+
+    public async get<T = any>(
+        endpoint: string,
+    ): Promise<AxiosResponse<T>> {
+        return this.authorizedRequest((token) => {
+            return axios.get<T>(this.baseUrl + endpoint, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                },
+            })
+        })
+    }
+
+    public async post<T = any>(
+        endpoint: string,
+        data?: any,
+    ): Promise<AxiosResponse<T>> {
+        return this.authorizedRequest((token) => {
+            return axios.post<T>(
+                this.baseUrl + endpoint,
+                data,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                },
+            )
+        })
+    }
+
+    private invalidateToken(token: string): void {
+        if (this.token === token) {
+            this.token = null
+            this.expiresAt = null
+        }
     }
 
     private async fetchAccessTokenCredential(): Promise<{
@@ -26,6 +66,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
             `${this.baseUrl}/oauth/token`,
             params,
             {
+                timeout: 10000,
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     Accept: 'application/json',
@@ -39,60 +80,78 @@ class OsuApiAppClient extends BaseOsuApiClient {
         }
     }
 
-    private async ensureToken(): Promise<string> {
-        if (
-            this.token &&
-            this.expiresAt &&
+    private hasValidToken(): boolean {
+        return (
+            this.token !== null &&
+            this.expiresAt !== null &&
             Date.now() < this.expiresAt
-        ) {
-            return this.token
-        }
+        )
+    }
 
-        if (this.tokenPromise) {
-            return this.tokenPromise
-        }
-
-        this.tokenPromise = this.fetchAccessTokenCredential().then(
-            ({ token, expiresIn }) => {
+    private createTokenPromise(
+        forceRefresh: boolean,
+    ): Promise<string> {
+        const promise = this.fetchAccessTokenCredential()
+            .then(({ token, expiresIn }) => {
                 this.token = token
-                this.expiresAt = Date.now() + expiresIn * 1000 - 5000
+                this.expiresAt = Date.now() + expiresIn * 1000 - 30000
 
-                this.tokenPromise = null
                 return token
-            },
-        ).catch((err) => {
+            })
+
+        if (forceRefresh) {
+            this.refreshPromise = promise.finally(() => {
+                this.refreshPromise = null
+            })
+
+            return this.refreshPromise
+        }
+
+        this.tokenPromise = promise.finally(() => {
             this.tokenPromise = null
-            throw err
         })
 
         return this.tokenPromise
     }
 
-    public async get<T = any>(endpoint: string): Promise<AxiosResponse<T>> {
-        const token = await this.ensureToken()
+    private async ensureToken(forceRefresh = false): Promise<string> {
+        if (
+            !forceRefresh &&
+            this.hasValidToken() &&
+            typeof this.token === 'string'
+        ) {
+            return this.token
+        }
 
-        return axios.get<T>(this.baseUrl + endpoint, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-        })
+        if (this.refreshPromise) {
+            return this.refreshPromise
+        }
+
+        if (!forceRefresh && this.tokenPromise) {
+            return this.tokenPromise
+        }
+
+        return this.createTokenPromise(forceRefresh)
     }
 
-    public async post<T = any>(
-        endpoint: string,
-        data?: any,
+    private async authorizedRequest<T>(
+        callback: (token: string) => Promise<AxiosResponse<T>>,
     ): Promise<AxiosResponse<T>> {
         const token = await this.ensureToken()
 
-        return axios.post<T>(this.baseUrl + endpoint, data, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-        })
+        try {
+            return await callback(token)
+        } catch (err: any) {
+            if (err.response?.status !== 401) {
+                throw err
+            }
+
+            this.invalidateToken(token)
+
+            const newToken = await this.ensureToken(true)
+
+            return callback(newToken)
+        }
     }
 }
 
