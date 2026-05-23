@@ -1,4 +1,4 @@
-import OsuApiUserClient from '@/integrations/osu-api-user-client'
+import OsuApiUserClient from '@/integrations/osu/osu-api-user-client'
 import { userModel, type UserModel } from '@/models/user.model'
 import type { DB, DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { DBUser, OsuApiUser, OsuUserExtracted } from '@/types/osu.types'

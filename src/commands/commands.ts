@@ -1,9 +1,9 @@
-export type Command = (...args: string[]) => void | Promise<void>
+import mapsetsCollector from '@/utils/mapsets-collector'
 
-const commands: Record<string, Command> = {
-    'test-command': () => {
-        console.log('works')
-    },
+const commands = {
+    'fetch-bss': async (amount: number, startId: number) => {
+        await mapsetsCollector.startFetching(amount, startId)
+    }
 }
 
 export default commands

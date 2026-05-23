@@ -16,7 +16,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
         endpoint: string,
     ): Promise<AxiosResponse<T>> {
         return this.authorizedRequest((token) => {
-            return axios.get<T>(this.baseUrl + endpoint, {
+            return axios.get<T>(this.baseUrl + '/api/v2' + endpoint, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',
@@ -31,7 +31,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
     ): Promise<AxiosResponse<T>> {
         return this.authorizedRequest((token) => {
             return axios.post<T>(
-                this.baseUrl + endpoint,
+                this.baseUrl + '/api' + endpoint,
                 data,
                 {
                     headers: {
@@ -94,7 +94,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
         const promise = this.fetchAccessTokenCredential()
             .then(({ token, expiresIn }) => {
                 this.token = token
-                this.expiresAt = Date.now() + expiresIn * 1000 - 30000
+                this.expiresAt = Date.now() + expiresIn * 1000 - 10000
 
                 return token
             })
