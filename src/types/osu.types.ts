@@ -51,3 +51,28 @@ export type DBUser = {
     survey_result: any,
     created_at: Date
 }
+
+export type Mapset = {
+    id: number
+    beatmaps: MapsetBeatmap[]
+    status: string
+    ranked_date: string | null
+    submitted_date: string
+    bpm: number
+    title: string
+    creator: string
+}
+
+export type MapsetBeatmap = {
+    id: number
+    mapset_id: number
+    status: string
+    accuracy: number
+    ar: number
+    bpm: number
+    cs: number
+    difficulty_rating: number
+    drain: number
+    max_combo: number
+    mode: 'osu' | 'taiko' | 'fruits' | 'mania'
+}

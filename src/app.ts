@@ -31,7 +31,7 @@ export async function buildApp() {
     await app.register(authTokensPlugin)
     await app.register(successResponsePlugin)
     await app.register(routes)
-    initCommands()
+    initCommands(app)
 
 
     return app

@@ -27,11 +27,11 @@ export interface Mapset {
     discussion_enabled: boolean
     discussion_locked: boolean
     is_scoreable: boolean
-    last_updated: string
+    last_updated: string | null
     legacy_thread_url: string
     nominations_summary: NominationsSummary
     ranked: number
-    ranked_date: string
+    ranked_date: string | null
     rating: number
     storyboard: boolean
     submitted_date: string

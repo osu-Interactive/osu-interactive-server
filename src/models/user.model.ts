@@ -7,6 +7,8 @@ import { AppError } from '@/errors/app-error'
 type FindUserResult<FailIfNotFound extends boolean> =
     FailIfNotFound extends true ? DBUser : DBUser | undefined
 
+export type UserModel = ReturnType<typeof userModel>
+
 export const userModel = (db: DBExecutor) => ({
     async getById<FailIfNotFound extends boolean = false>(
         id: number,
@@ -122,5 +124,3 @@ export const userModel = (db: DBExecutor) => ({
             .where(eq(users.id, userId))
     },
 })
-
-export type UserModel = ReturnType<typeof userModel>
