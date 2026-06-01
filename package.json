@@ -27,7 +27,8 @@
         "drizzle-kit": "^0.31.10",
         "drizzle-orm": "^0.45.2",
         "fastify": "5.8.5",
-        "pg": "^8.20.0"
+        "pg": "^8.20.0",
+        "rosu-pp-js": "^4.0.1"
     },
     "devDependencies": {
         "@types/bcrypt": "^6.0.0",

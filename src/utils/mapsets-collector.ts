@@ -1,5 +1,5 @@
 import { setMapset } from '@/services/osu/beatmaps.service'
-import { MapsetModel } from '@/models/mapset.model'
+import { BeatmapsModel } from '@/models/beatmaps.model'
 
 interface RequestsThisMinute {
     count: number
@@ -32,7 +32,7 @@ class MapsetsCollector {
     }
 
     public async startFetching(
-        mapsetModel: MapsetModel,
+        mapsetModel: BeatmapsModel,
         amountToFetch: number,
         startId: number,
     ): Promise<void> {
@@ -48,7 +48,7 @@ class MapsetsCollector {
         console.log(`✅ Fetched ${fetchedCount} beatmapsets, fetching complete.`)
     }
 
-    private async fetchBeatmapset(mapsetModel: MapsetModel, id: number): Promise<void> {
+    private async fetchBeatmapset(mapsetModel: BeatmapsModel, id: number): Promise<void> {
         if (this.requestsThisMinute.count >= this.requestsLimit) {
             await this.waitForRequestsThisMinuteReset()
         }
