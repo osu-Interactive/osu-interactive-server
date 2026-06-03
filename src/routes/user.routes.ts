@@ -1,6 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { authMiddleware } from '@/middlewares/auth.middleware'
+import { skillsets, mods} from '../db/schemas/schema'
+import { saveSurveyResult } from '../services/survey.service'
+import dbClient from '../db/db.client'
 import { AppError } from '@/errors/app-error'
+
+const db = dbClient.getInstance().db
 
 export default async function userRoutes(app: FastifyInstance) {
     app.get('/', { preHandler: authMiddleware }, async (req) => {
@@ -16,13 +21,27 @@ export default async function userRoutes(app: FastifyInstance) {
         }
     })
 
-    app.post<{
-        Body: {
+    app.get('/survey', async () => {
+        const skillsetsList = await db.select().from(skillsets)
+        const modsList = await db.select().from(mods)
+
+        return {
+            skillsets: skillsetsList,
+            mods: modsList,
+            selectedSkillsets: [],
+            selectedMods: [],
+        }
+    })
+
+    app.post('/survey/save', async (request, reply) => {
+        await request.jwtVerify()
+
+        console.log('REQUEST USER:', request.user)
+
+        const body = request.body as {
             skillsets: number[]
             mods: number[]
         }
-    }>('/survey/save', { preHandler: authMiddleware }, async (req, _) => {
-        const { skillsets, mods } = req.body ?? {}
 
         const errors: Record<string, string> = {}
 
@@ -38,22 +57,8 @@ export default async function userRoutes(app: FastifyInstance) {
             throw AppError.validationError(errors)
         }
 
-        const surveyResult = {
-            skillsets,
-            mods,
-        }
+        const userId = request.user.userId
 
-        await app.models.user.saveSurveyResult(req.user.userId, surveyResult)
-    })
-
-    app.get('/survey', { preHandler: authMiddleware }, async (req) => {
-        const user = await app.models.user.getById(req.user.userId, true)
-
-        return {
-            surveyResult: user.survey_result ?? {
-                skillsets: [],
-                mods: [],
-            },
-        }
+        await saveSurveyResult(userId, body)
     })
 }
