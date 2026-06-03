@@ -50,7 +50,6 @@ export type DBUser = {
     avatar_url: string | null
     pp: number
     country: UserCountry
-    survey_result: any
     created_at: Date
 }
 

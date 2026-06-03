@@ -1,34 +1,46 @@
-import DBClient from '../db/db.client'
-import { usersMods } from '../db/schemas/users-mods.schema'
-import { usersSkillsets } from '../db/schemas/users-skillsets.schema'
-import { eq } from 'drizzle-orm'
+import type {DB, DBExecutor} from "@/types/drizzle-pg-db.types";
+import { surveyModel } from "@/models/survey.model";
 
-const db = DBClient.getInstance().db
+type SurveyModelFactory = (db: DBExecutor) => ReturnType<typeof surveyModel>
 
 interface SurveyResult {
     skillsets: number[]
     mods: number[]
 }
 
-export async function saveSurveyResult(userId: number, survey: SurveyResult) {
-    await db.delete(usersMods).where(eq(usersMods.userId, userId))
-    await db.delete(usersSkillsets).where(eq(usersSkillsets.userId, userId))
+export class SurveyService {
+    constructor(
+        private readonly db: DB,
+        private readonly makeSurveyModel: SurveyModelFactory = surveyModel,
+    ) {}
 
-    if (survey.mods.length > 0) {
-        await db.insert(usersMods).values(
-            survey.mods.map((modId) => ({
-                userId,
-                modId,
-            })),
-        )
-    }
+    async save(userId: number, survey: SurveyResult) {
+        return this.db.transaction(async (tx) => {
+            const surveyModel = this.makeSurveyModel(tx)
 
-    if (survey.skillsets.length > 0) {
-        await db.insert(usersSkillsets).values(
-            survey.skillsets.map((skillsetId) => ({
-                userId,
-                skillsetId,
-            })),
-        )
+            await surveyModel.deleteAllUserMods(userId)
+            await surveyModel.deleteAllUserSkillsets(userId)
+
+            if (survey.mods.length > 0) {
+                const userMods: any =
+                        survey.mods.map((modId) => ({
+                        userId,
+                        modId,
+                    }))
+
+                await surveyModel.insertUserMods(userMods)
+            }
+
+            if (survey.skillsets.length > 0) {
+                const userSkillsets: any = survey.skillsets.map(
+                    (skillsetId) => ({
+                        userId,
+                        skillsetId,
+                    }),
+                )
+
+                await surveyModel.insertUserSkillsets(userSkillsets)
+            }
+        })
     }
 }

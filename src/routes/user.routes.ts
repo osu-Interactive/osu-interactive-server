@@ -1,11 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { authMiddleware } from '@/middlewares/auth.middleware'
-import { skillsets, mods} from '../db/schemas/schema'
-import { saveSurveyResult } from '../services/survey.service'
-import dbClient from '../db/db.client'
+import { SurveyService } from '@/services/survey.service'
 import { AppError } from '@/errors/app-error'
-
-const db = dbClient.getInstance().db
 
 export default async function userRoutes(app: FastifyInstance) {
     app.get('/', { preHandler: authMiddleware }, async (req) => {
@@ -17,48 +13,46 @@ export default async function userRoutes(app: FastifyInstance) {
             avatar_url: user.avatar_url,
             pp: user.pp,
             country: user.country,
-            survey_result: user.survey_result,
         }
     })
 
     app.get('/survey', async () => {
-        const skillsetsList = await db.select().from(skillsets)
-        const modsList = await db.select().from(mods)
+        const skillsetsList = await app.models.survey.getAllSkillsets()
+        const modsList = await app.models.survey.getAllMods()
 
         return {
             skillsets: skillsetsList,
             mods: modsList,
-            selectedSkillsets: [],
-            selectedMods: [],
         }
     })
 
-    app.post('/survey/save', async (request, reply) => {
-        await request.jwtVerify()
+    app.post(
+        '/survey/save',
+        { preHandler: authMiddleware },
+        async (request, _) => {
+            const surveyService = new SurveyService(app.db)
+            const body = request.body as {
+                skillsets: number[]
+                mods: number[]
+            }
 
-        console.log('REQUEST USER:', request.user)
+            const errors: Record<string, string> = {}
 
-        const body = request.body as {
-            skillsets: number[]
-            mods: number[]
-        }
+            if (!Array.isArray(body.skillsets)) {
+                errors.skillsets = 'skillsets must be an array'
+            }
 
-        const errors: Record<string, string> = {}
+            if (!Array.isArray(body.mods)) {
+                errors.mods = 'mods must be an array'
+            }
 
-        if (!Array.isArray(skillsets)) {
-            errors.skillsets = 'skillsets must be an array'
-        }
+            if (Object.keys(errors).length > 0) {
+                throw AppError.validationError(errors)
+            }
 
-        if (!Array.isArray(mods)) {
-            errors.mods = 'mods must be an array'
-        }
+            const userId = request.user.userId
 
-        if (Object.keys(errors).length > 0) {
-            throw AppError.validationError(errors)
-        }
-
-        const userId = request.user.userId
-
-        await saveSurveyResult(userId, body)
-    })
+            await surveyService.save(userId, body)
+        },
+    )
 }
