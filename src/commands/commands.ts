@@ -8,7 +8,7 @@ const commands = (app: FastifyInstance) => ({
     },
 
     async 'get-calc-bm'(id: number) {
-        await getCalculatedBeatmap(id)
+        await getCalculatedBeatmap(app.models.calculatedBeatmap, id)
     }
 })
 

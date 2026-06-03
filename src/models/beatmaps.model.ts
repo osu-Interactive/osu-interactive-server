@@ -63,7 +63,9 @@ export const beatmapsModel = (db: DB) => ({
                             ar: sql.raw('excluded.ar'),
                             bpm: sql.raw('excluded.bpm'),
                             cs: sql.raw('excluded.cs'),
-                            difficulty_rating: sql.raw('excluded.difficulty_rating'),
+                            difficulty_rating: sql.raw(
+                                'excluded.difficulty_rating',
+                            ),
                             drain: sql.raw('excluded.drain'),
                             max_combo: sql.raw('excluded.max_combo'),
                             mode: sql.raw('excluded.mode'),

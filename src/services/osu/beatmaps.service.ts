@@ -1,13 +1,13 @@
-import Client from '@/integrations/osu/osu-api-app-client'
+import client from '@/integrations/osu/osu-api-app-client'
 import { mapMapset, mapCalculatedBeatmap } from './beatmaps-mapper.service'
-import type { Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'
-import { BeatmapsModel } from '@/models/beatmaps.model'
-import type { Mapset, MappedPerformanceAttributes } from '@/types/osu.types'
 import rosu, { type PerformanceAttributes } from 'rosu-pp-js'
 import axios from 'axios'
 import { AppError } from '@/errors/app-error'
 
-const client = new Client()
+import type { Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'
+import type { BeatmapsModel } from '@/models/beatmaps.model'
+import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
+import type { Mapset, MappedPerformanceAttributes } from '@/types/osu.types'
 
 const log = false
 
@@ -27,10 +27,12 @@ export async function setMapset(
     return raw ? mapset : result
 }
 
-export async function getCalculatedBeatmap(id: number) {
+export async function getCalculatedBeatmap(calculatedBeatmapsModel: CalculatedBeatmapsModel, id: number) {
     const structure = await getBeatmapStructure(id)
     const res = await getCalculatedBeatmapPerformance(id, structure)
     const mappedRes: MappedPerformanceAttributes = mapCalculatedBeatmap(res)
+    const mapsetId = 2559253
+    await calculatedBeatmapsModel.setBeatmap(mappedRes, id, mapsetId)
     console.log(mappedRes)
 
     return mappedRes

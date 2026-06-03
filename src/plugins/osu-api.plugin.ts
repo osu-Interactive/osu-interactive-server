@@ -4,12 +4,10 @@ import OsuApiAppClient from '../integrations/osu/osu-api-app-client'
 
 declare module 'fastify' {
     interface FastifyInstance {
-        osuApi: OsuApiAppClient
+        osuApi: typeof OsuApiAppClient
     }
 }
 
 export default fp(async (fastify: FastifyInstance) => {
-    const client = new OsuApiAppClient()
-
-    fastify.decorate('osuApi', client)
+    fastify.decorate('osuApi', OsuApiAppClient)
 })

@@ -155,4 +155,4 @@ class OsuApiAppClient extends BaseOsuApiClient {
     }
 }
 
-export default OsuApiAppClient
+export default new OsuApiAppClient()
