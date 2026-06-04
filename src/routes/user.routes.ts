@@ -1,11 +1,10 @@
 import { FastifyInstance } from 'fastify'
 import { authMiddleware } from '@/middlewares/auth.middleware'
 import { SurveyService } from '@/services/survey.service'
-import { AppError } from '@/errors/app-error'
 
 export default async function userRoutes(app: FastifyInstance) {
     app.get('/', { preHandler: authMiddleware }, async (req) => {
-        const user = await app.models.user.getById(req.user.userId, true)
+        const user = await app.models.user.requireById(req.user.userId)
 
         return {
             name: user.name,
@@ -31,28 +30,14 @@ export default async function userRoutes(app: FastifyInstance) {
         { preHandler: authMiddleware },
         async (request, _) => {
             const surveyService = new SurveyService(app.db)
-            const body = request.body as {
+            const surveyData = request.body as {
                 skillsets: number[]
                 mods: number[]
             }
 
-            const errors: Record<string, string> = {}
-
-            if (!Array.isArray(body.skillsets)) {
-                errors.skillsets = 'skillsets must be an array'
-            }
-
-            if (!Array.isArray(body.mods)) {
-                errors.mods = 'mods must be an array'
-            }
-
-            if (Object.keys(errors).length > 0) {
-                throw AppError.validationError(errors)
-            }
-
             const userId = request.user.userId
 
-            await surveyService.save(userId, body)
+            await surveyService.save(userId, surveyData)
         },
     )
 }

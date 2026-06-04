@@ -12,6 +12,7 @@ export class LoginWithOsu {
         private readonly osuApi: OsuApiUserClient = new OsuApiUserClient(),
     ) {}
 
+    //TODO: Test the transaction
     async execute(userOsuApiCode: string): Promise<DBUser> {
         const { authResult, extractedData } =
             await this.fetchOsuUser(userOsuApiCode)

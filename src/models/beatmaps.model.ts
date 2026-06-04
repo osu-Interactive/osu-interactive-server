@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { mapsets, mapsetsBeatmaps } from '../db/schemas/schema'
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { Mapset } from '@/types/osu.types'
 
 export type BeatmapsModel = ReturnType<typeof beatmapsModel>
@@ -9,7 +9,7 @@ const toDate = (value: string | null): Date | null => {
     return value ? new Date(value) : null
 }
 
-export const beatmapsModel = (db: DB) => ({
+export const beatmapsModel = (db: DBExecutor) => ({
     async setMapset(data: Mapset) {
         return db.transaction(async (tx) => {
             const [mapset] = await tx

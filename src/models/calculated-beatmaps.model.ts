@@ -1,10 +1,10 @@
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { MappedPerformanceAttributes } from '@/types/osu.types'
 import { calculatedBeatmaps } from '@/db/schemas/schema'
 
 export type CalculatedBeatmapsModel = ReturnType<typeof calculatedBeatmapsModel>
 
-export const calculatedBeatmapsModel = (db: DB) => ({
+export const calculatedBeatmapsModel = (db: DBExecutor) => ({
     async setBeatmap(
         bm: MappedPerformanceAttributes,
         beatmapId: number,

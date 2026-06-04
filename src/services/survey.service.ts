@@ -1,5 +1,6 @@
-import type {DB, DBExecutor} from "@/types/drizzle-pg-db.types";
-import { surveyModel } from "@/models/survey.model";
+import type { DB, DBExecutor } from '@/types/drizzle-pg-db.types'
+import { surveyModel } from '@/models/survey.model'
+import { AppError } from '@/errors/app-error'
 
 type SurveyModelFactory = (db: DBExecutor) => ReturnType<typeof surveyModel>
 
@@ -15,18 +16,31 @@ export class SurveyService {
     ) {}
 
     async save(userId: number, survey: SurveyResult) {
+        const errors: Record<string, string> = {}
+
+        if (!Array.isArray(survey.skillsets)) {
+            errors.skillsets = 'skillsets must be an array'
+        }
+
+        if (!Array.isArray(survey.mods)) {
+            errors.mods = 'mods must be an array'
+        }
+
+        if (Object.keys(errors).length > 0) {
+            throw AppError.validationError(errors)
+        }
+
         return this.db.transaction(async (tx) => {
             const surveyModel = this.makeSurveyModel(tx)
 
-            await surveyModel.deleteAllUserMods(userId)
             await surveyModel.deleteAllUserSkillsets(userId)
+            await surveyModel.deleteAllUserMods(userId)
 
             if (survey.mods.length > 0) {
-                const userMods: any =
-                        survey.mods.map((modId) => ({
-                        userId,
-                        modId,
-                    }))
+                const userMods: any = survey.mods.map((modId) => ({
+                    userId,
+                    modId,
+                }))
 
                 await surveyModel.insertUserMods(userMods)
             }

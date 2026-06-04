@@ -11,11 +11,11 @@ export const surveyModel = (db: DBExecutor) => ({
         return db.select().from(mods)
     },
 
-    deleteAllUserSkillsets(userId: number) {
+    deleteAllUserMods(userId: number) {
         return db.delete(usersMods).where(eq(usersMods.userId, userId))
     },
 
-    deleteAllUserMods(userId: number) {
+    deleteAllUserSkillsets(userId: number) {
         return db.delete(usersSkillsets).where(eq(usersSkillsets.userId, userId))
     },
 
