@@ -11,26 +11,52 @@ import type { Mapset, MappedPerformanceAttributes } from '@/types/osu.types'
 
 const log = false
 
-export async function setMapset(
-    mapsetModel: BeatmapsModel,
-    mapsetId: number,
-    raw = false,
-): Promise<Mapset | RawMapset> {
-    const res = await client.get('/beatmapsets/' + mapsetId)
-    const mapset: RawMapset = res.data
-
-    const result = mapMapset(mapset)
-    await mapsetModel.setMapset(result)
-
-    if (log) console.log(result)
-
-    return raw ? mapset : result
+type FetchMapsetConfig = {
+    raw?: boolean
+    saveInDB?: boolean
 }
 
-export async function getCalculatedBeatmap(calculatedBeatmapsModel: CalculatedBeatmapsModel, id: number) {
+export async function getMapset(
+    mapsetModel: BeatmapsModel,
+    mapsetId: number,
+    config: FetchMapsetConfig = {},
+): Promise<Mapset | RawMapset | null> {
+    try {
+        const res = await client.get('/beatmapsets/' + mapsetId)
+        const mapset: RawMapset = res.data
+
+        const result = mapMapset(mapset)
+
+        if (config.saveInDB) await mapsetModel.setMapset(result)
+
+        if (log) console.log(result)
+
+        return config.raw ? mapset : result
+    } catch (err: unknown) {
+        if (hasField(err, 'status') && err.status === 404) {
+            mapsetModel.setNonexistentMapset(mapsetId)
+            return null
+        }
+
+        throw new AppError(`Failed to fetch mapset ${mapsetId}`, { code: 'FETCH_MAPSET_FAILED' })
+    }
+}
+
+function hasField<K extends PropertyKey>(
+    value: unknown,
+    fieldName: K,
+): value is Record<K, unknown> {
+    return typeof value === 'object' && value !== null && fieldName in value
+}
+
+export async function getCalculatedBeatmap(
+    calculatedBeatmapsModel: CalculatedBeatmapsModel,
+    id: number,
+) {
     const structure = await getBeatmapStructure(id)
     const res = await getCalculatedBeatmapPerformance(id, structure)
     const mappedRes: MappedPerformanceAttributes = mapCalculatedBeatmap(res)
+    //TODO: Replace this mock with valid mapset id
     const mapsetId = 2559253
     await calculatedBeatmapsModel.setBeatmap(mappedRes, id, mapsetId)
     console.log(mappedRes)

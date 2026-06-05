@@ -1,5 +1,9 @@
 import { sql } from 'drizzle-orm'
-import { mapsets, mapsetsBeatmaps } from '../db/schemas/schema'
+import {
+    mapsets,
+    mapsetsBeatmaps,
+    nonexistentMapsets,
+} from '../db/schemas/schema'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { Mapset } from '@/types/osu.types'
 
@@ -76,4 +80,12 @@ export const beatmapsModel = (db: DBExecutor) => ({
             return mapset
         })
     },
+
+    setNonexistentMapset(id: number) {
+        return db
+            .insert(nonexistentMapsets)
+            .values({ mapset_id: id })
+            .onConflictDoNothing()
+            .returning()
+    }
 })

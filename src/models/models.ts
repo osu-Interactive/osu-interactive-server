@@ -7,7 +7,7 @@ import { surveyModel } from '@/models/survey.model'
 export function buildModels(db: DB) {
     return {
         user: userModel(db),
-        mapset: beatmapsModel(db),
+        beatmap: beatmapsModel(db),
         calculatedBeatmap: calculatedBeatmapsModel(db),
         survey: surveyModel(db),
     }
