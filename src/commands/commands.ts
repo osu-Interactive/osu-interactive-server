@@ -4,6 +4,12 @@ import mapsetsCollector from '@/utils/scripts/mapsets-collector'
 import { getCalculatedBeatmap } from '@/services/osu/beatmaps.service'
 
 const commands = (app: FastifyInstance) => ({
+    help() {
+        console.log(
+            Object.keys(commands(app)).filter(cmd => cmd !== 'help')
+        )
+    },
+
     async 'execute-sql'(operation: string) {
         const result = await app.db.execute(sql.raw(operation))
         result.rows ? console.log(result.rows) : console.log(result)
