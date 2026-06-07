@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sql } from 'drizzle-orm'
 import mapsetsCollector from '@/utils/scripts/mapsets-collector'
+import beatmapsCalculator from '@/utils/scripts/beatmap-calculator'
 import { getCalculatedBeatmap } from '@/services/osu/beatmaps.service'
 
 const commands = (app: FastifyInstance) => ({
@@ -24,8 +25,22 @@ const commands = (app: FastifyInstance) => ({
     },
 
     async 'get-calc-bm'(id: number) {
-        await getCalculatedBeatmap(app.models.calculatedBeatmap, id)
-    }
+        await getCalculatedBeatmap(app.models.calculatedBeatmap, id, 10000)
+    },
+
+    async 'run-calc-bms'(
+        amount: number,
+        startId: number,
+        extraCondition: string | null = null,
+    ) {
+        await beatmapsCalculator.runCalculation(
+            app.models.beatmap,
+            app.models.calculatedBeatmap,
+            amount,
+            startId,
+            extraCondition,
+        )
+    },
 })
 
 export default commands

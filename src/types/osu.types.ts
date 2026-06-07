@@ -122,3 +122,9 @@ export type OsuPerformanceDifficulty = {
 export type MappedPerformanceAttributes = ReturnType<
     typeof mapCalculatedBeatmap
 >
+
+export type BeatmapsSearchExtraCondition = {
+    field: string
+    condition: string
+    value: string | number
+}[]

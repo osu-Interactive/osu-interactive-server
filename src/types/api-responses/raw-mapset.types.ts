@@ -134,7 +134,7 @@ export interface Beatmap {
     current_user_tag_ids?: number[]
 
     failtimes?: Failtimes
-    max_combo?: number
+    max_combo?: number | null
 
     owners?: BeatmapOwner[]
     top_tag_ids?: number[]

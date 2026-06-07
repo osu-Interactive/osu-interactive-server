@@ -1,11 +1,12 @@
-import { sql } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import {
+    calculatedBeatmaps,
     mapsets,
     mapsetsBeatmaps,
     nonexistentMapsets,
 } from '../db/schemas/schema'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
-import type { Mapset } from '@/types/osu.types'
+import type { BeatmapsSearchExtraCondition, Mapset } from '@/types/osu.types'
 
 export type BeatmapsModel = ReturnType<typeof beatmapsModel>
 
@@ -87,5 +88,39 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .values({ mapset_id: id })
             .onConflictDoNothing()
             .returning()
-    }
+    },
+
+    async getBeatmapsBaseOnCalculation(
+        calculated: boolean,
+        extraConditions: BeatmapsSearchExtraCondition | null = null,
+    ) {
+        const conditions = [
+            calculated
+                ? isNotNull(calculatedBeatmaps.beatmap_id)
+                : isNull(calculatedBeatmaps.beatmap_id),
+        ]
+
+        if (extraConditions !== null) {
+            for (const condition of extraConditions) {
+                conditions.push(
+                    sql.raw(
+                        `mapsets_beatmaps.${condition.field} ${condition.condition} '${condition.value}'`,
+                    ),
+                )
+            }
+        }
+
+        return db
+            .select({
+                beatmap_id: mapsetsBeatmaps.beatmap_id,
+                mapset_id: mapsetsBeatmaps.mapset_id,
+            })
+            .from(mapsetsBeatmaps)
+            .leftJoin(
+                calculatedBeatmaps,
+                eq(mapsetsBeatmaps.beatmap_id, calculatedBeatmaps.beatmap_id),
+            )
+
+            .where(and(...conditions, isNotNull(mapsetsBeatmaps.max_combo)))
+    },
 })

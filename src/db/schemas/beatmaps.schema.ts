@@ -21,13 +21,13 @@ export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {
     mode: text('mode', {
         enum: ['osu', 'taiko', 'fruits', 'mania'],
     }).notNull(),
+    difficulty_rating: real('difficulty_rating').notNull(),
     status: text('status').notNull(),
-    max_combo: integer('max_combo').notNull(),
+    max_combo: integer('max_combo'),
     accuracy: real('accuracy').notNull(),
     ar: real('ar').notNull(),
     bpm: real('bpm').notNull(),
     cs: real('cs').notNull(),
-    difficulty_rating: real('difficulty_rating').notNull(),
     drain: real('drain').notNull(),
 
     created_at: timestamp('created_at').defaultNow().notNull(),

@@ -16,29 +16,36 @@ type FetchMapsetConfig = {
     saveInDB?: boolean
 }
 
+//TODO: Decide what to do with broken mapsets like max_combo = null
 export async function getMapset(
     mapsetModel: BeatmapsModel,
     mapsetId: number,
     config: FetchMapsetConfig = {},
 ): Promise<Mapset | RawMapset | null> {
+    const { raw = false, saveInDB = true } = config
     try {
         const res = await client.get('/beatmapsets/' + mapsetId)
         const mapset: RawMapset = res.data
 
         const result = mapMapset(mapset)
 
-        if (config.saveInDB) await mapsetModel.setMapset(result)
+        if (saveInDB) await mapsetModel.setMapset(result)
 
         if (log) console.log(result)
 
-        return config.raw ? mapset : result
+        return raw ? mapset : result
     } catch (err: unknown) {
         if (hasField(err, 'status') && err.status === 404) {
             mapsetModel.setNonexistentMapset(mapsetId)
             return null
         }
 
-        throw new AppError(`Failed to fetch mapset ${mapsetId}`, { code: 'FETCH_MAPSET_FAILED' })
+        throw new AppError(`Failed to fetch mapset ${mapsetId}`, {
+            code: 'FETCH_MAPSET_FAILED',
+            details: {
+                statusCode: `${hasField(err, 'status') ? err.status : ''}`,
+            },
+        })
     }
 }
 
@@ -52,14 +59,12 @@ function hasField<K extends PropertyKey>(
 export async function getCalculatedBeatmap(
     calculatedBeatmapsModel: CalculatedBeatmapsModel,
     id: number,
+    mapsetId: number,
 ) {
     const structure = await getBeatmapStructure(id)
     const res = await getCalculatedBeatmapPerformance(id, structure)
     const mappedRes: MappedPerformanceAttributes = mapCalculatedBeatmap(res)
-    //TODO: Replace this mock with valid mapset id
-    const mapsetId = 2559253
     await calculatedBeatmapsModel.setBeatmap(mappedRes, id, mapsetId)
-    console.log(mappedRes)
 
     return mappedRes
 }
