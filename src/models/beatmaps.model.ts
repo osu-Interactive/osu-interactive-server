@@ -5,8 +5,10 @@ import {
     mapsetsBeatmaps,
     nonexistentMapsets,
 } from '../db/schemas/schema'
+import { getTableColumns } from 'drizzle-orm'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { BeatmapsSearchExtraCondition, Mapset } from '@/types/osu.types'
+import { AppError } from '@/errors/app-error'
 
 export type BeatmapsModel = ReturnType<typeof beatmapsModel>
 
@@ -94,21 +96,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         calculated: boolean,
         extraConditions: BeatmapsSearchExtraCondition | null = null,
     ) {
-        const conditions = [
-            calculated
-                ? isNotNull(calculatedBeatmaps.beatmap_id)
-                : isNull(calculatedBeatmaps.beatmap_id),
-        ]
-
-        if (extraConditions !== null) {
-            for (const condition of extraConditions) {
-                conditions.push(
-                    sql.raw(
-                        `mapsets_beatmaps.${condition.field} ${condition.condition} '${condition.value}'`,
-                    ),
-                )
-            }
-        }
+        const conditions = this.getConditions(calculated, extraConditions)
 
         return db
             .select({
@@ -122,5 +110,40 @@ export const beatmapsModel = (db: DBExecutor) => ({
             )
 
             .where(and(...conditions, isNotNull(mapsetsBeatmaps.max_combo)))
+    },
+
+    getConditions(
+        calculated: boolean,
+        extraConditions: BeatmapsSearchExtraCondition | null = null,
+    ) {
+        const fieldWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
+        const conditionWhitelist = ['>', '>=', '=', '<=', '<', '!=']
+
+        const conditions = [
+            calculated
+                ? isNotNull(calculatedBeatmaps.beatmap_id)
+                : isNull(calculatedBeatmaps.beatmap_id),
+        ]
+
+        if (extraConditions !== null) {
+            for (const condition of extraConditions) {
+                if (
+                    !fieldWhitelist.includes(condition.field) ||
+                    !conditionWhitelist.includes(condition.condition)
+                ) {
+                    throw new AppError('Extra conditions are invalid', {
+                        code: 'INVALID_EXTRA_CONDITIONS',
+                    })
+                }
+                conditions.push(
+                    sql`mapsets_beatmaps.
+                    ${sql.raw(condition.field)}
+                    ${sql.raw(condition.condition)}
+                    ${condition.value}`,
+                )
+            }
+        }
+
+        return conditions
     },
 })
