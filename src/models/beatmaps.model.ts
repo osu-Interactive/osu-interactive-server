@@ -18,28 +18,26 @@ const toDate = (value: string | null): Date | null => {
 
 export const beatmapsModel = (db: DBExecutor) => ({
     async setMapset(data: Mapset) {
+        const values = {
+            status: data.status,
+            ranked_date: toDate(data.ranked_date),
+            submitted_date: new Date(data.submitted_date),
+            bpm: Math.round(data.bpm),
+            title: data.title,
+            artist: data.artist,
+            creator: data.creator,
+        }
+
         return db.transaction(async (tx) => {
             const [mapset] = await tx
                 .insert(mapsets)
                 .values({
                     mapset_id: data.id,
-                    status: data.status,
-                    ranked_date: toDate(data.ranked_date),
-                    submitted_date: new Date(data.submitted_date),
-                    bpm: Math.round(data.bpm),
-                    title: data.title,
-                    creator: data.creator,
+                    ...values
                 })
                 .onConflictDoUpdate({
                     target: mapsets.mapset_id,
-                    set: {
-                        status: data.status,
-                        ranked_date: toDate(data.ranked_date),
-                        submitted_date: new Date(data.submitted_date),
-                        bpm: Math.round(data.bpm),
-                        title: data.title,
-                        creator: data.creator,
-                    },
+                    set: values,
                 })
                 .returning()
 

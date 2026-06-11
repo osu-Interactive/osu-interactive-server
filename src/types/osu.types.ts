@@ -55,13 +55,14 @@ export type DBUser = {
 
 export type Mapset = {
     id: number
+    title: string
+    artist: string
+    creator: string
     beatmaps: MapsetBeatmap[]
     status: string
     ranked_date: string | null
     submitted_date: string
     bpm: number
-    title: string
-    creator: string
 }
 
 export type MapsetBeatmap = {

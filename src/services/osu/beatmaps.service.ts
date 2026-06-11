@@ -23,8 +23,9 @@ export async function getMapset(
     config: FetchMapsetConfig = {},
 ): Promise<Mapset | RawMapset | null> {
     const { raw = false, saveInDB = true } = config
+
     try {
-        const res = await client.get('/beatmapsets/' + mapsetId)
+        const res = await  client.get('/beatmapsets/' + mapsetId)
         const mapset: RawMapset = res.data
 
         const result = mapMapset(mapset)

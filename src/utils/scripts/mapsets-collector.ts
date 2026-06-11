@@ -29,7 +29,9 @@ class MapsetsCollector {
             startId++
         }
 
-        console.log(`✅ Fetched ${fetchedCount} beatmapsets, fetching complete.`)
+        console.log(
+            `✅ Fetched ${fetchedCount} beatmapsets, fetching complete.`,
+        )
     }
 
     private scheduleRequestsReset(): void {
@@ -43,7 +45,10 @@ class MapsetsCollector {
         }, 1000)
     }
 
-    private async fetchBeatmapset(mapsetModel: BeatmapsModel, id: number): Promise<void> {
+    private async fetchBeatmapset(
+        mapsetModel: BeatmapsModel,
+        id: number,
+    ): Promise<void> {
         if (this.requestsThisMinute.count >= this.requestsLimit) {
             await this.waitForRateLimitReset()
         }
@@ -52,7 +57,11 @@ class MapsetsCollector {
 
         const res = await getMapset(mapsetModel, id, { raw: true })
 
-        console.log('🎵 Beatmapset fetched:', id, res)
+        console.log(
+            '🎵 Beatmapset fetched:',
+            id,
+            res ? [res.title, res.artist, res.creator, res.status].join(' | ') : res,
+        )
     }
 
     private async waitForRateLimitReset(): Promise<void> {

@@ -4,8 +4,9 @@ export const mapsets = pgTable('mapsets', {
     id: serial('id').primaryKey(),
 
     mapset_id: integer('mapset_id').notNull().unique(),
-    status: text('status').notNull(),
     title: text('title').notNull(),
+    artist: text('artist').notNull(),
+    status: text('status').notNull(),
     creator: text('creator').notNull(),
     bpm: integer('bpm').notNull(),
     ranked_date: timestamp('ranked_date'),

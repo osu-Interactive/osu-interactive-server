@@ -12,11 +12,15 @@ class OsuApiUserClient extends BaseOsuApiClient {
     }
 
     public async getUserDataFromOsuApi(userToken: string): Promise<OsuApiUser> {
-        const res = await axios.get<OsuApiUser>(`${this.baseUrl}/api/v2/me`, {
-            headers: {
-                Authorization: `Bearer ${userToken}`,
-            },
-        })
+        const res = await this.limiter.schedule(
+            { id: '[USER_CLIENT: GET /me]' },
+            () =>
+            axios.get<OsuApiUser>(`${this.baseUrl}/api/v2/me`, {
+                headers: {
+                    Authorization: `Bearer ${userToken}`,
+                },
+            }),
+        )
 
         return res.data
     }
@@ -35,7 +39,9 @@ class OsuApiUserClient extends BaseOsuApiClient {
             redirect_uri: `http://localhost:5173/login`,
         })
 
-        const res = await axios.post<OsuCodeGrantTokenResponse>(
+        const res = await this.limiter.schedule(
+            { id: '[USER_CLIENT: POST /oauth/token]' },
+            () => axios.post<OsuCodeGrantTokenResponse>(
             `${this.baseUrl}/oauth/token/`,
             params,
             {
@@ -44,7 +50,7 @@ class OsuApiUserClient extends BaseOsuApiClient {
                     Accept: 'application/json',
                 },
             },
-        )
+        ))
 
         return {
             token: res.data.access_token,

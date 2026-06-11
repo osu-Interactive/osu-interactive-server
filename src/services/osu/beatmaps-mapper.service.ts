@@ -14,6 +14,7 @@ import type { PerformanceAttributes } from 'rosu-pp-js'
 
 const allowedMapsetFields = [
     'id',
+    'artist',
     'beatmaps',
     'status',
     'ranked_date',
