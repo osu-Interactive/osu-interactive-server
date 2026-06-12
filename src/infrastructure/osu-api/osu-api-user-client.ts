@@ -1,6 +1,10 @@
 import axios from 'axios'
 import BaseOsuApiClient from './base-osu-api-client'
-import type { OsuAuthToken, OsuCodeGrantTokenResponse, OsuApiUser } from '../types/osu.types'
+import type {
+    OsuAuthToken,
+    OsuCodeGrantTokenResponse,
+    OsuApiUser,
+} from '@/types/osu.types'
 
 class OsuApiUserClient extends BaseOsuApiClient {
     public constructor() {
@@ -8,38 +12,45 @@ class OsuApiUserClient extends BaseOsuApiClient {
     }
 
     public async getUserDataFromOsuApi(userToken: string): Promise<OsuApiUser> {
-        const res = await axios.get<OsuApiUser>(
-            `${this.baseUrl}/api/v2/me`,
-            {
+        const res = await this.limiter.schedule(
+            { id: '[USER_CLIENT: GET /api/v2/me]' },
+            () =>
+            axios.get<OsuApiUser>(`${this.baseUrl}/api/v2/me`, {
                 headers: {
                     Authorization: `Bearer ${userToken}`,
                 },
-            }
+            }),
         )
 
         return res.data
     }
 
-    public async fetchAccessTokenCodeGrant(userOsuApiCode: string): Promise<OsuAuthToken> {
+    //TODO: Response with dynamic redirect url
+    //TODO: Handle if too many requests
+    public async fetchAccessTokenCodeGrant(
+        userOsuApiCode: string,
+    ): Promise<OsuAuthToken> {
         const params = new URLSearchParams({
             client_id: this.clientId,
             client_secret: this.clientSecret,
             code: userOsuApiCode,
-            grant_type: "authorization_code",
-            scope: "public",
+            grant_type: 'authorization_code',
+            scope: 'public',
             redirect_uri: `http://localhost:5173/login`,
-        });
+        })
 
-        const res = await axios.post<OsuCodeGrantTokenResponse>(
+        const res = await this.limiter.schedule(
+            { id: '[USER_CLIENT: POST /oauth/token]' },
+            () => axios.post<OsuCodeGrantTokenResponse>(
             `${this.baseUrl}/oauth/token/`,
             params,
             {
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    Accept: "application/json",
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Accept: 'application/json',
                 },
-            }
-        );
+            },
+        ))
 
         return {
             token: res.data.access_token,
