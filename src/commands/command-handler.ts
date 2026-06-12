@@ -2,8 +2,52 @@ import readline from 'node:readline'
 import type { FastifyInstance } from 'fastify'
 import Commands from './commands'
 
-function isCommand(cmd: string, commands: ReturnType<typeof Commands>): cmd is keyof typeof commands {
-    return cmd in commands
+const COMMAND_PREFIX = '/'
+
+export function initCommands(app: FastifyInstance) {
+    const commands = Commands(app)
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false,
+    })
+
+    rl.on('line', async (input: string) => {
+        let args: string[]
+
+        try {
+            args = parseCommandArgs(input)
+        } catch (error) {
+            console.error(`Invalid command syntax: ${(error as Error).message}`)
+            return
+        }
+
+        const rawCommand = args[0]
+        if (!rawCommand) return
+
+        if (!rawCommand.startsWith(COMMAND_PREFIX)) return
+
+        const command = rawCommand.slice(COMMAND_PREFIX.length)
+        if (!command) return
+
+        const commandArgs: (string | number)[] = args.slice(1).map(parseCommandArgValue)
+
+        if (!isCommand(command, commands)) {
+            console.log(`Unknown command: ${command}`)
+            return
+        }
+
+        const handler = commands[command]
+
+        try {
+            await (handler as (...args: (string | number)[]) => Promise<void>)(...commandArgs)
+        } catch (error) {
+            console.error(`Command "${command}" failed:`, error)
+        }
+    })
+
+    return rl
 }
 
 function parseCommandArgs(input: string) {
@@ -72,6 +116,10 @@ function parseCommandArgs(input: string) {
     return args
 }
 
+function isCommand(cmd: string, commands: ReturnType<typeof Commands>): cmd is keyof typeof commands {
+    return cmd in commands
+}
+
 function parseCommandArgValue(arg: string) {
     if (!arg.trim()) {
         return arg
@@ -79,49 +127,4 @@ function parseCommandArgValue(arg: string) {
 
     const num = Number(arg)
     return isNaN(num) ? arg : num
-}
-
-export function initCommands(app: FastifyInstance) {
-    const commands = Commands(app)
-
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        terminal: false,
-    })
-
-    rl.on('line', async (input: string) => {
-        let args: string[]
-
-        try {
-            args = parseCommandArgs(input)
-        } catch (error) {
-            console.error(`Invalid command syntax: ${(error as Error).message}`)
-            return
-        }
-
-        const rawCommand = args[0]
-        const command = rawCommand?.startsWith('/')
-            ? rawCommand.slice(1)
-            : rawCommand
-
-        const commandArgs: (string | number)[] = args.slice(1).map(parseCommandArgValue)
-
-        if (!command) return
-
-        if (!isCommand(command, commands)) {
-            console.log(`Unknown command: ${command}`)
-            return
-        }
-
-        const handler = commands[command]
-
-        try {
-            await (handler as (...args: (string | number)[]) => Promise<void>)(...commandArgs)
-        } catch (error) {
-            console.error(`Command "${command}" failed:`, error)
-        }
-    })
-
-    return rl
 }
