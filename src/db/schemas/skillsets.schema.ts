@@ -6,5 +6,7 @@ export const skillsets = pgTable('skillsets', {
     code: varchar('code', { length: 32 }).notNull(),
 
     name: varchar('name', { length: 64 }).notNull(),
+
+    category: varchar('category').notNull(),
 })
 
