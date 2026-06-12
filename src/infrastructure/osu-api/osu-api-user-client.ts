@@ -13,7 +13,7 @@ class OsuApiUserClient extends BaseOsuApiClient {
 
     public async getUserDataFromOsuApi(userToken: string): Promise<OsuApiUser> {
         const res = await this.limiter.schedule(
-            { id: '[USER_CLIENT: GET /me]' },
+            { id: '[USER_CLIENT: GET /api/v2/me]' },
             () =>
             axios.get<OsuApiUser>(`${this.baseUrl}/api/v2/me`, {
                 headers: {

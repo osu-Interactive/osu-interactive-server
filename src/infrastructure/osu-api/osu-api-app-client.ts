@@ -15,7 +15,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
     public get<T = any>(endpoint: string): Promise<AxiosResponse<T>> {
         return this.authorizedRequest((token) => {
             return this.limiter.schedule(
-                { id: `[APP_CLIENT: GET ${endpoint}]` },
+                { id: `[APP_CLIENT: GET /api/v2${endpoint}]` },
                 () =>
                     axios.get<T>(this.baseUrl + '/api/v2' + endpoint, {
                         headers: {
@@ -33,7 +33,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
     ): Promise<AxiosResponse<T>> {
         return this.authorizedRequest((token) => {
             return this.limiter.schedule(
-                { id: `[APP_CLIENT: POST ${endpoint}]` },
+                { id: `[APP_CLIENT: POST /api${endpoint}]` },
                 () =>
                     axios.post<T>(this.baseUrl + '/api' + endpoint, data, {
                         headers: {

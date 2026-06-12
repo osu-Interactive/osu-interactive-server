@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance } from 'fastify'
-import OsuApiAppClient from '../integrations/osu/osu-api-app-client'
+import OsuApiAppClient from '@/infrastructure/osu-api/osu-api-app-client'
 
 declare module 'fastify' {
     interface FastifyInstance {

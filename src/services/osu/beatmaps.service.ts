@@ -1,8 +1,9 @@
-import client from '@/integrations/osu/osu-api-app-client'
+import client from '@/infrastructure/osu-api/osu-api-app-client'
 import { mapMapset, mapCalculatedBeatmap } from './beatmaps-mapper.service'
 import rosu, { type PerformanceAttributes } from 'rosu-pp-js'
 import axios from 'axios'
 import { AppError } from '@/errors/app-error'
+import { osuApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
@@ -25,7 +26,7 @@ export async function getMapset(
     const { raw = false, saveInDB = true } = config
 
     try {
-        const res = await  client.get('/beatmapsets/' + mapsetId)
+        const res = await client.get('/beatmapsets/' + mapsetId)
         const mapset: RawMapset = res.data
 
         const result = mapMapset(mapset)
@@ -71,9 +72,13 @@ export async function getCalculatedBeatmap(
 }
 
 async function getBeatmapStructure(id: number): Promise<string> {
-    const response = await axios.get(`https://osu.ppy.sh/osu/${id}`, {
+    const response = await osuApiLimiter.schedule(
+        {
+            id: `[BM_STRUCTURE_FETCH: GET /osu/${id}]`,
+        },
+        () => axios.get(`https://osu.ppy.sh/osu/${id}`, {
         responseType: 'text',
-    })
+    }))
 
     const beatmapStructure: unknown = response.data
 
