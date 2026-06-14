@@ -1,4 +1,4 @@
-import { mapCalculatedBeatmap } from '@/services/osu/beatmaps-mapper.service'
+import { mapCalculatedBeatmap } from '@/services/private/osu/beatmaps-mapper.service'
 
 export type OsuAuthToken = {
     token: string

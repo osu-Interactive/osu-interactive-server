@@ -1,6 +1,6 @@
 import axios from 'axios'
 import rosu, { PerformanceAttributes } from 'rosu-pp-js'
-import { mapCalculatedBeatmap } from '@/services/osu/beatmaps-mapper.service'
+import { mapCalculatedBeatmap } from '@/services/private/osu/beatmaps-mapper.service'
 import { osuApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
 import { AppError } from '@/errors/app-error'
 import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'

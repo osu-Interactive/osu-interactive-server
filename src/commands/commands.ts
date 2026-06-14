@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import mapsetsCollector from '@/utils/scripts/mapsets-collector'
 import beatmapsCalculator from '@/utils/scripts/beatmap-calculator'
-import { getCalculatedBeatmap } from '@/services/osu/calculated-beatmaps.service'
+import { getCalculatedBeatmap } from '@/services/calculated-beatmaps.service'
 
 import type { FastifyInstance } from 'fastify'
 

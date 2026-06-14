@@ -1,5 +1,5 @@
 import osuApiAppClient from '@/infrastructure/osu-api/osu-api-app-client'
-import { mapMapset } from './beatmaps-mapper.service'
+import { mapMapset } from './private/osu/beatmaps-mapper.service'
 import { AppError } from '@/errors/app-error'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'

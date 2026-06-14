@@ -1,4 +1,4 @@
-import { getMapset } from '@/services/osu/beatmaps.service'
+import { getMapset } from '@/services/beatmaps.service'
 import { BeatmapsModel } from '@/models/beatmaps.model'
 
 class MapsetsCollector {
