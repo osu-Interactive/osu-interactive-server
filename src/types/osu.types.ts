@@ -65,18 +65,25 @@ export type Mapset = {
     bpm: number
 }
 
-export type MapsetBeatmap = {
+export type MappedBeatmap = {
     id: number
     mapset_id: number
-    status: string
-    accuracy: number
-    ar: number
-    bpm: number
-    cs: number
-    difficulty_rating: number
-    drain: number
-    max_combo: number
     mode: 'osu' | 'taiko' | 'fruits' | 'mania'
+    status: string
+    difficulty_rating: number
+    bpm: number
+    max_combo: number
+    ar: number
+    cs: number
+    accuracy: number
+    drain: number
+}
+
+export type MapsetBeatmap = Omit<MappedBeatmap, 'accuracy' | 'difficulty_rating' | 'max_combo' | 'drain'> & {
+    stars: number
+    od: number
+    hp: number
+    combo: number
 }
 
 export type OsuPerformanceAttributes = {

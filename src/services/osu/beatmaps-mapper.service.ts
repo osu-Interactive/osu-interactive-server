@@ -1,14 +1,12 @@
 import type {
+    MappedBeatmap,
     Mapset,
     MapsetBeatmap,
     OsuPerformanceAttributes,
-    OsuPerformanceDifficulty,
+    OsuPerformanceDifficulty
 } from '@/types/osu.types'
 
-import type {
-    Mapset as RawMapset,
-    Beatmap as RawBeatmap,
-} from '@/types/api-responses/raw-mapset.types'
+import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'
 
 import type { PerformanceAttributes } from 'rosu-pp-js'
 
@@ -88,12 +86,21 @@ export const mapMapset = (rawMapset: RawMapset): Mapset => {
 }
 
 export const mapMapsetBeatmap = (rawBeatmap: RawBeatmap): MapsetBeatmap => {
-    const beatmap = pickFields<MapsetBeatmap>(rawBeatmap, allowedBeatmapFields)
+    const beatmap = pickFields<MappedBeatmap>(rawBeatmap, allowedBeatmapFields)
 
     beatmap.mapset_id = rawBeatmap.beatmapset_id
     beatmap.difficulty_rating = round(beatmap.difficulty_rating, 2)
 
-    return beatmap
+    return renameBeatmap(beatmap)
+}
+
+const renameBeatmap = (beatmap: MappedBeatmap): MapsetBeatmap => {
+    return renameKeys(beatmap, {
+        difficulty_rating: 'stars',
+        accuracy: 'od',
+        drain: 'hp',
+        max_combo: 'combo',
+    }) as MapsetBeatmap
 }
 
 /**
@@ -135,6 +142,22 @@ const pickFields = <T extends object>(
     }
 
     return result as T
+}
+
+function renameKeys<
+    T extends Record<string, any>,
+    R extends Record<string, string>
+>(
+    obj: T,
+    mapping: R,
+) {
+    const result: Record<string, any> = {}
+
+    for (const key in obj) {
+        result[mapping[key] ?? key] = obj[key]
+    }
+
+    return result
 }
 
 const roundFloat = (value: unknown) =>

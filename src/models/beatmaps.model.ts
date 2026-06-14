@@ -33,7 +33,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
                 .insert(mapsets)
                 .values({
                     mapset_id: data.id,
-                    ...values
+                    ...values,
                 })
                 .onConflictDoUpdate({
                     target: mapsets.mapset_id,
@@ -45,15 +45,15 @@ export const beatmapsModel = (db: DBExecutor) => ({
                 const beatmapRows = data.beatmaps.map((beatmap) => ({
                     beatmap_id: beatmap.id,
                     mapset_id: data.id,
-                    status: data.status,
-                    accuracy: beatmap.accuracy,
-                    ar: beatmap.ar,
-                    bpm: beatmap.bpm,
-                    cs: beatmap.cs,
-                    difficulty_rating: beatmap.difficulty_rating,
-                    drain: beatmap.drain,
-                    max_combo: beatmap.max_combo,
                     mode: beatmap.mode,
+                    status: data.status,
+                    stars: beatmap.stars,
+                    bpm: beatmap.bpm,
+                    combo: beatmap.combo,
+                    ar: beatmap.ar,
+                    cs: beatmap.cs,
+                    od: beatmap.od,
+                    hp: beatmap.hp,
                 }))
 
                 await tx
@@ -63,17 +63,15 @@ export const beatmapsModel = (db: DBExecutor) => ({
                         target: mapsetsBeatmaps.beatmap_id,
                         set: {
                             mapset_id: sql.raw('excluded.mapset_id'),
-                            status: sql.raw('excluded.status'),
-                            accuracy: sql.raw('excluded.accuracy'),
-                            ar: sql.raw('excluded.ar'),
-                            bpm: sql.raw('excluded.bpm'),
-                            cs: sql.raw('excluded.cs'),
-                            difficulty_rating: sql.raw(
-                                'excluded.difficulty_rating',
-                            ),
-                            drain: sql.raw('excluded.drain'),
-                            max_combo: sql.raw('excluded.max_combo'),
                             mode: sql.raw('excluded.mode'),
+                            status: sql.raw('excluded.status'),
+                            stars: sql.raw('excluded.stars'),
+                            bpm: sql.raw('excluded.bpm'),
+                            combo: sql.raw('excluded.combo'),
+                            ar: sql.raw('excluded.ar'),
+                            cs: sql.raw('excluded.cs'),
+                            od: sql.raw('excluded.od'),
+                            hp: sql.raw('excluded.hp'),
                         },
                     })
             }
@@ -107,7 +105,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
                 eq(mapsetsBeatmaps.beatmap_id, calculatedBeatmaps.beatmap_id),
             )
 
-            .where(and(...conditions, isNotNull(mapsetsBeatmaps.max_combo)))
+            .where(and(...conditions, isNotNull(mapsetsBeatmaps.combo)))
     },
 
     getConditions(
