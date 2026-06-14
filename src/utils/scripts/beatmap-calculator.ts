@@ -1,4 +1,4 @@
-import { getCalculatedBeatmap } from '@/services/osu/beatmaps.service'
+import { getCalculatedBeatmap } from '@/services/osu/calculated-beatmaps.service'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
 import type { BeatmapsSearchExtraCondition } from '@/types/osu.types'

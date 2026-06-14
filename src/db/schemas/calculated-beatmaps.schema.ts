@@ -8,14 +8,19 @@ import {
     timestamp,
     doublePrecision,
 } from 'drizzle-orm/pg-core'
-import { mapsets } from '@/db/schemas/mapsets.schema'
+import { mapsets, mapsetsBeatmaps } from '@/db/schemas/schema'
 
 export const calculatedBeatmaps = pgTable(
     'calculated_beatmaps',
     {
         id: serial('id').primaryKey(),
 
-        beatmap_id: integer('beatmap_id').notNull().unique(),
+        beatmap_id: integer('beatmap_id')
+            .notNull()
+            .references(() => mapsetsBeatmaps.beatmap_id, {
+                onDelete: 'cascade',
+            })
+            .unique(),
 
         mapset_id: integer('mapset_id')
             .notNull()

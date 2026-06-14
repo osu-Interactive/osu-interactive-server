@@ -26,7 +26,6 @@ class OsuApiUserClient extends BaseOsuApiClient {
     }
 
     //TODO: Response with dynamic redirect url
-    //TODO: Handle if too many requests
     public async fetchAccessTokenCodeGrant(
         userOsuApiCode: string,
     ): Promise<OsuAuthToken> {
