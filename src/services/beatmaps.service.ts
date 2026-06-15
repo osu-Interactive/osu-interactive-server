@@ -1,8 +1,8 @@
-import osuApiAppClient from '@/infrastructure/osu-api/osu-api-app-client'
+import client from '@/infrastructure/osu-api/osu-api-app-client'
 import { mapMapset } from './private/osu/beatmaps-mapper.service'
 import { AppError } from '@/errors/app-error'
 
-import type { Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'
+import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { Mapset } from '@/types/osu.types'
 
@@ -22,7 +22,7 @@ export async function getMapset(
     const { raw = false, saveInDB = true } = config
 
     try {
-        const res = await osuApiAppClient.get('/beatmapsets/' + mapsetId)
+        const res = await client.get('/beatmapsets/' + mapsetId)
         const mapset: RawMapset = res.data
 
         const result = mapMapset(mapset)

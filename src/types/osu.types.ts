@@ -69,7 +69,6 @@ export type MappedBeatmap = {
     id: number
     mapset_id: number
     mode: 'osu' | 'taiko' | 'fruits' | 'mania'
-    status: string
     difficulty_rating: number
     bpm: number
     max_combo: number

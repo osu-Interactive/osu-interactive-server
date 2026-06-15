@@ -1,3 +1,5 @@
+import { pickFields, renameKeys } from '@/utils/object'
+
 import type {
     MappedBeatmap,
     Mapset,
@@ -6,7 +8,7 @@ import type {
     OsuPerformanceDifficulty
 } from '@/types/osu.types'
 
-import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/types/api-responses/raw-mapset.types'
+import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 
 import type { PerformanceAttributes } from 'rosu-pp-js'
 
@@ -76,20 +78,21 @@ const allowedDifficultyFields = [
 ] as const
 
 export const mapMapset = (rawMapset: RawMapset): Mapset => {
-    const mapset = pickFields<Mapset>(rawMapset, allowedMapsetFields)
-
-    if (Array.isArray(rawMapset.beatmaps)) {
-        mapset.beatmaps = rawMapset.beatmaps.map(mapMapsetBeatmap)
+    return {
+        ...pickFields(rawMapset, allowedMapsetFields),
+        beatmaps: Array.isArray(rawMapset.beatmaps)
+            ? rawMapset.beatmaps.map(mapMapsetBeatmap)
+            : [],
     }
-
-    return mapset
 }
 
 export const mapMapsetBeatmap = (rawBeatmap: RawBeatmap): MapsetBeatmap => {
-    const beatmap = pickFields<MappedBeatmap>(rawBeatmap, allowedBeatmapFields)
-
-    beatmap.mapset_id = rawBeatmap.beatmapset_id
-    beatmap.difficulty_rating = round(beatmap.difficulty_rating, 2)
+    const beatmap: MappedBeatmap = {
+        ...pickFields(rawBeatmap, allowedBeatmapFields),
+        mapset_id: rawBeatmap.beatmapset_id,
+        difficulty_rating: round(rawBeatmap.difficulty_rating, 2),
+        max_combo: rawBeatmap.max_combo ?? 0,
+    }
 
     return renameBeatmap(beatmap)
 }
@@ -123,41 +126,6 @@ export const mapCalculatedBeatmap = (
     )
 
     return beatmap
-}
-
-// Keeps only fields from the allowlist and returns a shallow copy.
-type ValueMapper = (value: unknown) => unknown
-
-const pickFields = <T extends object>(
-    obj: any,
-    fields: readonly string[],
-    mapValue: ValueMapper = (value) => value,
-): T => {
-    const result: Record<string, unknown> = {}
-
-    for (const field of fields) {
-        if (field in obj) {
-            result[field] = mapValue(obj[field])
-        }
-    }
-
-    return result as T
-}
-
-function renameKeys<
-    T extends Record<string, any>,
-    R extends Record<string, string>
->(
-    obj: T,
-    mapping: R,
-) {
-    const result: Record<string, any> = {}
-
-    for (const key in obj) {
-        result[mapping[key] ?? key] = obj[key]
-    }
-
-    return result
 }
 
 const roundFloat = (value: unknown) =>
