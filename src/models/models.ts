@@ -3,12 +3,14 @@ import { userModel } from './user.model'
 import { beatmapsModel } from './beatmaps.model'
 import { calculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
 import { surveyModel } from '@/models/survey.model'
+import { tagsModel } from '@/models/tags.model'
 
 export function buildModels(db: DB) {
     return {
         user: userModel(db),
         beatmap: beatmapsModel(db),
         calculatedBeatmap: calculatedBeatmapsModel(db),
+        tags: tagsModel(db),
         survey: surveyModel(db),
     }
 }

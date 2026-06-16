@@ -6,6 +6,7 @@ import cookie from '@fastify/cookie'
 import osuApiPlugin from './plugins/osu-api.plugin'
 import dbPlugin from './plugins/db.plugin'
 import modelsPlugin from './plugins/models.plugin'
+import initTagsPlugin from '@/plugins/init-tags.plugin'
 import authPlugin from './plugins/auth.plugin'
 import authTokensPlugin from './plugins/auth-tokens.plugin'
 import errorPlugin from './plugins/error.plugin'
@@ -28,11 +29,13 @@ export async function buildApp() {
     await app.register(dbPlugin)
     await app.register(osuApiPlugin)
     await app.register(modelsPlugin)
+    await app.register(initTagsPlugin)
     await app.register(authTokensPlugin)
     await app.register(successResponsePlugin)
     await app.register(routes)
     initCommands(app)
 
+    console.log('Application is ready')
 
     return app
 }

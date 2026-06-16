@@ -1,9 +1,9 @@
-import { pgTable, serial, varchar } from 'drizzle-orm/pg-core'
+import { pgTable, serial, text } from 'drizzle-orm/pg-core'
 
 export const mods = pgTable('mods', {
     id: serial('id').primaryKey(),
 
-    code: varchar('code', { length: 32 }).notNull(),
+    code: text('code').unique().notNull(),
 
-    name: varchar('name', { length: 64 }).notNull(),
+    name: text('name').notNull(),
 })

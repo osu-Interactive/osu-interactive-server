@@ -4,9 +4,9 @@ import { AppError } from '@/errors/app-error'
 
 type SurveyModelFactory = (db: DBExecutor) => ReturnType<typeof surveyModel>
 
-interface SurveyResult {
-    skillsets: number[]
-    mods: number[]
+type SurveyResult = {
+    skillsetsIds: number[]
+    modsIds: number[]
 }
 
 export class SurveyService {
@@ -15,15 +15,15 @@ export class SurveyService {
         private readonly makeSurveyModel: SurveyModelFactory = surveyModel,
     ) {}
 
-    async save(userId: number, survey: SurveyResult) {
+    public async save(userId: number, survey: SurveyResult) {
         const errors: Record<string, string> = {}
 
-        if (!Array.isArray(survey.skillsets)) {
-            errors.skillsets = 'skillsets must be an array'
+        if (!Array.isArray(survey?.skillsetsIds)) {
+            errors.skillsets = 'skillsetsIds must be an array'
         }
 
-        if (!Array.isArray(survey.mods)) {
-            errors.mods = 'mods must be an array'
+        if (!Array.isArray(survey?.modsIds)) {
+            errors.mods = 'modsIds must be an array'
         }
 
         if (Object.keys(errors).length > 0) {
@@ -36,8 +36,8 @@ export class SurveyService {
             await surveyModel.deleteAllUserSkillsets(userId)
             await surveyModel.deleteAllUserMods(userId)
 
-            if (survey.mods.length > 0) {
-                const userMods: any = survey.mods.map((modId) => ({
+            if (survey.modsIds.length > 0) {
+                const userMods = survey.modsIds.map((modId) => ({
                     userId,
                     modId,
                 }))
@@ -45,13 +45,11 @@ export class SurveyService {
                 await surveyModel.insertUserMods(userMods)
             }
 
-            if (survey.skillsets.length > 0) {
-                const userSkillsets: any = survey.skillsets.map(
-                    (skillsetId) => ({
-                        userId,
-                        skillsetId,
-                    }),
-                )
+            if (survey.skillsetsIds.length > 0) {
+                const userSkillsets = survey.skillsetsIds.map((skillsetId) => ({
+                    userId,
+                    skillsetId,
+                }))
 
                 await surveyModel.insertUserSkillsets(userSkillsets)
             }
