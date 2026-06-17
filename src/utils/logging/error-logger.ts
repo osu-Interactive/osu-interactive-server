@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { stringify } from 'safe-stable-stringify'
 
 const logPath = path.join(__dirname, '../../../logs/error.log');
 const maxLogSizeBytes = 50 * 1024 * 1024
@@ -44,7 +45,7 @@ function formatError(error: unknown, indent = 0): string {
     const pad = ' '.repeat(indent)
 
     if (!(error instanceof Error)) {
-        return pad + JSON.stringify(error, null, 2)
+        return pad + stringify(error)
     }
 
     const { base, cause } = extractError(error)
@@ -62,7 +63,7 @@ function formatError(error: unknown, indent = 0): string {
 
         result += `${pad}${key}: ${
             typeof value === 'object'
-                ? JSON.stringify(value, null, 2)
+                ? stringify(value)
                 : String(value)
         }\n`
     })
