@@ -9,6 +9,7 @@ export * from './skillsets.schema'
 export * from './users-mods.schema'
 export * from './users-skillsets.schema'
 export * from './nonexistent_mapsets.schema'
+export * from './beatmap-skillsets.schema'
 
 export * from './quests.schema'
 export * from './quest-mods.schema'
