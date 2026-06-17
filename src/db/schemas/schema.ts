@@ -9,3 +9,8 @@ export * from './skillsets.schema'
 export * from './users-mods.schema'
 export * from './users-skillsets.schema'
 export * from './nonexistent_mapsets.schema'
+
+export * from './quests.schema'
+export * from './quest-mods.schema'
+export * from './quest-skillsets.schema'
+export * from './quest-categories.schema'
