@@ -12,24 +12,26 @@ export default (tagsModel: TagsModel) => ({
     },
 
     async setMods() {
-        const modNames = Object.entries(modsSeed).map(([code, value]) => ({
+        const modNames = Object.values(modsSeed).map(({ name, code }) => ({
+            name,
             code,
-            name: value.name,
         }))
-        await tagsModel.setMods(modNames)
+        await tagsModel.replaceMods(modNames)
 
         console.log(`[Tags] Loaded ${modNames.length} mods`)
     },
 
     async setSkillsets() {
-        const skillsetsNames = Object.entries(skillsetsSeed).map(([code, value]) => ({
-            code,
-            name: value.name,
-            surveyDescription: value.surveyDescription,
-        }))
+        const skillsetsNames = Object.values(skillsetsSeed).map(
+            ({ name, code, surveyDescription }) => ({
+                name,
+                code,
+                surveyDescription,
+            }),
+        )
 
-        await tagsModel.setSkillsets(skillsetsNames)
+        await tagsModel.replaceSkillsets(skillsetsNames)
 
         console.log(`[Tags] Loaded ${skillsetsNames.length} skillsets`)
-    }
+    },
 })

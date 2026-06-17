@@ -1,17 +1,21 @@
-export const modsSeed = {
-    HD: {
-        name: 'HD',
+export const modsSeed = [
+    {
+        name: 'hd',
+        code: 'HD',
     },
 
-    HR: {
-        name: 'HR',
+    {
+        name: 'hr',
+        code: 'HR',
     },
 
-    DT: {
-        name: 'DT',
+    {
+        name: 'dt',
+        code: 'DT',
     },
 
-    EZ: {
-        name: 'EZ',
+    {
+        name: 'ez',
+        code: 'EZ',
     },
-} as const
+] as const

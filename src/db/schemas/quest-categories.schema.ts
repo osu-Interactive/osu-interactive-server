@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core'
+import { pgTable, serial, text } from 'drizzle-orm/pg-core'
 
 export const questsCategories = pgTable('quest_categories', {
     id: serial('id').primaryKey(),

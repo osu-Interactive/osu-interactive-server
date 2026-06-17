@@ -4,7 +4,6 @@ import { sql } from 'drizzle-orm'
 
 export type TagsModel = ReturnType<typeof tagsModel>
 
-
 export const tagsModel = (db: DBExecutor) => ({
     getMods() {
         return db.select().from(mods)
@@ -14,25 +13,17 @@ export const tagsModel = (db: DBExecutor) => ({
         return db.select().from(skillsets)
     },
 
+    async replaceMods(values: { name: string; code: string }[]) {
+        await db.execute(sql`TRUNCATE TABLE mods RESTART IDENTITY CASCADE`)
 
-    async setMods(values: { code: string, name: string }[]) {
         await db.insert(mods).values(values)
-            .onConflictDoUpdate({
-                target: mods.code,
-                set: {
-                    name: sql.raw(`excluded.name`),
-                },
-            })
     },
 
-    async setSkillsets(values: { code: string, name: string, surveyDescription: string }[]) {
+    async replaceSkillsets(
+        values: { name: string; code: string; surveyDescription: string }[],
+    ) {
+        await db.execute(sql`TRUNCATE TABLE skillsets RESTART IDENTITY CASCADE`)
+
         await db.insert(skillsets).values(values)
-            .onConflictDoUpdate({
-                target: mods.code,
-                set: {
-                    name: sql.raw(`excluded.name`),
-                    surveyDescription: sql.raw(`excluded.survey_description`),
-                },
-            })
-    }
+    },
 })
