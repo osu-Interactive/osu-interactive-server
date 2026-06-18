@@ -22,6 +22,8 @@ class BeatmapCalculator {
         const uncalculatedBeatmaps =
             await beatmapsModel.getBeatmapsByCalculationStatus(
                 false,
+                amount,
+                startId,
                 parsedExtraCondition,
             )
 
@@ -62,14 +64,6 @@ class BeatmapCalculator {
         }
     }
 
-    private sliceBeatmapsIdsByStartId(
-        beatmapsIds: number[][],
-        startId: number,
-    ) {
-        const index = beatmapsIds.findIndex((item) => item[0] === startId)
-        return index !== -1 ? beatmapsIds.slice(index) : beatmapsIds
-    }
-
     private prepareBeatmapIds(beatmaps: CalculatedBeatmaps, startId: number) {
         const beatmapsIds = beatmaps
             .map((beatmap) => [
@@ -79,6 +73,14 @@ class BeatmapCalculator {
             .sort((a, b) => a[0] - b[0])
 
         return this.sliceBeatmapsIdsByStartId(beatmapsIds, startId)
+    }
+
+    private sliceBeatmapsIdsByStartId(
+        beatmapsIds: number[][],
+        startId: number,
+    ) {
+        const index = beatmapsIds.findIndex((item) => item[0] === startId)
+        return index !== -1 ? beatmapsIds.slice(index) : beatmapsIds
     }
 }
 

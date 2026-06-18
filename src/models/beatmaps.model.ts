@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, sql, asc, gte } from 'drizzle-orm'
 import {
     calculatedBeatmaps,
     mapsets,
@@ -89,6 +89,8 @@ export const beatmapsModel = (db: DBExecutor) => ({
     },
 
     async getBeatmaps(
+        limit: number | null = null,
+        startId: number = 1,
         extraConditions: SQLSearchConditions | null = null,
     ) {
         const conditions = this.buildFieldsConditions(
@@ -96,13 +98,23 @@ export const beatmapsModel = (db: DBExecutor) => ({
             extraConditions,
         )
 
-        return db.select({
-            beatmap_id: mapsetsBeatmaps.beatmap_id,
-        }).from(mapsetsBeatmaps).where(and(...conditions))
+        conditions.push(gte(mapsetsBeatmaps.beatmap_id, startId))
+
+        const query = db
+            .select({
+                beatmap_id: mapsetsBeatmaps.beatmap_id,
+            })
+            .from(mapsetsBeatmaps)
+            .where(and(...conditions))
+            .orderBy(asc(mapsetsBeatmaps.beatmap_id))
+
+        return limit !== null ? query.limit(limit) : query
     },
 
     async getBeatmapsByCalculationStatus(
         isCalculated: boolean,
+        limit: number | null = null,
+        startId: number = 1,
         extraConditions: SQLSearchConditions | null = null,
     ) {
         const conditions = this.buildFieldsConditions(
@@ -114,9 +126,11 @@ export const beatmapsModel = (db: DBExecutor) => ({
             isCalculated
                 ? isNotNull(calculatedBeatmaps.beatmap_id)
                 : isNull(calculatedBeatmaps.beatmap_id),
+
+            gte(mapsetsBeatmaps.beatmap_id, startId),
         )
 
-        return db
+        const query = db
             .select({
                 beatmap_id: mapsetsBeatmaps.beatmap_id,
                 mapset_id: mapsetsBeatmaps.mapset_id,
@@ -128,6 +142,9 @@ export const beatmapsModel = (db: DBExecutor) => ({
             )
 
             .where(and(...conditions, isNotNull(mapsetsBeatmaps.combo)))
+            .orderBy(asc(mapsetsBeatmaps.beatmap_id))
+
+        return limit !== null ? query.limit(limit) : query
     },
 
     buildFieldsConditions(
