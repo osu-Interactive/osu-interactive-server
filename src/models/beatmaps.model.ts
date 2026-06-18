@@ -7,7 +7,7 @@ import {
 } from '../db/schemas/schema'
 import { getTableColumns } from 'drizzle-orm'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
-import type { BeatmapsSearchExtraCondition, Mapset } from '@/types/osu.types'
+import type { SQLSearchConditions, Mapset } from '@/types/osu.types'
 import { AppError } from '@/errors/app-error'
 
 export type BeatmapsModel = ReturnType<typeof beatmapsModel>
@@ -88,11 +88,33 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .returning()
     },
 
-    async getBeatmapsBaseOnCalculation(
-        calculated: boolean,
-        extraConditions: BeatmapsSearchExtraCondition | null = null,
+    async getBeatmaps(
+        extraConditions: SQLSearchConditions | null = null,
     ) {
-        const conditions = this.getConditions(calculated, extraConditions)
+        const conditions = this.buildFieldsConditions(
+            'mapsets_beatmaps',
+            extraConditions,
+        )
+
+        return db.select({
+            beatmap_id: mapsetsBeatmaps.beatmap_id,
+        }).from(mapsetsBeatmaps).where(and(...conditions))
+    },
+
+    async getBeatmapsByCalculationStatus(
+        isCalculated: boolean,
+        extraConditions: SQLSearchConditions | null = null,
+    ) {
+        const conditions = this.buildFieldsConditions(
+            'mapsets_beatmaps',
+            extraConditions,
+        )
+
+        conditions.push(
+            isCalculated
+                ? isNotNull(calculatedBeatmaps.beatmap_id)
+                : isNull(calculatedBeatmaps.beatmap_id),
+        )
 
         return db
             .select({
@@ -108,23 +130,19 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .where(and(...conditions, isNotNull(mapsetsBeatmaps.combo)))
     },
 
-    getConditions(
-        calculated: boolean,
-        extraConditions: BeatmapsSearchExtraCondition | null = null,
+    buildFieldsConditions(
+        tableName: string,
+        fieldsConditions: SQLSearchConditions | null = null,
     ) {
-        const fieldWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
+        const fieldsWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
         const conditionWhitelist = ['>', '>=', '=', '<=', '<', '!=']
 
-        const conditions = [
-            calculated
-                ? isNotNull(calculatedBeatmaps.beatmap_id)
-                : isNull(calculatedBeatmaps.beatmap_id),
-        ]
+        const conditions: ReturnType<typeof sql>[] = []
 
-        if (extraConditions !== null) {
-            for (const condition of extraConditions) {
+        if (fieldsConditions !== null) {
+            for (const condition of fieldsConditions) {
                 if (
-                    !fieldWhitelist.includes(condition.field) ||
+                    !fieldsWhitelist.includes(condition.field) ||
                     !conditionWhitelist.includes(condition.condition)
                 ) {
                     throw new AppError('Extra conditions are invalid', {
@@ -132,10 +150,11 @@ export const beatmapsModel = (db: DBExecutor) => ({
                     })
                 }
                 conditions.push(
-                    sql`mapsets_beatmaps.
-                    ${sql.raw(condition.field)}
-                    ${sql.raw(condition.condition)}
-                    ${condition.value}`,
+                    sql`
+                        ${sql.raw(tableName)}.
+                        ${sql.raw(condition.field)}
+                        ${sql.raw(condition.condition)}
+                        ${condition.value}`,
                 )
             }
         }

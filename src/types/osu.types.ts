@@ -130,7 +130,7 @@ export type MappedPerformanceAttributes = ReturnType<
     typeof mapCalculatedBeatmap
 >
 
-export type BeatmapsSearchExtraCondition = {
+export type SQLSearchConditions = {
     field: string
     condition: string
     value: string | number

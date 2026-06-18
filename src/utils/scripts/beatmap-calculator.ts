@@ -1,10 +1,10 @@
 import { getCalculatedBeatmap } from '@/services/calculated-beatmaps.service'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
-import type { BeatmapsSearchExtraCondition } from '@/types/osu.types'
+import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
 
 type CalculatedBeatmaps = Awaited<
-    ReturnType<BeatmapsModel['getBeatmapsBaseOnCalculation']>
+    ReturnType<BeatmapsModel['getBeatmapsByCalculationStatus']>
 >
 
 class BeatmapCalculator {
@@ -16,11 +16,11 @@ class BeatmapCalculator {
         extraCondition: string | null = null,
     ) {
         const parsedExtraCondition = extraCondition
-            ? this.parseExtraConditions(extraCondition)
+            ? parseExtraConditions(extraCondition)
             : null
 
         const uncalculatedBeatmaps =
-            await beatmapsModel.getBeatmapsBaseOnCalculation(
+            await beatmapsModel.getBeatmapsByCalculationStatus(
                 false,
                 parsedExtraCondition,
             )
@@ -68,36 +68,6 @@ class BeatmapCalculator {
     ) {
         const index = beatmapsIds.findIndex((item) => item[0] === startId)
         return index !== -1 ? beatmapsIds.slice(index) : beatmapsIds
-    }
-
-    private parseExtraConditions = (
-        extraConditionsRaw: string,
-    ): BeatmapsSearchExtraCondition => {
-        const conditions = extraConditionsRaw.split('and')
-
-        const res: BeatmapsSearchExtraCondition = []
-
-        conditions.forEach((condition) => {
-            const tokens = condition.trim().split(' ')
-
-            if (tokens.length === 3) {
-                const value = this.parseIfNumber(tokens[2])
-
-                res.push({
-                    field: tokens[0],
-                    condition: tokens[1],
-                    value,
-                })
-            } else {
-                throw new Error('Invalid extra conditions')
-            }
-        })
-
-        return res
-    }
-
-    private parseIfNumber(rawValue: string) {
-        return /^-?\d+(\.\d+)?$/.test(rawValue) ? Number(rawValue) : rawValue
     }
 
     private prepareBeatmapIds(beatmaps: CalculatedBeatmaps, startId: number) {
