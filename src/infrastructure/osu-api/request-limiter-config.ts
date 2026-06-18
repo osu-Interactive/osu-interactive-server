@@ -2,12 +2,18 @@ import Bottleneck from 'bottleneck'
 import { attachLimiterLogger } from '@/infrastructure/osu-api/bottleneck-requests-logger'
 
 let requestLimit: number
+let highWater: number
 
 if (!process.env.OSU_API_REQUESTS_IN_MINUTE) {
-    throw new Error('No requests limit is defined for osu api in .env')
+    throw new Error('OSU_API_REQUESTS_IN_MINUTE is not defined in .env')
+}
+
+if (!process.env.OSU_API_REQUESTS_HIGH_WATER) {
+    throw new Error('OSU_API_HIGH_WATER is not defined in .env')
 }
 
 requestLimit = parseInt(process.env.OSU_API_REQUESTS_IN_MINUTE)
+highWater = parseInt(process.env.OSU_API_REQUESTS_HIGH_WATER)
 
 export const osuApiLimiter = new Bottleneck({
     reservoir: requestLimit,
@@ -16,7 +22,7 @@ export const osuApiLimiter = new Bottleneck({
 
     maxConcurrent: 3,
 
-    highWater: requestLimit,
+    highWater: highWater,
     strategy: Bottleneck.strategy.OVERFLOW,
 })
 
