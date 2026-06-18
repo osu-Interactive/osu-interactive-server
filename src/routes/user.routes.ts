@@ -7,8 +7,8 @@ export default async function userRoutes(app: FastifyInstance) {
 
         return {
             name: user.name,
-            osu_id: user.osu_id,
-            avatar_url: user.avatar_url,
+            osuId: user.osuId,
+            avatarUrl: user.avatarUrl,
             pp: user.pp,
             country: user.country,
         }

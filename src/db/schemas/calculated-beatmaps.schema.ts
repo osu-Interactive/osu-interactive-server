@@ -15,86 +15,86 @@ export const calculatedBeatmaps = pgTable(
     {
         id: serial('id').primaryKey(),
 
-        beatmap_id: integer('beatmap_id')
+        beatmapId: integer('beatmap_id')
             .notNull()
             .references(() => mapsetsBeatmaps.beatmap_id, {
                 onDelete: 'cascade',
             })
             .unique(),
 
-        mapset_id: integer('mapset_id')
+        mapsetId: integer('mapset_id')
             .notNull()
-            .references(() => mapsets.mapset_id, {
+            .references(() => mapsets.mapsetId, {
                 onDelete: 'cascade',
             }),
 
         //difficulty
 
         stars: doublePrecision('stars').notNull(),
-        is_convert: boolean('is_convert').notNull(),
+        isConvert: boolean('is_convert').notNull(),
 
         aim: doublePrecision('aim').notNull(),
-        aim_difficult_slider_count: doublePrecision(
+        aimDifficultSliderCount: doublePrecision(
             'aim_difficult_slider_count',
         ).notNull(),
 
         speed: doublePrecision('speed').notNull(),
 
-        slider_factor: doublePrecision('slider_factor').notNull(),
+        sliderFactor: doublePrecision('slider_factor').notNull(),
 
-        aim_top_weighted_slider_factor: doublePrecision(
+        aimTopWeightedSliderFactor: doublePrecision(
             'aim_top_weighted_slider_factor',
         ).notNull(),
 
-        speed_top_weighted_slider_factor: doublePrecision(
+        speedTopWeightedSliderFactor: doublePrecision(
             'speed_top_weighted_slider_factor',
         ).notNull(),
 
-        speed_note_count: doublePrecision('speed_note_count').notNull(),
+        speedNoteCount: doublePrecision('speed_note_count').notNull(),
 
-        aim_difficult_strain_count: doublePrecision(
+        aimDifficultStrainCount: doublePrecision(
             'aim_difficult_strain_count',
         ).notNull(),
 
-        speed_difficult_strain_count: doublePrecision(
+        speedDifficultStrainCount: doublePrecision(
             'speed_difficult_strain_count',
         ).notNull(),
 
-        nested_score_per_object: doublePrecision(
+        nestedScorePerObject: doublePrecision(
             'nested_score_per_object',
         ).notNull(),
 
-        legacy_score_base_multiplier: doublePrecision(
+        legacyScoreBaseMultiplier: doublePrecision(
             'legacy_score_base_multiplier',
         ).notNull(),
 
-        maximum_legacy_combo_score: integer(
+        maximumLegacyComboScore: integer(
             'maximum_legacy_combo_score',
         ).notNull(),
 
         hp: real('hp').notNull(),
 
-        n_circles: integer('n_circles').notNull(),
-        n_sliders: integer('n_sliders').notNull(),
-        n_large_ticks: integer('n_large_ticks').notNull(),
-        n_spinners: integer('n_spinners').notNull(),
+        nCircles: integer('n_circles').notNull(),
+        nSliders: integer('n_sliders').notNull(),
+        nLarge_ticks: integer('n_large_ticks').notNull(),
+        nSpinners: integer('n_spinners').notNull(),
 
         ar: real('ar').notNull(),
 
-        great_hit_window: doublePrecision('great_hit_window').notNull(),
+        greatHitWindow: doublePrecision('great_hit_window').notNull(),
 
-        max_combo: integer('max_combo').notNull(),
+        maxCombo: integer('max_combo').notNull(),
 
         // pp
 
         pp: doublePrecision('pp').notNull(),
-        pp_aim: doublePrecision('pp_aim').notNull(),
-        pp_speed: doublePrecision('pp_speed').notNull(),
-        pp_accuracy: doublePrecision('pp_accuracy').notNull(),
+        ppAim: doublePrecision('pp_aim').notNull(),
+        ppSpeed: doublePrecision('pp_speed').notNull(),
+        ppAccuracy: doublePrecision('pp_accuracy').notNull(),
 
-        speed_deviation: doublePrecision('speed_deviation').notNull(),
+        speedDeviation: doublePrecision('speed_deviation').notNull(),
 
-        created_at: timestamp('created_at').defaultNow().notNull(),
+        createdAt: timestamp('created_at').defaultNow().notNull(),
     },
-    (table) => [index('calculated_beatmaps_id_idx').on(table.mapset_id)],
+    (table) => [index('calculated_beatmaps_id_idx').on(table.mapsetId)],
 )

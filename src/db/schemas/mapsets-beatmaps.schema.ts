@@ -15,7 +15,7 @@ export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {
 
     mapset_id: integer('mapset_id')
         .notNull()
-        .references(() => mapsets.mapset_id, {
+        .references(() => mapsets.mapsetId, {
             onDelete: 'cascade',
         }),
     mode: text('mode', {
@@ -30,5 +30,5 @@ export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {
     od: real('od').notNull(),
     hp: real('hp').notNull(),
 
-    created_at: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
 })

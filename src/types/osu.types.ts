@@ -45,12 +45,12 @@ export type OsuUserExtracted = {
 
 export type DBUser = {
     id: number
-    osu_id: number
+    osuId: number
     name: string
-    avatar_url: string | null
+    avatarUrl: string | null
     pp: number
     country: UserCountry
-    created_at: Date
+    createdAt: Date
 }
 
 export type Mapset = {

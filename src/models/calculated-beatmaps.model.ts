@@ -14,63 +14,63 @@ export const calculatedBeatmapsModel = (db: DBExecutor) => ({
 
         const values = {
             stars: difficulty.stars,
-            is_convert: difficulty.isConvert,
+            isConvert: difficulty.isConvert,
 
             aim: difficulty.aim,
-            aim_difficult_slider_count: difficulty.aimDifficultSliderCount,
+            aimDifficultSliderCount: difficulty.aimDifficultSliderCount,
 
             speed: difficulty.speed,
 
-            slider_factor: difficulty.sliderFactor,
+            sliderFactor: difficulty.sliderFactor,
 
-            aim_top_weighted_slider_factor:
+            aimTopWeightedSliderFactor:
             difficulty.aimTopWeightedSliderFactor,
 
-            speed_top_weighted_slider_factor:
+            speedTopWeightedSliderFactor:
             difficulty.speedTopWeightedSliderFactor,
 
-            speed_note_count: difficulty.speedNoteCount,
+            speedNoteCount: difficulty.speedNoteCount,
 
-            aim_difficult_strain_count: difficulty.aimDifficultStrainCount,
+            aimDifficultStrainCount: difficulty.aimDifficultStrainCount,
 
-            speed_difficult_strain_count:
+            speedDifficultStrainCount:
             difficulty.speedDifficultStrainCount,
 
-            nested_score_per_object: difficulty.nestedScorePerObject,
+            nestedScorePerObject: difficulty.nestedScorePerObject,
 
-            legacy_score_base_multiplier:
+            legacyScoreBaseMultiplier:
             difficulty.legacyScoreBaseMultiplier,
 
-            maximum_legacy_combo_score: difficulty.maximumLegacyComboScore,
+            maximumLegacyComboScore: difficulty.maximumLegacyComboScore,
 
             hp: difficulty.hp,
 
-            n_circles: difficulty.nCircles,
-            n_sliders: difficulty.nSliders,
-            n_large_ticks: difficulty.nLargeTicks,
-            n_spinners: difficulty.nSpinners,
+            nCircles: difficulty.nCircles,
+            nSliders: difficulty.nSliders,
+            nLarge_ticks: difficulty.nLargeTicks,
+            nSpinners: difficulty.nSpinners,
 
             ar: difficulty.ar,
 
-            great_hit_window: difficulty.greatHitWindow,
+            greatHitWindow: difficulty.greatHitWindow,
 
-            max_combo: difficulty.maxCombo,
+            maxCombo: difficulty.maxCombo,
 
             pp: bm.pp,
-            pp_aim: bm.ppAim,
-            pp_speed: bm.ppSpeed,
-            pp_accuracy: bm.ppAccuracy,
+            ppAim: bm.ppAim,
+            ppSpeed: bm.ppSpeed,
+            ppAccuracy: bm.ppAccuracy,
 
-            speed_deviation: bm.speedDeviation,
+            speedDeviation: bm.speedDeviation,
         }
 
         return db.insert(calculatedBeatmaps).values({
-            beatmap_id: beatmapId,
-            mapset_id: mapsetId,
+            beatmapId: beatmapId,
+            mapsetId: mapsetId,
 
             ...values })
             .onConflictDoUpdate({
-                target: calculatedBeatmaps.beatmap_id,
+                target: calculatedBeatmaps.beatmapId,
                 set: values,
             })
             .returning()

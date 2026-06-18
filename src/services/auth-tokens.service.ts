@@ -67,10 +67,10 @@ export class AuthTokensService {
         )
 
         await this.app.db.insert(usersRefreshTokens).values({
-            user_id: userId,
-            token_id: tokenId,
-            token_hash: tokenHash,
-            expires_at: expiresAt,
+            userId: userId,
+            tokenId: tokenId,
+            tokenHash: tokenHash,
+            expiresAt: expiresAt,
         })
     }
 
@@ -81,10 +81,10 @@ export class AuthTokensService {
         const tokenRow = await this.app.db.query.usersRefreshTokens.findFirst({
             where: (tokens, { and, eq, isNull, gt }) =>
                 and(
-                    eq(tokens.user_id, payload.userId),
-                    eq(tokens.token_id, payload.tokenId),
-                    isNull(tokens.revoked_at),
-                    gt(tokens.expires_at, new Date()),
+                    eq(tokens.userId, payload.userId),
+                    eq(tokens.tokenId, payload.tokenId),
+                    isNull(tokens.revokedAt),
+                    gt(tokens.expiresAt, new Date()),
                 ),
         })
 
@@ -94,7 +94,7 @@ export class AuthTokensService {
 
         const isValid = await bcrypt.compare(
             currentRefreshToken,
-            tokenRow.token_hash,
+            tokenRow.tokenHash,
         )
 
         if (!isValid) {
@@ -103,7 +103,7 @@ export class AuthTokensService {
 
         await this.app.db
             .update(usersRefreshTokens)
-            .set({ revoked_at: new Date() })
+            .set({ revokedAt: new Date() })
             .where(eq(usersRefreshTokens.id, tokenRow.id))
 
         return this.getJwtAndRefreshToken(payload.userId, payload.osuId)

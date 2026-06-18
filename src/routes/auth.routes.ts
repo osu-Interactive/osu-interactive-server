@@ -44,7 +44,7 @@ export default async function authRoutes(app: FastifyInstance) {
         const { accessToken, refreshToken } =
             await app.authTokens.getJwtAndRefreshToken(
                 loginResult.id,
-                loginResult.osu_id,
+                loginResult.osuId,
             )
 
         setAuthCookie(

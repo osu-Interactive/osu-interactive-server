@@ -8,7 +8,7 @@ export type UserModel = ReturnType<typeof userModel>
 
 const getUserDBValues = (user: OsuUserExtracted) => ({
     name: user.username,
-    avatar_url: user.avatar_url,
+    avatarUrl: user.avatar_url,
     pp: Math.floor(user.pp),
     country: user.country,
 })
@@ -17,9 +17,9 @@ const getUserTokensDBValues = (data: OsuAuthToken) => {
     const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
 
     return {
-        access_token: data.token,
-        refresh_token: data.refreshToken,
-        expires_at: expiresAt,
+        accessToken: data.token,
+        refreshToken: data.refreshToken,
+        expiresAt: expiresAt,
     }
 }
 
@@ -41,7 +41,7 @@ export const userModel = (db: DBExecutor) => ({
 
     getByOsuId(osuId: number): Promise<DBUser | undefined> {
         return db.query.users.findFirst({
-            where: (users, { eq }) => eq(users.osu_id, osuId),
+            where: (users, { eq }) => eq(users.osuId, osuId),
         })
     },
 
@@ -56,11 +56,11 @@ export const userModel = (db: DBExecutor) => ({
         const result = await db
             .insert(users)
             .values({
-                osu_id: data.id,
+                osuId: data.id,
                 ...getUserDBValues(data),
             })
             .onConflictDoUpdate({
-                target: users.osu_id,
+                target: users.osuId,
                 set: getUserDBValues(data),
             })
             .returning()
@@ -79,11 +79,11 @@ export const userModel = (db: DBExecutor) => ({
         await db
             .insert(usersOauthTokens)
             .values({
-                user_id: userId,
+                userId: userId,
                 ...getUserTokensDBValues(authResult),
             })
             .onConflictDoUpdate({
-                target: usersOauthTokens.user_id,
+                target: usersOauthTokens.userId,
                 set: getUserTokensDBValues(authResult),
             })
     },

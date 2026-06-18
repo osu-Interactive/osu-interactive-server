@@ -48,11 +48,11 @@ export const beatmapsModel = (db: DBExecutor) => ({
             const [mapset] = await tx
                 .insert(mapsets)
                 .values({
-                    mapset_id: data.id,
+                    mapsetId: data.id,
                     ...values,
                 })
                 .onConflictDoUpdate({
-                    target: mapsets.mapset_id,
+                    target: mapsets.mapsetId,
                     set: values,
                 })
                 .returning()
@@ -92,7 +92,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
     setNonexistentMapset(id: number) {
         return db
             .insert(nonexistentMapsets)
-            .values({ mapset_id: id })
+            .values({ mapsetId: id })
             .onConflictDoNothing()
             .returning()
     },
@@ -133,8 +133,8 @@ export const beatmapsModel = (db: DBExecutor) => ({
 
         conditions.push(
             isCalculated
-                ? isNotNull(calculatedBeatmaps.beatmap_id)
-                : isNull(calculatedBeatmaps.beatmap_id),
+                ? isNotNull(calculatedBeatmaps.beatmapId)
+                : isNull(calculatedBeatmaps.beatmapId),
 
             gte(mapsetsBeatmaps.beatmap_id, startId),
         )
@@ -147,7 +147,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .from(mapsetsBeatmaps)
             .leftJoin(
                 calculatedBeatmaps,
-                eq(mapsetsBeatmaps.beatmap_id, calculatedBeatmaps.beatmap_id),
+                eq(mapsetsBeatmaps.beatmap_id, calculatedBeatmaps.beatmapId),
             )
 
             .where(and(...conditions, isNotNull(mapsetsBeatmaps.combo)))
