@@ -14,34 +14,27 @@ class OsuApiAppClient extends BaseOsuApiClient {
 
     public get<T = any>(endpoint: string): Promise<AxiosResponse<T>> {
         return this.authorizedRequest((token) => {
-            return this.limiter.schedule(
-                { id: `[APP_CLIENT: GET /api/v2${endpoint}]` },
-                () =>
-                    axios.get<T>(this.baseUrl + '/api/v2' + endpoint, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            Accept: 'application/json',
-                        },
-                    }),
+            return this.limiter.schedule({ id: `[APP_CLIENT: GET /api/v2${endpoint}]` }, () =>
+                axios.get<T>(this.baseUrl + '/api/v2' + endpoint, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/json',
+                    },
+                }),
             )
         })
     }
 
-    public post<T = any>(
-        endpoint: string,
-        data?: any,
-    ): Promise<AxiosResponse<T>> {
+    public post<T = any>(endpoint: string, data?: any): Promise<AxiosResponse<T>> {
         return this.authorizedRequest((token) => {
-            return this.limiter.schedule(
-                { id: `[APP_CLIENT: POST /api${endpoint}]` },
-                () =>
-                    axios.post<T>(this.baseUrl + '/api' + endpoint, data, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                            Accept: 'application/json',
-                        },
-                    }),
+            return this.limiter.schedule({ id: `[APP_CLIENT: POST /api${endpoint}]` }, () =>
+                axios.post<T>(this.baseUrl + '/api' + endpoint, data, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                }),
             )
         })
     }
@@ -67,11 +60,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
     }
 
     private async ensureToken(forceRefresh = false): Promise<string> {
-        if (
-            !forceRefresh &&
-            this.hasValidToken() &&
-            typeof this.token === 'string'
-        ) {
+        if (!forceRefresh && this.hasValidToken() && typeof this.token === 'string') {
             return this.token
         }
 
@@ -104,10 +93,9 @@ class OsuApiAppClient extends BaseOsuApiClient {
             scope: 'public',
         })
 
-        const res: AxiosResponse<OsuCredentialTokenResponse> =
-            await this.limiter.schedule(
-                { id: '[APP_CLIENT: POST /oauth/token]' },
-                () =>
+        const res: AxiosResponse<OsuCredentialTokenResponse> = await this.limiter.schedule(
+            { id: '[APP_CLIENT: POST /oauth/token]' },
+            () =>
                 axios.post(`${this.baseUrl}/oauth/token`, params, {
                     timeout: 10000,
                     headers: {
@@ -115,7 +103,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
                         Accept: 'application/json',
                     },
                 }),
-            )
+        )
 
         return {
             token: res.data.access_token,
@@ -124,22 +112,16 @@ class OsuApiAppClient extends BaseOsuApiClient {
     }
 
     private hasValidToken(): boolean {
-        return (
-            this.token !== null &&
-            this.expiresAt !== null &&
-            Date.now() < this.expiresAt
-        )
+        return this.token !== null && this.expiresAt !== null && Date.now() < this.expiresAt
     }
 
     private createTokenPromise(forceRefresh: boolean): Promise<string> {
-        const promise = this.fetchAccessTokenCredential().then(
-            ({ token, expiresIn }) => {
-                this.token = token
-                this.expiresAt = Date.now() + expiresIn * 1000 - 10000
+        const promise = this.fetchAccessTokenCredential().then(({ token, expiresIn }) => {
+            this.token = token
+            this.expiresAt = Date.now() + expiresIn * 1000 - 10000
 
-                return token
-            },
-        )
+            return token
+        })
 
         if (forceRefresh) {
             this.refreshPromise = promise.finally(() => {

@@ -5,11 +5,7 @@ import { calculatedBeatmaps } from '@/db/schemas/schema'
 export type CalculatedBeatmapsModel = ReturnType<typeof calculatedBeatmapsModel>
 
 export const calculatedBeatmapsModel = (db: DBExecutor) => ({
-    async setBeatmap(
-        bm: MappedPerformanceAttributes,
-        beatmapId: number,
-        mapsetId: number,
-    ) {
+    async setBeatmap(bm: MappedPerformanceAttributes, beatmapId: number, mapsetId: number) {
         const difficulty = bm.difficulty
 
         const values = {
@@ -23,23 +19,19 @@ export const calculatedBeatmapsModel = (db: DBExecutor) => ({
 
             sliderFactor: difficulty.sliderFactor,
 
-            aimTopWeightedSliderFactor:
-            difficulty.aimTopWeightedSliderFactor,
+            aimTopWeightedSliderFactor: difficulty.aimTopWeightedSliderFactor,
 
-            speedTopWeightedSliderFactor:
-            difficulty.speedTopWeightedSliderFactor,
+            speedTopWeightedSliderFactor: difficulty.speedTopWeightedSliderFactor,
 
             speedNoteCount: difficulty.speedNoteCount,
 
             aimDifficultStrainCount: difficulty.aimDifficultStrainCount,
 
-            speedDifficultStrainCount:
-            difficulty.speedDifficultStrainCount,
+            speedDifficultStrainCount: difficulty.speedDifficultStrainCount,
 
             nestedScorePerObject: difficulty.nestedScorePerObject,
 
-            legacyScoreBaseMultiplier:
-            difficulty.legacyScoreBaseMultiplier,
+            legacyScoreBaseMultiplier: difficulty.legacyScoreBaseMultiplier,
 
             maximumLegacyComboScore: difficulty.maximumLegacyComboScore,
 
@@ -64,11 +56,14 @@ export const calculatedBeatmapsModel = (db: DBExecutor) => ({
             speedDeviation: bm.speedDeviation,
         }
 
-        return db.insert(calculatedBeatmaps).values({
-            beatmapId: beatmapId,
-            mapsetId: mapsetId,
+        return db
+            .insert(calculatedBeatmaps)
+            .values({
+                beatmapId: beatmapId,
+                mapsetId: mapsetId,
 
-            ...values })
+                ...values,
+            })
             .onConflictDoUpdate({
                 target: calculatedBeatmaps.beatmapId,
                 set: values,

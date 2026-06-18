@@ -16,8 +16,7 @@ const availableScoreFields = [
 
 type OsuRecentScore = OsuRecentScores[number]
 
-type MappedScore =
-    Pick<OsuRecentScore, (typeof availableScoreFields)[number]> & {
+type MappedScore = Pick<OsuRecentScore, (typeof availableScoreFields)[number]> & {
     user_id: number
     beatmap_id: number
 }

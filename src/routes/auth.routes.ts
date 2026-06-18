@@ -41,24 +41,13 @@ export default async function authRoutes(app: FastifyInstance) {
         const { osuApiCode } = req.body
         const loginResult = await loginWithOsu(app.db, osuApiCode)
 
-        const { accessToken, refreshToken } =
-            await app.authTokens.getJwtAndRefreshToken(
-                loginResult.id,
-                loginResult.osuId,
-            )
+        const { accessToken, refreshToken } = await app.authTokens.getJwtAndRefreshToken(
+            loginResult.id,
+            loginResult.osuId,
+        )
 
-        setAuthCookie(
-            reply,
-            'auth',
-            accessToken,
-            app.authTokens.accessTokenTtlSeconds,
-        )
-        setAuthCookie(
-            reply,
-            'refresh',
-            refreshToken,
-            app.authTokens.refreshTokenTtlSeconds,
-        )
+        setAuthCookie(reply, 'auth', accessToken, app.authTokens.accessTokenTtlSeconds)
+        setAuthCookie(reply, 'refresh', refreshToken, app.authTokens.refreshTokenTtlSeconds)
 
         return {
             user: loginResult,
@@ -86,18 +75,8 @@ export default async function authRoutes(app: FastifyInstance) {
             const { accessToken, refreshToken: newRefreshToken } =
                 await app.authTokens.refreshTokens(refreshToken)
 
-            setAuthCookie(
-                reply,
-                'auth',
-                accessToken,
-                app.authTokens.accessTokenTtlSeconds,
-            )
-            setAuthCookie(
-                reply,
-                'refresh',
-                newRefreshToken,
-                app.authTokens.refreshTokenTtlSeconds,
-            )
+            setAuthCookie(reply, 'auth', accessToken, app.authTokens.accessTokenTtlSeconds)
+            setAuthCookie(reply, 'refresh', newRefreshToken, app.authTokens.refreshTokenTtlSeconds)
 
             return {
                 authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,

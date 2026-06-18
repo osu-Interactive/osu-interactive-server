@@ -1,10 +1,6 @@
 import { ERROR_SCENARIOS, DEFAULT_ERROR } from './error-scenarios'
 import type { AppError } from './app-error'
-import type {
-    ResolvedError,
-    ErrorScenario,
-    ErrorScenarioResult,
-} from '@/types/errors.types'
+import type { ResolvedError, ErrorScenario, ErrorScenarioResult } from '@/types/errors.types'
 
 const handleError = (error: AppError) => {
     const errorCode = typeof error?.code === 'string' ? error.code : undefined
@@ -24,10 +20,7 @@ const handleError = (error: AppError) => {
     return getErrorData(errorCode, errorData, error)
 }
 
-const resolveScenario = (
-    scenario: ErrorScenario,
-    error: AppError,
-): ErrorScenarioResult =>
+const resolveScenario = (scenario: ErrorScenario, error: AppError): ErrorScenarioResult =>
     typeof scenario === 'function' ? scenario(error) : scenario
 
 /*

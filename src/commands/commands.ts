@@ -38,11 +38,7 @@ const commands = (app: FastifyInstance) => ({
      * the ID sequentially and attempts to retrieve every beatmapset.
      */
     async 'fetch-mapsets'(amount: number, startId: number) {
-        await mapsetsCollector.startFetching(
-            app.models.beatmap,
-            amount,
-            startId,
-        )
+        await mapsetsCollector.startFetching(app.models.beatmap, amount, startId)
     },
 
     /**
@@ -56,9 +52,7 @@ const commands = (app: FastifyInstance) => ({
      * @param id Beatmap ID to calculate.
      */
     async 'calc-bm'(id: number) {
-        console.log(
-            await getCalculatedBeatmap(app.models.calculatedBeatmap, id, 10000),
-        )
+        console.log(await getCalculatedBeatmap(app.models.calculatedBeatmap, id, 10000))
     },
 
     /**
@@ -85,11 +79,7 @@ const commands = (app: FastifyInstance) => ({
      * @param startId Beatmap ID to start processing from.
      * @param extraCondition Optional SQL condition used to filter beatmaps.
      */
-    async 'run-calc-bms'(
-        amount: number,
-        startId: number,
-        extraCondition: string | null = null,
-    ) {
+    async 'run-calc-bms'(amount: number, startId: number, extraCondition: string | null = null) {
         await beatmapsCalculator.runCalculation(
             app.models.beatmap,
             app.models.calculatedBeatmap,
@@ -99,9 +89,13 @@ const commands = (app: FastifyInstance) => ({
         )
     },
 
-    async 'fake-bms-skillsets'(amount: number, startId: number, extraCondition: string | null = null) {
+    async 'fake-bms-skillsets'(
+        amount: number,
+        startId: number,
+        extraCondition: string | null = null,
+    ) {
         await fakeSkillsets(app.models.beatmap, amount, startId, extraCondition)
-    }
+    },
 })
 
 export default commands

@@ -14,18 +14,14 @@ export default async function surveyRoutes(app: FastifyInstance) {
         }
     })
 
-    app.post(
-        '/save',
-        { preHandler: authMiddleware },
-        async (request, _) => {
-            const surveyData = request.body as {
-                skillsetsIds: number[]
-                modsIds: number[]
-            }
+    app.post('/save', { preHandler: authMiddleware }, async (request, _) => {
+        const surveyData = request.body as {
+            skillsetsIds: number[]
+            modsIds: number[]
+        }
 
-            const userId = request.user.userId
+        const userId = request.user.userId
 
-            await surveyService.save(userId, surveyData)
-        },
-    )
+        await surveyService.save(userId, surveyData)
+    })
 }

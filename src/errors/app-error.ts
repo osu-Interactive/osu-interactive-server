@@ -10,10 +10,7 @@ class AppError extends Error {
     public code: string
     public details: AppErrorDetails
 
-    constructor(
-        message: string,
-        { code, details = null, cause = null }: AppErrorOptions = {},
-    ) {
+    constructor(message: string, { code, details = null, cause = null }: AppErrorOptions = {}) {
         super(message, { cause })
 
         this.name = this.constructor.name
@@ -33,9 +30,7 @@ class AppError extends Error {
     /**
      * Default error for validation errors.
      */
-    static validationError(
-        fields: Record<string, string | string[]>,
-    ): AppError {
+    static validationError(fields: Record<string, string | string[]>): AppError {
         const message = 'Validation failed'
         const code = 'VALIDATION_ERROR'
 
@@ -54,16 +49,8 @@ class AppErrorMatcher {
         this.error = error
     }
 
-    case(
-        parentCode: string,
-        message: string,
-        options: Omit<AppErrorOptions, 'cause'> = {},
-    ): this {
-        if (
-            !this.result &&
-            this.error instanceof AppError &&
-            this.error.code === parentCode
-        ) {
+    case(parentCode: string, message: string, options: Omit<AppErrorOptions, 'cause'> = {}): this {
+        if (!this.result && this.error instanceof AppError && this.error.code === parentCode) {
             this.result = new AppError(message, {
                 ...options,
                 cause: this.error,
@@ -73,10 +60,7 @@ class AppErrorMatcher {
         return this
     }
 
-    or(
-        fallbackMessage: string,
-        fallbackOptions: Omit<AppErrorOptions, 'cause'> = {},
-    ): AppError {
+    or(fallbackMessage: string, fallbackOptions: Omit<AppErrorOptions, 'cause'> = {}): AppError {
         if (this.result) {
             return this.result
         }

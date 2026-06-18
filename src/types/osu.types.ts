@@ -78,7 +78,10 @@ export type MappedBeatmap = {
     drain: number
 }
 
-export type MapsetBeatmap = Omit<MappedBeatmap, 'accuracy' | 'difficulty_rating' | 'max_combo' | 'drain'> & {
+export type MapsetBeatmap = Omit<
+    MappedBeatmap,
+    'accuracy' | 'difficulty_rating' | 'max_combo' | 'drain'
+> & {
     stars: number
     od: number
     hp: number
@@ -126,9 +129,7 @@ export type OsuPerformanceDifficulty = {
     maxCombo: number
 }
 
-export type MappedPerformanceAttributes = ReturnType<
-    typeof mapCalculatedBeatmap
->
+export type MappedPerformanceAttributes = ReturnType<typeof mapCalculatedBeatmap>
 
 export type SQLSearchConditions = {
     field: string

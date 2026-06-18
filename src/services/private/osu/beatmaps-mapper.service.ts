@@ -5,7 +5,7 @@ import type {
     Mapset,
     MapsetBeatmap,
     OsuPerformanceAttributes,
-    OsuPerformanceDifficulty
+    OsuPerformanceDifficulty,
 } from '@/types/osu.types'
 
 import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/types/api-responses/mapset.types'
@@ -80,9 +80,7 @@ const allowedDifficultyFields = [
 export const mapMapset = (rawMapset: RawMapset): Mapset => {
     return {
         ...pickFields(rawMapset, allowedMapsetFields),
-        beatmaps: Array.isArray(rawMapset.beatmaps)
-            ? rawMapset.beatmaps.map(mapMapsetBeatmap)
-            : [],
+        beatmaps: Array.isArray(rawMapset.beatmaps) ? rawMapset.beatmaps.map(mapMapsetBeatmap) : [],
     }
 }
 
@@ -129,9 +127,7 @@ export const mapCalculatedBeatmap = (
 }
 
 const roundFloat = (value: unknown) =>
-    typeof value === 'number' && !Number.isInteger(value)
-        ? round(value, 4)
-        : value
+    typeof value === 'number' && !Number.isInteger(value) ? round(value, 4) : value
 
 const round = (value: number, digits: number) => {
     const factor = 10 ** digits

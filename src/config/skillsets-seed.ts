@@ -2,15 +2,13 @@ export const skillsetsSeed = [
     {
         name: 'Jumps',
         code: 'jumps',
-        surveyDescription:
-            'Do you enjoy flicking your mouse or tablet pen quickly between notes?',
+        surveyDescription: 'Do you enjoy flicking your mouse or tablet pen quickly between notes?',
     },
 
     {
         name: 'Streams',
         code: 'streams',
-        surveyDescription:
-            'How about hitting long sequences of fast notes in a row?',
+        surveyDescription: 'How about hitting long sequences of fast notes in a row?',
     },
 
     {
@@ -47,4 +45,4 @@ export const skillsetsSeed = [
         surveyDescription:
             'Do you enjoy unusual patterns that don’t clearly fit into either streams or jumps?',
     },
- ] as const
+] as const

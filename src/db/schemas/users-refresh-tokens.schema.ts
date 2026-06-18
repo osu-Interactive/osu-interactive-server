@@ -15,4 +15,3 @@ export const usersRefreshTokens = pgTable('users_refresh_tokens', {
     revokedAt: timestamp('revoked_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 })
-

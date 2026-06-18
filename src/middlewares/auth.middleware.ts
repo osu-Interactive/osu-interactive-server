@@ -4,10 +4,7 @@ const DEV_AUTH_BYPASS_HEADER = 'x-dev-auth-bypass'
 const DEV_AUTH_USER_ID_HEADER = 'x-dev-user-id'
 const DEV_AUTH_OSU_ID_HEADER = 'x-dev-osu-id'
 
-export async function authMiddleware(
-    request: FastifyRequest,
-    reply: FastifyReply
-) {
+export async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
     if (canBypassAuthInDevelopment(request)) {
         request.user = {
             userId: getDevAuthHeaderNumber(request, DEV_AUTH_USER_ID_HEADER, 1),
@@ -32,11 +29,7 @@ function canBypassAuthInDevelopment(request: FastifyRequest): boolean {
     return request.headers[DEV_AUTH_BYPASS_HEADER] === 'true'
 }
 
-function getDevAuthHeaderNumber(
-    request: FastifyRequest,
-    header: string,
-    fallback: number,
-): number {
+function getDevAuthHeaderNumber(request: FastifyRequest, header: string, fallback: number): number {
     const value = request.headers[header]
 
     if (typeof value !== 'string') {

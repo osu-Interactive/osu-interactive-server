@@ -1,7 +1,4 @@
-import type {
-    ResolvedError,
-    ErrorScenario,
-} from '@/types/errors.types'
+import type { ResolvedError, ErrorScenario } from '@/types/errors.types'
 
 const DEFAULT_ERROR: ResolvedError = {
     message: 'Internal server error',
@@ -33,7 +30,7 @@ const ERROR_SCENARIOS = defineErrorScenarios({
     MISSING_REFRESH_TOKEN: () => ({
         statusCode: 401,
         isOperational: true,
-    })
+    }),
 })
 
 export { DEFAULT_ERROR, ERROR_SCENARIOS }

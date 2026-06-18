@@ -38,9 +38,11 @@ async function getBeatmapStructure(id: number): Promise<string> {
         {
             id: `[BM_STRUCTURE_FETCH: GET /osu/${id}]`,
         },
-        () => axios.get(`https://osu.ppy.sh/osu/${id}`, {
-            responseType: 'text',
-        }))
+        () =>
+            axios.get(`https://osu.ppy.sh/osu/${id}`, {
+                responseType: 'text',
+            }),
+    )
 
     const beatmapStructure: unknown = response.data
 

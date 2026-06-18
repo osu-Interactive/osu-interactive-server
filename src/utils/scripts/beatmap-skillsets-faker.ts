@@ -8,15 +8,9 @@ export async function fakeSkillsets(
     startId: number,
     extraConditions: string | null = null,
 ) {
-    const parsedExtraCondition = extraConditions
-        ? parseExtraConditions(extraConditions)
-        : null
+    const parsedExtraCondition = extraConditions ? parseExtraConditions(extraConditions) : null
 
-    const beatmaps = await model.getBeatmaps(
-        amount,
-        startId,
-        parsedExtraCondition,
-    )
+    const beatmaps = await model.getBeatmaps(amount, startId, parsedExtraCondition)
 
     for (const beatmap of beatmaps) {
         await model.setBeatmapSkillsets(beatmap.id, getFakeSkillsets())
@@ -36,5 +30,5 @@ function getFakeSkillsets(): BeatmapSkillsets {
 }
 
 function randomInt(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min
 }

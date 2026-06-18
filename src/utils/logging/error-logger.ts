@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { stringify } from 'safe-stable-stringify'
 
-const logPath = path.join(__dirname, '../../../logs/error.log');
+const logPath = path.join(__dirname, '../../../logs/error.log')
 const maxLogSizeBytes = 50 * 1024 * 1024
 
 export default function logError(error: unknown): void {
@@ -61,11 +61,7 @@ function formatError(error: unknown, indent = 0): string {
     Object.entries(base).forEach(([key, value]) => {
         if (key === 'message' || key === 'stack') return
 
-        result += `${pad}${key}: ${
-            typeof value === 'object'
-                ? stringify(value)
-                : String(value)
-        }\n`
+        result += `${pad}${key}: ${typeof value === 'object' ? stringify(value) : String(value)}\n`
     })
 
     if (cause) {

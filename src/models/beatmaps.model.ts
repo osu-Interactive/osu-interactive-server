@@ -1,13 +1,4 @@
-import {
-    and,
-    eq,
-    isNotNull,
-    isNull,
-    sql,
-    asc,
-    gte,
-    getTableColumns,
-} from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, sql, asc, gte, getTableColumns } from 'drizzle-orm'
 import {
     calculatedBeatmaps,
     mapsets,
@@ -58,12 +49,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
                 .returning()
 
             if (data.beatmaps.length > 0) {
-                await this.setMapsetsBeatmaps(
-                    tx,
-                    data.beatmaps,
-                    data.id,
-                    data.status,
-                )
+                await this.setMapsetsBeatmaps(tx, data.beatmaps, data.id, data.status)
             }
 
             return mapset
@@ -102,10 +88,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         startId: number = 1,
         extraConditions: SQLSearchConditions | null = null,
     ) {
-        const conditions = this.buildFieldsConditions(
-            'mapsets_beatmaps',
-            extraConditions,
-        )
+        const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
         conditions.push(gte(mapsetsBeatmaps.beatmap_id, startId))
 
@@ -126,10 +109,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         startId: number = 1,
         extraConditions: SQLSearchConditions | null = null,
     ) {
-        const conditions = this.buildFieldsConditions(
-            'mapsets_beatmaps',
-            extraConditions,
-        )
+        const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
         conditions.push(
             isCalculated
@@ -156,10 +136,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         return limit !== null ? query.limit(limit) : query
     },
 
-    buildFieldsConditions(
-        tableName: string,
-        fieldsConditions: SQLSearchConditions | null = null,
-    ) {
+    buildFieldsConditions(tableName: string, fieldsConditions: SQLSearchConditions | null = null) {
         const fieldsWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
         const conditionWhitelist = ['>', '>=', '=', '<=', '<', '!=']
 

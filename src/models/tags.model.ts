@@ -19,9 +19,7 @@ export const tagsModel = (db: DBExecutor) => ({
         await db.insert(mods).values(values)
     },
 
-    async replaceSkillsets(
-        values: { name: string; code: string; surveyDescription: string }[],
-    ) {
+    async replaceSkillsets(values: { name: string; code: string; surveyDescription: string }[]) {
         await db.execute(sql`TRUNCATE TABLE skillsets RESTART IDENTITY CASCADE`)
 
         await db.insert(skillsets).values(values)

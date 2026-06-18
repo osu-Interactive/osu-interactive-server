@@ -8,12 +8,10 @@ export const surveyModel = (db: DBExecutor) => ({
     },
 
     deleteAllUserSkillsets(userId: number) {
-        return db
-            .delete(usersSkillsets)
-            .where(eq(usersSkillsets.userId, userId))
+        return db.delete(usersSkillsets).where(eq(usersSkillsets.userId, userId))
     },
 
-    insertUserSkillsets(values: { userId: number; skillsetId: number  }[]) {
+    insertUserSkillsets(values: { userId: number; skillsetId: number }[]) {
         return db.insert(usersSkillsets).values(values)
     },
 

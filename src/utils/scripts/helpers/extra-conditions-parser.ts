@@ -1,8 +1,6 @@
 import type { SQLSearchConditions } from '@/types/osu.types'
 
-export function parseExtraConditions (
-    extraConditionsRaw: string,
-): SQLSearchConditions {
+export function parseExtraConditions(extraConditionsRaw: string): SQLSearchConditions {
     const conditions = extraConditionsRaw.split('and')
 
     const res: SQLSearchConditions = []

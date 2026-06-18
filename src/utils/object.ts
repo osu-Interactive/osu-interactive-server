@@ -1,10 +1,7 @@
 // Keeps only fields from the allowlist and returns a shallow copy.
 type ValueMapper = (value: unknown) => unknown
 
-export function pickFields<
-    T extends object,
-    const K extends readonly (keyof T)[],
->(
+export function pickFields<T extends object, const K extends readonly (keyof T)[]>(
     obj: T,
     fields: K,
     mapValue?: ValueMapper,
@@ -23,10 +20,10 @@ export function pickFields<
     return result
 }
 
-export function renameKeys<
-    T extends Record<string, any>,
-    R extends Record<string, string>,
->(obj: T, mapping: R) {
+export function renameKeys<T extends Record<string, any>, R extends Record<string, string>>(
+    obj: T,
+    mapping: R,
+) {
     const result: Record<string, any> = {}
 
     for (const key in obj) {

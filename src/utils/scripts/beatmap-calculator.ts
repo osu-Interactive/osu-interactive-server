@@ -3,9 +3,7 @@ import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
 
-type CalculatedBeatmaps = Awaited<
-    ReturnType<BeatmapsModel['getBeatmapsByCalculationStatus']>
->
+type CalculatedBeatmaps = Awaited<ReturnType<BeatmapsModel['getBeatmapsByCalculationStatus']>>
 
 class BeatmapCalculator {
     public async runCalculation(
@@ -15,17 +13,14 @@ class BeatmapCalculator {
         startId: number,
         extraCondition: string | null = null,
     ) {
-        const parsedExtraCondition = extraCondition
-            ? parseExtraConditions(extraCondition)
-            : null
+        const parsedExtraCondition = extraCondition ? parseExtraConditions(extraCondition) : null
 
-        const uncalculatedBeatmaps =
-            await beatmapsModel.getBeatmapsByCalculationStatus(
-                false,
-                amount,
-                startId,
-                parsedExtraCondition,
-            )
+        const uncalculatedBeatmaps = await beatmapsModel.getBeatmapsByCalculationStatus(
+            false,
+            amount,
+            startId,
+            parsedExtraCondition,
+        )
 
         if (uncalculatedBeatmaps.length === 0) {
             return console.error('No beatmaps found matching your parameters')
@@ -54,11 +49,7 @@ class BeatmapCalculator {
 
         for (const beatmap of beatmapsIds) {
             if (calculatedBeatmapsAmount < amount) {
-                await getCalculatedBeatmap(
-                    calculatedBeatmapsModel,
-                    beatmap[0],
-                    beatmap[1],
-                )
+                await getCalculatedBeatmap(calculatedBeatmapsModel, beatmap[0], beatmap[1])
                 calculatedBeatmapsAmount++
             }
         }
@@ -66,19 +57,13 @@ class BeatmapCalculator {
 
     private prepareBeatmapIds(beatmaps: CalculatedBeatmaps, startId: number) {
         const beatmapsIds = beatmaps
-            .map((beatmap) => [
-                beatmap.beatmap_id,
-                beatmap.mapset_id,
-            ])
+            .map((beatmap) => [beatmap.beatmap_id, beatmap.mapset_id])
             .sort((a, b) => a[0] - b[0])
 
         return this.sliceBeatmapsIdsByStartId(beatmapsIds, startId)
     }
 
-    private sliceBeatmapsIdsByStartId(
-        beatmapsIds: number[][],
-        startId: number,
-    ) {
+    private sliceBeatmapsIdsByStartId(beatmapsIds: number[][], startId: number) {
         const index = beatmapsIds.findIndex((item) => item[0] === startId)
         return index !== -1 ? beatmapsIds.slice(index) : beatmapsIds
     }

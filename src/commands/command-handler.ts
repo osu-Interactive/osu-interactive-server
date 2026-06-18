@@ -116,7 +116,10 @@ function parseCommandArgs(input: string) {
     return args
 }
 
-function isCommand(cmd: string, commands: ReturnType<typeof Commands>): cmd is keyof typeof commands {
+function isCommand(
+    cmd: string,
+    commands: ReturnType<typeof Commands>,
+): cmd is keyof typeof commands {
     return cmd in commands
 }
 

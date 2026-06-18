@@ -1,11 +1,4 @@
-import {
-    pgTable,
-    serial,
-    integer,
-    real,
-    text,
-    timestamp,
-} from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, real, text, timestamp } from 'drizzle-orm/pg-core'
 import { mapsets } from './mapsets.schema'
 
 export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {

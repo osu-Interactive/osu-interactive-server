@@ -9,10 +9,7 @@ export async function evaluateQuestsCompletion() {
     return userScores
 }
 
-async function getUserRecentScores(
-    userId: number = 14466638,
-    amount: number = 2,
-) {
+async function getUserRecentScores(userId: number = 14466638, amount: number = 2) {
     const res = await client.get<OsuRecentScores>(
         `/users/${userId}/scores/recent?include_fails=1&limit=${amount}`,
     )

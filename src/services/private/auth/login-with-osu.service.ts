@@ -14,8 +14,7 @@ export class LoginWithOsu {
 
     //TODO: Test the transaction
     async execute(userOsuApiCode: string): Promise<DBUser> {
-        const { authResult, extractedData } =
-            await this.fetchOsuUser(userOsuApiCode)
+        const { authResult, extractedData } = await this.fetchOsuUser(userOsuApiCode)
 
         return this.db.transaction(async (tx) => {
             const users = this.makeUserModel(tx)
@@ -34,11 +33,8 @@ export class LoginWithOsu {
     }
 
     private async fetchOsuUser(userOsuApiCode: string) {
-        const authResult =
-            await this.osuApi.fetchAccessTokenCodeGrant(userOsuApiCode)
-        const userData = await this.osuApi.getUserDataFromOsuApi(
-            authResult.token,
-        )
+        const authResult = await this.osuApi.fetchAccessTokenCodeGrant(userOsuApiCode)
+        const userData = await this.osuApi.getUserDataFromOsuApi(authResult.token)
 
         return {
             authResult,

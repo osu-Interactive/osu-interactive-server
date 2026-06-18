@@ -14,5 +14,5 @@ export const usersOauthTokens = pgTable('users_oauth_tokens', {
 
     expiresAt: timestamp('expires_at').notNull(),
 
-    createdAt: timestamp('created_at').defaultNow().notNull()
+    createdAt: timestamp('created_at').defaultNow().notNull(),
 })

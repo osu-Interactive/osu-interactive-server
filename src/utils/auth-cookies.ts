@@ -23,10 +23,7 @@ export function setAuthCookie(
     })
 }
 
-export function clearAuthCookie(
-    reply: FastifyReply,
-    cookieName: AuthCookieName,
-): void {
+export function clearAuthCookie(reply: FastifyReply, cookieName: AuthCookieName): void {
     reply.clearCookie(cookieName, authCookieOptions)
 }
 

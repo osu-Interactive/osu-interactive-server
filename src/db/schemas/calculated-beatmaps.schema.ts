@@ -34,43 +34,27 @@ export const calculatedBeatmaps = pgTable(
         isConvert: boolean('is_convert').notNull(),
 
         aim: doublePrecision('aim').notNull(),
-        aimDifficultSliderCount: doublePrecision(
-            'aim_difficult_slider_count',
-        ).notNull(),
+        aimDifficultSliderCount: doublePrecision('aim_difficult_slider_count').notNull(),
 
         speed: doublePrecision('speed').notNull(),
 
         sliderFactor: doublePrecision('slider_factor').notNull(),
 
-        aimTopWeightedSliderFactor: doublePrecision(
-            'aim_top_weighted_slider_factor',
-        ).notNull(),
+        aimTopWeightedSliderFactor: doublePrecision('aim_top_weighted_slider_factor').notNull(),
 
-        speedTopWeightedSliderFactor: doublePrecision(
-            'speed_top_weighted_slider_factor',
-        ).notNull(),
+        speedTopWeightedSliderFactor: doublePrecision('speed_top_weighted_slider_factor').notNull(),
 
         speedNoteCount: doublePrecision('speed_note_count').notNull(),
 
-        aimDifficultStrainCount: doublePrecision(
-            'aim_difficult_strain_count',
-        ).notNull(),
+        aimDifficultStrainCount: doublePrecision('aim_difficult_strain_count').notNull(),
 
-        speedDifficultStrainCount: doublePrecision(
-            'speed_difficult_strain_count',
-        ).notNull(),
+        speedDifficultStrainCount: doublePrecision('speed_difficult_strain_count').notNull(),
 
-        nestedScorePerObject: doublePrecision(
-            'nested_score_per_object',
-        ).notNull(),
+        nestedScorePerObject: doublePrecision('nested_score_per_object').notNull(),
 
-        legacyScoreBaseMultiplier: doublePrecision(
-            'legacy_score_base_multiplier',
-        ).notNull(),
+        legacyScoreBaseMultiplier: doublePrecision('legacy_score_base_multiplier').notNull(),
 
-        maximumLegacyComboScore: integer(
-            'maximum_legacy_combo_score',
-        ).notNull(),
+        maximumLegacyComboScore: integer('maximum_legacy_combo_score').notNull(),
 
         hp: real('hp').notNull(),
 

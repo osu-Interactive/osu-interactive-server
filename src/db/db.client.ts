@@ -1,5 +1,5 @@
 import { Pool } from 'pg'
-import { drizzle, NodePgDatabase} from 'drizzle-orm/node-postgres'
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres'
 import * as schema from './schemas/schema'
 
 class DBClient {
@@ -8,13 +8,7 @@ class DBClient {
     public db: NodePgDatabase<typeof schema>
 
     private constructor() {
-        const {
-            DB_HOST,
-            DB_PORT,
-            DB_NAME,
-            DB_USER,
-            DB_PASSWORD,
-        } = process.env
+        const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env
 
         if (!DB_HOST || !DB_PASSWORD || !DB_NAME || !DB_USER || !DB_PORT) {
             throw new Error('Missing required database environment variables')

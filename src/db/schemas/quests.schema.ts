@@ -16,5 +16,5 @@ export const quests = pgTable('quests', {
         })
         .notNull(),
 
-    createdAt: timestamp('created_at').defaultNow().notNull()
+    createdAt: timestamp('created_at').defaultNow().notNull(),
 })
