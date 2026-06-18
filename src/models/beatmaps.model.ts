@@ -1,14 +1,19 @@
-import { and, eq, isNotNull, isNull, sql, asc, gte } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, sql, asc, gte, getTableColumns } from 'drizzle-orm'
 import {
     calculatedBeatmaps,
     mapsets,
     mapsetsBeatmaps,
     nonexistentMapsets,
 } from '../db/schemas/schema'
-import { getTableColumns } from 'drizzle-orm'
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
-import type { SQLSearchConditions, Mapset } from '@/types/osu.types'
+
 import { AppError } from '@/errors/app-error'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+
+import type {
+    SQLSearchConditions,
+    Mapset,
+    MapsetBeatmap,
+} from '@/types/osu.types'
 
 export type BeatmapsModel = ReturnType<typeof beatmapsModel>
 
@@ -42,42 +47,35 @@ export const beatmapsModel = (db: DBExecutor) => ({
                 .returning()
 
             if (data.beatmaps.length > 0) {
-                const beatmapRows = data.beatmaps.map((beatmap) => ({
-                    beatmap_id: beatmap.id,
-                    mapset_id: data.id,
-                    mode: beatmap.mode,
-                    status: data.status,
-                    stars: beatmap.stars,
-                    bpm: beatmap.bpm,
-                    combo: beatmap.combo,
-                    ar: beatmap.ar,
-                    cs: beatmap.cs,
-                    od: beatmap.od,
-                    hp: beatmap.hp,
-                }))
-
-                await tx
-                    .insert(mapsetsBeatmaps)
-                    .values(beatmapRows)
-                    .onConflictDoUpdate({
-                        target: mapsetsBeatmaps.beatmap_id,
-                        set: {
-                            mapset_id: sql.raw('excluded.mapset_id'),
-                            mode: sql.raw('excluded.mode'),
-                            status: sql.raw('excluded.status'),
-                            stars: sql.raw('excluded.stars'),
-                            bpm: sql.raw('excluded.bpm'),
-                            combo: sql.raw('excluded.combo'),
-                            ar: sql.raw('excluded.ar'),
-                            cs: sql.raw('excluded.cs'),
-                            od: sql.raw('excluded.od'),
-                            hp: sql.raw('excluded.hp'),
-                        },
-                    })
+                await this.setMapsetsBeatmaps(
+                    tx,
+                    data.beatmaps,
+                    data.id,
+                    data.status,
+                )
             }
 
             return mapset
         })
+    },
+
+    // prettier-ignore
+    async setMapsetsBeatmaps(db: DBExecutor, beatmaps: MapsetBeatmap[], mapsetId: number, status: string) {
+        const BEATMAP_COLUMNS = ['mapset_id', 'mode', 'status', 'stars', 'bpm', 'combo', 'ar', 'cs', 'od', 'hp'] as const
+
+        await db
+            .insert(mapsetsBeatmaps)
+            .values(beatmaps.map(({ id, mode, stars, bpm, combo, ar, cs, od, hp }) => ({
+                beatmap_id: id,
+                mapset_id: mapsetId,
+                mode, status, stars, bpm, combo, ar, cs, od, hp,
+            })))
+            .onConflictDoUpdate({
+                target: mapsetsBeatmaps.beatmap_id,
+                set: Object.fromEntries(
+                    BEATMAP_COLUMNS.map((col) => [col, sql.raw(`excluded.${col}`)]),
+                ),
+            })
     },
 
     setNonexistentMapset(id: number) {
