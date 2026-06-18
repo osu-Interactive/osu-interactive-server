@@ -135,3 +135,12 @@ export type SQLSearchConditions = {
     condition: string
     value: string | number
 }[]
+
+export type BeatmapSkillsets = {
+    jumps: number
+    streams: number
+    fingerControl: number
+    tech: number
+    alt: number
+    gimmick: number
+}

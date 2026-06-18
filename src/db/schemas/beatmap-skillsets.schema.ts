@@ -4,7 +4,7 @@ import { mapsetsBeatmaps } from './schema'
 export const beatmapSkillsets = pgTable('beatmap_skillsets', {
     id: serial('id').primaryKey(),
 
-    beatmap_id: serial('beatmap_id').references(() => mapsetsBeatmaps.id, {
+    beatmapId: serial('beatmap_id').references(() => mapsetsBeatmaps.id, {
         onDelete: 'set null',
     }),
 

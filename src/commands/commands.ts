@@ -4,6 +4,7 @@ import beatmapsCalculator from '@/utils/scripts/beatmap-calculator'
 import { getCalculatedBeatmap } from '@/services/calculated-beatmaps.service'
 
 import type { FastifyInstance } from 'fastify'
+import { fakeSkillsets } from '@/utils/scripts/beatmap-skillsets-faker'
 
 const commands = (app: FastifyInstance) => ({
     /**
@@ -97,6 +98,10 @@ const commands = (app: FastifyInstance) => ({
             extraCondition,
         )
     },
+
+    async 'fake-bms-skillsets'(amount: number, startId: number, extraCondition: string | null = null) {
+        await fakeSkillsets(app.models.beatmap, amount, startId, extraCondition)
+    }
 })
 
 export default commands

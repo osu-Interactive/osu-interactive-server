@@ -1,9 +1,19 @@
-import { and, eq, isNotNull, isNull, sql, asc, gte, getTableColumns } from 'drizzle-orm'
+import {
+    and,
+    eq,
+    isNotNull,
+    isNull,
+    sql,
+    asc,
+    gte,
+    getTableColumns,
+} from 'drizzle-orm'
 import {
     calculatedBeatmaps,
     mapsets,
     mapsetsBeatmaps,
     nonexistentMapsets,
+    beatmapSkillsets,
 } from '../db/schemas/schema'
 
 import { AppError } from '@/errors/app-error'
@@ -13,6 +23,7 @@ import type {
     SQLSearchConditions,
     Mapset,
     MapsetBeatmap,
+    BeatmapSkillsets,
 } from '@/types/osu.types'
 
 export type BeatmapsModel = ReturnType<typeof beatmapsModel>
@@ -100,7 +111,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
 
         const query = db
             .select({
-                beatmap_id: mapsetsBeatmaps.beatmap_id,
+                id: mapsetsBeatmaps.id,
             })
             .from(mapsetsBeatmaps)
             .where(and(...conditions))
@@ -175,5 +186,12 @@ export const beatmapsModel = (db: DBExecutor) => ({
         }
 
         return conditions
+    },
+
+    setBeatmapSkillsets(beatmapId: number, skillsets: BeatmapSkillsets) {
+        return db.insert(beatmapSkillsets).values({
+            beatmapId,
+            ...skillsets,
+        })
     },
 })
