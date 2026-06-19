@@ -145,3 +145,10 @@ export type BeatmapSkillsets = {
     alt: number
     gimmick: number
 }
+
+export type QuestCategory = {
+    name: string
+    code: number
+    minPP: number
+    maxPP: number | null
+}

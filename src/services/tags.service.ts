@@ -11,17 +11,15 @@ export default (tagsModel: TagsModel) => ({
         return tagsModel.getSkillsets()
     },
 
-    async setMods() {
+    async initMods() {
         const modNames = Object.values(modsSeed).map(({ name, code }) => ({
             name,
             code,
         }))
         await tagsModel.replaceMods(modNames)
-
-        console.log(`[Tags] Loaded ${modNames.length} mods`)
     },
 
-    async setSkillsets() {
+    async initSkillsets() {
         const skillsetsNames = Object.values(skillsetsSeed).map(
             ({ name, code, surveyDescription }) => ({
                 name,
@@ -31,7 +29,5 @@ export default (tagsModel: TagsModel) => ({
         )
 
         await tagsModel.replaceSkillsets(skillsetsNames)
-
-        console.log(`[Tags] Loaded ${skillsetsNames.length} skillsets`)
     },
 })

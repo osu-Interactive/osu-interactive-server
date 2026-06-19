@@ -1,5 +1,5 @@
 import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core'
-import { mapsetsBeatmaps, questsCategories } from './schema'
+import { mapsetsBeatmaps, questCategories } from './schema'
 
 export const quests = pgTable('quests', {
     id: serial('id').primaryKey(),
@@ -11,7 +11,7 @@ export const quests = pgTable('quests', {
         .notNull(),
 
     categoryId: integer('category_id')
-        .references(() => questsCategories.id, {
+        .references(() => questCategories.id, {
             onDelete: 'restrict',
         })
         .notNull(),
