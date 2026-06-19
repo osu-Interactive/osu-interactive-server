@@ -9,7 +9,7 @@ declare module 'fastify' {
 }
 
 async function authTokensPlugin(app: FastifyInstance) {
-    const service = new AuthTokensService(app)
+    const service = new AuthTokensService(app.models.user, app.jwt)
 
     app.decorate('authTokens', service)
 }

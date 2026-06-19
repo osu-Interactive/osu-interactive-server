@@ -1,8 +1,7 @@
 import crypto from 'crypto'
 import bcrypt from 'bcrypt'
-import { eq } from 'drizzle-orm'
-import { usersRefreshTokens } from '@/db/schemas/schema'
-import { FastifyInstance } from 'fastify'
+import type { UserModel } from '@/models/user.model'
+import type { JWT } from '@fastify/jwt'
 
 type RefreshTokenPayload = {
     userId: number
@@ -11,14 +10,10 @@ type RefreshTokenPayload = {
 }
 
 export class AuthTokensService {
-    private app: FastifyInstance
-
     public accessTokenTtlSeconds = 60 * 15
     public refreshTokenTtlSeconds = 60 * 60 * 24 * 14
 
-    constructor(app: FastifyInstance) {
-        this.app = app
-    }
+    constructor(private userModel: UserModel, private jwt: JWT) {}
 
     async getJwtAndRefreshToken(userId: number, userOsuId: number) {
         const accessToken = this.signAccessToken(userId, userOsuId)
@@ -36,14 +31,14 @@ export class AuthTokensService {
     }
 
     signAccessToken(userId: number, userOsuId: number): string {
-        return this.app.jwt.sign(
+        return this.jwt.sign(
             { userId, osuId: userOsuId },
             { expiresIn: this.accessTokenTtlSeconds },
         )
     }
 
     signRefreshToken(userId: number, userOsuId: number, tokenId: string): string {
-        return this.app.jwt.sign(
+        return this.jwt.sign(
             { userId, osuId: userOsuId, tokenId },
             { expiresIn: this.refreshTokenTtlSeconds },
         )
@@ -56,41 +51,28 @@ export class AuthTokensService {
     async saveRefreshToken(userId: number, tokenId: string, tokenHash: string): Promise<void> {
         const expiresAt = new Date(Date.now() + this.refreshTokenTtlSeconds * 1000)
 
-        await this.app.db.insert(usersRefreshTokens).values({
-            userId: userId,
-            tokenId: tokenId,
-            tokenHash: tokenHash,
-            expiresAt: expiresAt,
-        })
+        await this.userModel.setRefreshToken(userId, tokenId, tokenHash, expiresAt)
     }
 
     async refreshTokens(currentRefreshToken: string) {
-        const payload = this.app.jwt.verify<RefreshTokenPayload>(currentRefreshToken)
+        const payload = this.jwt.verify<RefreshTokenPayload>(currentRefreshToken)
 
-        const tokenRow = await this.app.db.query.usersRefreshTokens.findFirst({
-            where: (tokens, { and, eq, isNull, gt }) =>
-                and(
-                    eq(tokens.userId, payload.userId),
-                    eq(tokens.tokenId, payload.tokenId),
-                    isNull(tokens.revokedAt),
-                    gt(tokens.expiresAt, new Date()),
-                ),
-        })
+        const refreshToken = await this.userModel.getValidRefreshToken(
+            payload.userId,
+            payload.tokenId,
+        )
 
-        if (!tokenRow) {
+        if (!refreshToken) {
             throw new Error('Refresh token not found')
         }
 
-        const isValid = await bcrypt.compare(currentRefreshToken, tokenRow.tokenHash)
+        const isValid = await bcrypt.compare(currentRefreshToken, refreshToken.tokenHash)
 
         if (!isValid) {
             throw new Error('Invalid refresh token')
         }
 
-        await this.app.db
-            .update(usersRefreshTokens)
-            .set({ revokedAt: new Date() })
-            .where(eq(usersRefreshTokens.id, tokenRow.id))
+        await this.userModel.updateRefreshToken(refreshToken.id)
 
         return this.getJwtAndRefreshToken(payload.userId, payload.osuId)
     }

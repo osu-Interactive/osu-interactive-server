@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { users, usersOauthTokens } from '../db/schemas/schema'
+import { users, usersOauthTokens, usersRefreshTokens } from '../db/schemas/schema'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
 import { AppError } from '@/errors/app-error'
@@ -83,5 +83,33 @@ export const userModel = (db: DBExecutor) => ({
                 target: usersOauthTokens.userId,
                 set: getUserTokensDBValues(authResult),
             })
+    },
+
+    setRefreshToken(userId: number, tokenId: string, tokenHash: string, expiresAt: Date) {
+        return db.insert(usersRefreshTokens).values({
+            userId: userId,
+            tokenId: tokenId,
+            tokenHash: tokenHash,
+            expiresAt: expiresAt,
+        })
+    },
+
+    getValidRefreshToken(userId: number, tokenId: string) {
+        return db.query.usersRefreshTokens.findFirst({
+            where: (tokens, { and, eq, isNull, gt }) =>
+                and(
+                    eq(tokens.userId, userId),
+                    eq(tokens.tokenId, tokenId),
+                    isNull(tokens.revokedAt),
+                    gt(tokens.expiresAt, new Date()),
+                ),
+        })
+    },
+
+    updateRefreshToken(id: number) {
+        return db
+            .update(usersRefreshTokens)
+            .set({ revokedAt: new Date() })
+            .where(eq(usersRefreshTokens.id, id))
     },
 })
