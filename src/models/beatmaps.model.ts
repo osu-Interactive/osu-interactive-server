@@ -57,10 +57,10 @@ export const beatmapsModel = (db: DBExecutor) => ({
     },
 
     // prettier-ignore
-    async setMapsetsBeatmaps(db: DBExecutor, beatmaps: MapsetBeatmap[], mapsetId: number, status: string) {
+    setMapsetsBeatmaps(db: DBExecutor, beatmaps: MapsetBeatmap[], mapsetId: number, status: string) {
         const BEATMAP_COLUMNS = ['osu_mapset_id', 'mode', 'status', 'stars', 'bpm', 'combo', 'ar', 'cs', 'od', 'hp'] as const
 
-        await db
+        return db
             .insert(mapsetsBeatmaps)
             .values(beatmaps.map(({ id, mode, stars, bpm, combo, ar, cs, od, hp }) => ({
                 osuId: id,
@@ -83,7 +83,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .returning()
     },
 
-    async getBeatmaps(
+    getBeatmaps(
         limit: number | null = null,
         startId: number = 1,
         extraConditions: SQLSearchConditions | null = null,
@@ -103,7 +103,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         return limit !== null ? query.limit(limit) : query
     },
 
-    async getBeatmapsByCalculationStatus(
+    getBeatmapsByCalculationStatus(
         isCalculated: boolean,
         limit: number | null = null,
         startId: number = 1,

@@ -5,7 +5,7 @@ import { calculatedBeatmaps } from '@/db/schemas/schema'
 export type CalculatedBeatmapsModel = ReturnType<typeof calculatedBeatmapsModel>
 
 export const calculatedBeatmapsModel = (db: DBExecutor) => ({
-    async setBeatmap(bm: MappedPerformanceAttributes, beatmapId: number, mapsetId: number) {
+    setBeatmap(bm: MappedPerformanceAttributes, beatmapId: number, mapsetId: number) {
         const difficulty = bm.difficulty
 
         const values = {
