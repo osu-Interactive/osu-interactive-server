@@ -4,13 +4,14 @@ import { mapsets } from './mapsets.schema'
 export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {
     id: serial('id').primaryKey(),
 
-    beatmap_id: integer('beatmap_id').notNull().unique(),
+    osuId: integer('osu_id').notNull().unique(),
 
-    mapset_id: integer('mapset_id')
+    osuMapsetId: integer('osu_mapset_id')
         .notNull()
-        .references(() => mapsets.mapsetId, {
+        .references(() => mapsets.osuId, {
             onDelete: 'cascade',
         }),
+
     mode: text('mode', {
         enum: ['osu', 'taiko', 'fruits', 'mania'],
     }).notNull(),

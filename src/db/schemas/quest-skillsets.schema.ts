@@ -1,10 +1,10 @@
-import { pgTable, serial } from 'drizzle-orm/pg-core'
+import { integer, pgTable, serial } from 'drizzle-orm/pg-core'
 import { quests, skillsets } from './schema'
 
-export const questSkillsetsSchema = pgTable('quests_skillsets', {
+export const questSkillsetsSchema = pgTable('quest_skillsets', {
     id: serial('id').primaryKey(),
 
-    questId: serial('beatmap_id').references(() => quests.id, { onDelete: 'cascade' }),
+    questId: integer('quest_id').references(() => quests.id, { onDelete: 'cascade' }),
 
-    modId: serial('mods_id').references(() => skillsets.id, { onDelete: 'cascade' }),
+    skillsetId: integer('skillset_id').references(() => skillsets.id, { onDelete: 'cascade' }),
 })

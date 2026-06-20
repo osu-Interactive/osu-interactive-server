@@ -59,13 +59,13 @@ export const calculatedBeatmapsModel = (db: DBExecutor) => ({
         return db
             .insert(calculatedBeatmaps)
             .values({
-                beatmapId: beatmapId,
-                mapsetId: mapsetId,
+                osuBeatmapId: beatmapId,
+                osuMapsetId: mapsetId,
 
                 ...values,
             })
             .onConflictDoUpdate({
-                target: calculatedBeatmaps.beatmapId,
+                target: calculatedBeatmaps.osuBeatmapId,
                 set: values,
             })
             .returning()
