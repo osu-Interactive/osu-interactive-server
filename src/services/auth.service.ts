@@ -16,5 +16,5 @@ export function getOsuApiAuthLink(state: string) {
 
 export async function loginWithOsu(db: DB, osuApiCode: string) {
     const loginWithOsu = new LoginWithOsu(db)
-    return await loginWithOsu.execute(osuApiCode)
+    return await loginWithOsu.auth(osuApiCode)
 }

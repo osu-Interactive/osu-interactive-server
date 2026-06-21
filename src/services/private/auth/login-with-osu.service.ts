@@ -12,19 +12,13 @@ export class LoginWithOsu {
         private readonly osuApi: OsuApiUserClient = new OsuApiUserClient(),
     ) {}
 
-    //TODO: Test the transaction
-    async execute(userOsuApiCode: string): Promise<DBUser> {
+    async auth(userOsuApiCode: string): Promise<DBUser> {
         const { authResult, extractedData } = await this.fetchOsuUser(userOsuApiCode)
 
         return this.db.transaction(async (tx) => {
             const users = this.makeUserModel(tx)
-            let user = await users.getByOsuId(extractedData.id)
 
-            if (user) {
-                await users.updateById(user.id, extractedData)
-            } else {
-                user = await users.upsertFromOsu(extractedData)
-            }
+            const user = await users.upsertFromOsu(extractedData)
 
             await users.saveToken(user.id, authResult)
 

@@ -68,10 +68,6 @@ export const userModel = (db: DBExecutor) => ({
         return result[0]
     },
 
-    updateById(userId: number, data: OsuUserExtracted) {
-        return db.update(users).set(getUserDBValues(data)).where(eq(users.id, userId))
-    },
-
     saveToken(userId: number, authResult: OsuAuthToken) {
         return db
             .insert(usersOauthTokens)
