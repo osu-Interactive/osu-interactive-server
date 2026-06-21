@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import type { UserModel } from '@/models/user.model'
 import type { JWT } from '@fastify/jwt'
+import { AppError } from '@/errors/app-error'
 
 type RefreshTokenPayload = {
     userId: number
@@ -63,13 +64,13 @@ export class AuthTokensService {
         )
 
         if (!refreshToken) {
-            throw new Error('Refresh token not found')
+            throw new AppError('Refresh token not found', { code: 'INVALID_REFRESH_TOKEN' })
         }
 
         const isValid = await bcrypt.compare(currentRefreshToken, refreshToken.tokenHash)
 
         if (!isValid) {
-            throw new Error('Invalid refresh token')
+            throw new AppError('Invalid refresh token', { code: 'INVALID_REFRESH_TOKEN' })
         }
 
         await this.userModel.updateRefreshToken(refreshToken.id)

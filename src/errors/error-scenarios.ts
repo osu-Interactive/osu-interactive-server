@@ -21,7 +21,6 @@ const ERROR_SCENARIOS = defineErrorScenarios({
         isOperational: true,
     }),
 
-
     OSU_API_OVERLOADED: () => ({
         statusCode: 503,
         isOperational: true,
@@ -34,6 +33,11 @@ const ERROR_SCENARIOS = defineErrorScenarios({
     }),
 
     MISSING_REFRESH_TOKEN: () => ({
+        statusCode: 401,
+        isOperational: true,
+    }),
+
+    INVALID_REFRESH_TOKEN: () => ({
         statusCode: 401,
         isOperational: true,
     }),
