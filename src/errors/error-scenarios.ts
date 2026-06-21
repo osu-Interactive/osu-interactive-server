@@ -21,6 +21,12 @@ const ERROR_SCENARIOS = defineErrorScenarios({
         isOperational: true,
     }),
 
+
+    OSU_API_OVERLOADED: () => ({
+        statusCode: 503,
+        isOperational: true,
+    }),
+
     USER_NOT_FOUND: () => ({
         message: 'Unauthorized',
         statusCode: 401,

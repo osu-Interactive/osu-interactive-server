@@ -1,6 +1,7 @@
 import client from '@/infrastructure/osu-api/osu-api-app-client'
 import { mapMapset } from './private/osu/beatmaps-mapper.service'
 import { AppError } from '@/errors/app-error'
+import { errorTransformers } from '@/errors/error-transformer'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
@@ -38,12 +39,16 @@ export async function getMapset(
             return null
         }
 
-        throw new AppError(`Failed to fetch mapset ${mapsetId}`, {
-            code: 'FETCH_MAPSET_FAILED',
-            details: {
-                statusCode: `${hasField(err, 'status') ? err.status : ''}`,
-            },
-        })
+        throw errorTransformers.bottleneckOverflow(
+            err,
+            new AppError(`Failed to fetch mapset ${mapsetId}`, {
+                code: 'FETCH_MAPSET_FAILED',
+                details: {
+                    statusCode: `${hasField(err, 'status') ? err.status : ''}`,
+                },
+                cause: err,
+            }),
+        )
     }
 }
 
