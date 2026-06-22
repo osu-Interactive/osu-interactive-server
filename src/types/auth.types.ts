@@ -3,12 +3,12 @@ import '@fastify/jwt'
 declare module '@fastify/jwt' {
     interface FastifyJWT {
         payload: {
-            userId: number
+            id: number
             osuId: number
             tokenId?: string
         }
         user: {
-            userId: number
+            id: number
             osuId: number
         }
     }

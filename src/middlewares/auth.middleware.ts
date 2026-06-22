@@ -7,7 +7,7 @@ const DEV_AUTH_OSU_ID_HEADER = 'x-dev-osu-id'
 export async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
     if (canBypassAuthInDevelopment(request)) {
         request.user = {
-            userId: getDevAuthHeaderNumber(request, DEV_AUTH_USER_ID_HEADER, 1),
+            id: getDevAuthHeaderNumber(request, DEV_AUTH_USER_ID_HEADER, 1),
             osuId: getDevAuthHeaderNumber(request, DEV_AUTH_OSU_ID_HEADER, 0),
         }
 

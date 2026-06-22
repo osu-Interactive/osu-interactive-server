@@ -3,7 +3,7 @@ import { authMiddleware } from '@/middlewares/auth.middleware'
 
 export default async function userRoutes(app: FastifyInstance) {
     app.get('/', { preHandler: authMiddleware }, async (req) => {
-        const user = await app.models.user.requireById(req.user.userId)
+        const user = await app.models.user.requireById(req.user.id)
 
         return {
             name: user.name,

@@ -33,14 +33,14 @@ export class AuthTokensService {
 
     signAccessToken(userId: number, userOsuId: number): string {
         return this.jwt.sign(
-            { userId, osuId: userOsuId },
+            { id: userId, osuId: userOsuId },
             { expiresIn: this.accessTokenTtlSeconds },
         )
     }
 
     signRefreshToken(userId: number, userOsuId: number, tokenId: string): string {
         return this.jwt.sign(
-            { userId, osuId: userOsuId, tokenId },
+            { id: userId, osuId: userOsuId, tokenId },
             { expiresIn: this.refreshTokenTtlSeconds },
         )
     }

@@ -20,7 +20,7 @@ export default async function surveyRoutes(app: FastifyInstance) {
             modsIds: number[]
         }
 
-        const userId = request.user.userId
+        const userId = request.user.id
 
         await surveyService.save(userId, surveyData)
     })
