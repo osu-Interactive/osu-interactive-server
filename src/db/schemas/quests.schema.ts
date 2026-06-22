@@ -6,8 +6,8 @@ export const quests = pgTable('quests', {
 
     title: text(),
 
-    osuBeatmapId: integer('osu_beatmap_id')
-        .references(() => mapsetsBeatmaps.osuId, { onDelete: 'cascade' })
+    beatmapId: integer('beatmap_id')
+        .references(() => mapsetsBeatmaps.id, { onDelete: 'cascade' })
         .notNull(),
 
     categoryId: integer('category_id')

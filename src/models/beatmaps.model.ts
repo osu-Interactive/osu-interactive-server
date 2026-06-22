@@ -39,11 +39,11 @@ export const beatmapsModel = (db: DBExecutor) => ({
             const [mapset] = await tx
                 .insert(mapsets)
                 .values({
-                    osuId: data.id,
+                    id: data.id,
                     ...values,
                 })
                 .onConflictDoUpdate({
-                    target: mapsets.osuId,
+                    target: mapsets.id,
                     set: values,
                 })
                 .returning()
@@ -58,27 +58,35 @@ export const beatmapsModel = (db: DBExecutor) => ({
 
     // prettier-ignore
     setMapsetsBeatmaps(db: DBExecutor, beatmaps: MapsetBeatmap[], mapsetId: number, status: string) {
-        const BEATMAP_COLUMNS = ['osu_mapset_id', 'mode', 'status', 'stars', 'bpm', 'combo', 'ar', 'cs', 'od', 'hp'] as const
+        /**
+         * Note: Columns updated on conflict.
+         * Drizzle schema property names must match the actual database column names.
+         * Columns with different names (e.g. mapsetId -> mapset_id) must be specified manually in `set`.
+         */
+        const BEATMAP_COLUMNS = ['mode', 'status', 'stars', 'bpm', 'combo', 'ar', 'cs', 'od', 'hp'] as const
 
         return db
             .insert(mapsetsBeatmaps)
-            .values(beatmaps.map(({ id, mode, stars, bpm, combo, ar, cs, od, hp }) => ({
-                osuId: id,
-                osuMapsetId: mapsetId,
-                mode, status, stars, bpm, combo, ar, cs, od, hp,
-            })))
+            .values(
+                beatmaps.map(({ id, mode, stars, bpm, combo, ar, cs, od, hp }) => ({
+                    id, mapsetId, mode, status, stars, bpm, combo, ar, cs, od, hp,
+                })),
+            )
             .onConflictDoUpdate({
-                target: mapsetsBeatmaps.osuId,
-                set: Object.fromEntries(
-                    BEATMAP_COLUMNS.map((col) => [col, sql.raw(`excluded.${col}`)]),
-                ),
+                target: mapsetsBeatmaps.id,
+                set: {
+                    mapsetId: sql.raw('excluded.mapset_id'),
+                    ...Object.fromEntries(
+                        BEATMAP_COLUMNS.map((col) => [col, sql.raw(`excluded.${col}`)]),
+                    ),
+                },
             })
     },
 
     setNonexistentMapset(id: number) {
         return db
             .insert(nonexistentMapsets)
-            .values({ osuMapsetId: id })
+            .values({ osu_id: id })
             .onConflictDoNothing()
             .returning()
     },
@@ -90,7 +98,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
     ) {
         const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
-        conditions.push(gte(mapsetsBeatmaps.osuId, startId))
+        conditions.push(gte(mapsetsBeatmaps.id, startId))
 
         const query = db
             .select({
@@ -98,7 +106,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             })
             .from(mapsetsBeatmaps)
             .where(and(...conditions))
-            .orderBy(asc(mapsetsBeatmaps.osuId))
+            .orderBy(asc(mapsetsBeatmaps.id))
 
         return limit !== null ? query.limit(limit) : query
     },
@@ -112,26 +120,21 @@ export const beatmapsModel = (db: DBExecutor) => ({
         const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
         conditions.push(
-            isCalculated
-                ? isNotNull(calculatedBeatmaps.osuBeatmapId)
-                : isNull(calculatedBeatmaps.osuBeatmapId),
+            isCalculated ? isNotNull(calculatedBeatmaps.id) : isNull(calculatedBeatmaps.id),
 
-            gte(mapsetsBeatmaps.osuId, startId),
+            gte(mapsetsBeatmaps.id, startId),
         )
 
         const query = db
             .select({
-                beatmap_id: mapsetsBeatmaps.osuId,
-                mapset_id: mapsetsBeatmaps.osuMapsetId,
+                beatmap_id: mapsetsBeatmaps.id,
+                mapset_id: mapsetsBeatmaps.mapsetId,
             })
             .from(mapsetsBeatmaps)
-            .leftJoin(
-                calculatedBeatmaps,
-                eq(mapsetsBeatmaps.osuId, calculatedBeatmaps.osuBeatmapId),
-            )
+            .leftJoin(calculatedBeatmaps, eq(mapsetsBeatmaps.id, calculatedBeatmaps.beatmapId))
 
             .where(and(...conditions, isNotNull(mapsetsBeatmaps.combo)))
-            .orderBy(asc(mapsetsBeatmaps.osuId))
+            .orderBy(asc(mapsetsBeatmaps.id))
 
         return limit !== null ? query.limit(limit) : query
     },

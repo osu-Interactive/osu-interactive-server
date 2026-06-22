@@ -1,14 +1,12 @@
-import { pgTable, serial, integer, real, text, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, integer, real, text, timestamp } from 'drizzle-orm/pg-core'
 import { mapsets } from './mapsets.schema'
 
 export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey(),
 
-    osuId: integer('osu_id').notNull().unique(),
-
-    osuMapsetId: integer('osu_mapset_id')
+    mapsetId: integer('mapset_id')
         .notNull()
-        .references(() => mapsets.osuId, {
+        .references(() => mapsets.id, {
             onDelete: 'cascade',
         }),
 

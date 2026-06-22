@@ -15,16 +15,16 @@ export const calculatedBeatmaps = pgTable(
     {
         id: serial('id').primaryKey(),
 
-        osuBeatmapId: integer('osu_beatmap_id')
+        beatmapId: integer('beatmap_id')
             .notNull()
-            .references(() => mapsetsBeatmaps.osuId, {
+            .references(() => mapsetsBeatmaps.id, {
                 onDelete: 'cascade',
             })
             .unique(),
 
-        osuMapsetId: integer('osu_mapset_id')
+        mapsetId: integer('mapset_id')
             .notNull()
-            .references(() => mapsets.osuId, {
+            .references(() => mapsets.id, {
                 onDelete: 'cascade',
             }),
 
@@ -80,5 +80,5 @@ export const calculatedBeatmaps = pgTable(
 
         createdAt: timestamp('created_at').defaultNow().notNull(),
     },
-    (table) => [index('calculated_beatmaps_id_idx').on(table.osuMapsetId)],
+    (table) => [index('calculated_beatmaps_id_idx').on(table.mapsetId)],
 )

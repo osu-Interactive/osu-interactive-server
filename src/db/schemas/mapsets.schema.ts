@@ -1,9 +1,7 @@
-import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, timestamp } from 'drizzle-orm/pg-core'
 
 export const mapsets = pgTable('mapsets', {
-    id: serial('id').primaryKey(),
-
-    osuId: integer('osu_id').notNull().unique(),
+    id: integer('id').primaryKey(),
     title: text('title').notNull(),
     artist: text('artist').notNull(),
     status: text('status').notNull(),
