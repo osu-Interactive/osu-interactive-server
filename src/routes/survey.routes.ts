@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { authMiddleware } from '@/middlewares/auth.middleware'
-import { SurveyService } from '@/services/survey.service'
+import SurveyService from '@/services/survey.service'
 import TagsService from '@/services/tags.service'
 
 export default async function surveyRoutes(app: FastifyInstance) {

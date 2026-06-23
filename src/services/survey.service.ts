@@ -9,7 +9,7 @@ type SurveyResult = {
     modsIds: number[]
 }
 
-export class SurveyService {
+export default class SurveyService {
     constructor(
         private readonly db: DB,
         private readonly makeSurveyModel: SurveyModelFactory = surveyModel,
@@ -54,5 +54,9 @@ export class SurveyService {
                 await surveyModel.insertUserSkillsets(userSkillsets)
             }
         })
+    }
+
+    getUserFavoriteSkillsets = (userId: number) => {
+        return this.makeSurveyModel(this.db).getUserSkillsets(userId)
     }
 }

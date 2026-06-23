@@ -13,5 +13,4 @@ export * from './beatmap-skillsets.schema'
 
 export * from './quests.schema'
 export * from './quest-mods.schema'
-export * from './quest-skillsets.schema'
 export * from './quest-categories.schema'
