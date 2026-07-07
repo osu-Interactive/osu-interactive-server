@@ -147,8 +147,8 @@ export type BeatmapSkillsets = {
 }
 
 export type QuestCategory = {
-    name: string
     code: number
+    name: string
     minPP: number
     maxPP: number | null
 }

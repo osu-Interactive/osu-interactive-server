@@ -7,8 +7,16 @@ export type QuestModel = ReturnType<typeof questsModel>
 
 export const questsModel = (db: DBExecutor) => ({
     async setQuestsCategories(categories: QuestCategory[]) {
-        await db.execute(sql`TRUNCATE TABLE quest_categories RESTART IDENTITY CASCADE`)
-
-        return db.insert(questCategories).values(categories)
+        return db
+            .insert(questCategories)
+            .values(categories)
+            .onConflictDoUpdate({
+                target: questCategories.code,
+                set: {
+                    name: sql.raw(`excluded.name`),
+                    minPP: sql.raw(`excluded.min_pp`),
+                    maxPP: sql.raw(`excluded.max_pp`),
+                },
+            })
     },
 })
