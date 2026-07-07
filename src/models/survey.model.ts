@@ -2,7 +2,8 @@ import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { usersMods, usersSkillsets } from '@/db/schemas/schema'
 import { eq } from 'drizzle-orm'
 
-export type SurveyModel = ReturnType<typeof surveyModel>
+export type SurveyModelFactory = typeof surveyModel
+export type SurveyModel = ReturnType<SurveyModelFactory>
 
 export const surveyModel = (db: DBExecutor) => ({
     getUserMods(userId: number) {

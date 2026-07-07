@@ -1,14 +1,12 @@
 import OsuApiUserClient from '@/infrastructure/osu-api/osu-api-user-client'
-import { userModel, type UserModel } from '@/models/user.model'
-import type { DB, DBExecutor } from '@/types/drizzle-pg-db.types'
+import type { UserModelFactory } from '@/models/user.model'
+import type { DB } from '@/types/drizzle-pg-db.types'
 import type { DBUser, OsuApiUser, OsuUserExtracted } from '@/types/osu.types'
-
-type UserModelFactory = (db: DBExecutor) => UserModel
 
 export class LoginWithOsu {
     constructor(
         private readonly db: DB,
-        private readonly makeUserModel: UserModelFactory = userModel,
+        private readonly userModelFactory: UserModelFactory,
         private readonly osuApi: OsuApiUserClient = new OsuApiUserClient(),
     ) {}
 
@@ -16,7 +14,7 @@ export class LoginWithOsu {
         const { authResult, extractedData } = await this.fetchOsuUser(userOsuApiCode)
 
         return this.db.transaction(async (tx) => {
-            const users = this.makeUserModel(tx)
+            const users = this.userModelFactory(tx)
 
             const user = await users.upsertFromOsu(extractedData)
 

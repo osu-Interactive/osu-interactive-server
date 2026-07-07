@@ -8,7 +8,7 @@ import QuestsFacade from '@/facades/quests.facade'
 
 export default async function questsRoutes(app: FastifyInstance) {
     const questService = QuestsService(app.models.quests)
-    const surveyService = new SurveyService(app.db)
+    const surveyService = new SurveyService(app.db, app.models.factories.survey)
 
     app.get('/:id/evaluate', async (_, reply) => {
         await evaluateQuestsCompletion()

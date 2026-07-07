@@ -4,7 +4,7 @@ import SurveyService from '@/services/survey.service'
 import TagsService from '@/services/tags.service'
 
 export default async function surveyRoutes(app: FastifyInstance) {
-    const surveyService = new SurveyService(app.db)
+    const surveyService = new SurveyService(app.db, app.models.factories.survey)
     const tagsService = TagsService(app.models.tags)
 
     app.get('/', async () => {

@@ -4,7 +4,8 @@ import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
 import { AppError } from '@/errors/app-error'
 
-export type UserModel = ReturnType<typeof userModel>
+export type UserModelFactory = typeof userModel
+export type UserModel = ReturnType<UserModelFactory>
 
 const getUserDBValues = (user: OsuUserExtracted) => ({
     name: user.username,

@@ -1,4 +1,5 @@
 import { LoginWithOsu } from '@/services/private/auth/login-with-osu.service'
+import type { UserModelFactory } from '@/models/user.model'
 import type { DB } from '@/types/drizzle-pg-db.types'
 
 export function getOsuApiAuthLink(state: string) {
@@ -14,7 +15,7 @@ export function getOsuApiAuthLink(state: string) {
     )
 }
 
-export async function loginWithOsu(db: DB, osuApiCode: string) {
-    const loginWithOsu = new LoginWithOsu(db)
+export async function loginWithOsu(db: DB, userModelFactory: UserModelFactory, osuApiCode: string) {
+    const loginWithOsu = new LoginWithOsu(db, userModelFactory)
     return await loginWithOsu.auth(osuApiCode)
 }

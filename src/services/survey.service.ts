@@ -1,8 +1,6 @@
-import type { DB, DBExecutor } from '@/types/drizzle-pg-db.types'
-import { surveyModel } from '@/models/survey.model'
+import type { DB } from '@/types/drizzle-pg-db.types'
+import type { SurveyModelFactory } from '@/models/survey.model'
 import { AppError } from '@/errors/app-error'
-
-type SurveyModelFactory = (db: DBExecutor) => ReturnType<typeof surveyModel>
 
 type SurveyResult = {
     skillsetsIds: number[]
@@ -11,8 +9,8 @@ type SurveyResult = {
 
 export default class SurveyService {
     constructor(
-        private readonly db: DB,
-        private readonly makeSurveyModel: SurveyModelFactory = surveyModel,
+        private db: DB,
+        private surveyModelFactory: SurveyModelFactory,
     ) {}
 
     public async save(userId: number, survey: SurveyResult) {
@@ -31,7 +29,7 @@ export default class SurveyService {
         }
 
         return this.db.transaction(async (tx) => {
-            const surveyModel = this.makeSurveyModel(tx)
+            const surveyModel = this.surveyModelFactory(tx)
 
             await surveyModel.deleteAllUserSkillsets(userId)
             await surveyModel.deleteAllUserMods(userId)
@@ -57,6 +55,6 @@ export default class SurveyService {
     }
 
     getUserFavoriteSkillsets = (userId: number) => {
-        return this.makeSurveyModel(this.db).getUserSkillsets(userId)
+        return this.surveyModelFactory(this.db).getUserSkillsets(userId)
     }
 }

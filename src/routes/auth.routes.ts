@@ -39,7 +39,7 @@ export default async function authRoutes(app: FastifyInstance) {
         }
 
         const { osuApiCode } = req.body
-        const loginResult = await loginWithOsu(app.db, osuApiCode)
+        const loginResult = await loginWithOsu(app.db, app.models.factories.user, osuApiCode)
 
         const { accessToken, refreshToken } = await app.authTokens.getJwtAndRefreshToken(
             loginResult.id,
