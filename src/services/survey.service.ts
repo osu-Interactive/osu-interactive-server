@@ -1,5 +1,5 @@
 import type { DB } from '@/types/drizzle-pg-db.types'
-import type { SurveyModelFactory } from '@/models/survey.model'
+import  { SurveyModelFactory } from '@/models/survey.model'
 import { AppError } from '@/errors/app-error'
 
 type SurveyResult = {
@@ -8,10 +8,14 @@ type SurveyResult = {
 }
 
 export default class SurveyService {
+    private surveyModel
+
     constructor(
         private db: DB,
         private surveyModelFactory: SurveyModelFactory,
-    ) {}
+    ) {
+        this.surveyModel = this.surveyModelFactory(this.db)
+    }
 
     public async save(userId: number, survey: SurveyResult) {
         const errors: Record<string, string> = {}
@@ -55,6 +59,10 @@ export default class SurveyService {
     }
 
     getUserFavoriteSkillsets = (userId: number) => {
-        return this.surveyModelFactory(this.db).getUserSkillsets(userId)
+        return this.surveyModel.getUserSkillsets(userId)
+    }
+
+    getUserFavoriteMods = (userId: number) => {
+        return this.surveyModel.getUserMods(userId)
     }
 }

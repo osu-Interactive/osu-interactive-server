@@ -10,12 +10,12 @@ export default async function questsRoutes(app: FastifyInstance) {
     const questService = QuestsService(app.models.quests)
     const surveyService = new SurveyService(app.db, app.models.factories.survey)
 
-    app.get('/:id/evaluate', async (_, reply) => {
-        await evaluateQuestsCompletion()
-    })
-
     app.post('/', { preHandler: authMiddleware }, async (req) => {
         const questsFacade = QuestsFacade(questService, surveyService)
         await questsFacade.getUserQuests(req.user.id)
+    })
+
+    app.get('/:id/evaluate', async (_, reply) => {
+        await evaluateQuestsCompletion()
     })
 }

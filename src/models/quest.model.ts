@@ -1,12 +1,13 @@
 import { DBExecutor } from '@/types/drizzle-pg-db.types'
-import { questCategories } from '@/db/schemas/schema'
+import { questCategories, beatmapSkillsets } from '@/db/schemas/schema'
 import type { QuestCategory } from '@/types/osu.types'
 import { sql } from 'drizzle-orm'
 
-export type QuestModel = ReturnType<typeof questsModel>
+export type QuestModelFactory = typeof questsModel
+export type QuestModel = ReturnType<QuestModelFactory>
 
 export const questsModel = (db: DBExecutor) => ({
-    async setQuestsCategories(categories: QuestCategory[]) {
+    setQuestsCategories(categories: QuestCategory[]) {
         return db
             .insert(questCategories)
             .values(categories)
@@ -18,5 +19,9 @@ export const questsModel = (db: DBExecutor) => ({
                     maxPP: sql.raw(`excluded.max_pp`),
                 },
             })
+    },
+
+    getRandomBeatmapSkillsets(limit: number) {
+        return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
     },
 })
