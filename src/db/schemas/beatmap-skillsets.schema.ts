@@ -12,6 +12,6 @@ export const beatmapSkillsets = pgTable('beatmap_skillsets', {
     streams: integer('streams').notNull(),
     fingerControl: integer('finger_control').notNull(),
     tech: integer('tech').notNull(),
-    alt: integer('alt').notNull(),
+    alternate: integer('alternate').notNull(),
     gimmick: integer('gimmick').notNull(),
 })

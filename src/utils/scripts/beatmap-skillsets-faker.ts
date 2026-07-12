@@ -24,7 +24,7 @@ function getFakeSkillsets(): BeatmapSkillsets {
         streams: randomInt(0, 100),
         fingerControl: randomInt(0, 100),
         tech: randomInt(0, 100),
-        alt: randomInt(0, 100),
+        alternate: randomInt(0, 100),
         gimmick: randomInt(0, 100),
     }
 }

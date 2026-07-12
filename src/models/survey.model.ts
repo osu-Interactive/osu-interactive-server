@@ -1,5 +1,5 @@
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
-import { usersMods, usersSkillsets } from '@/db/schemas/schema'
+import { usersMods, usersSkillsets, mods, skillsets } from '@/db/schemas/schema'
 import { eq } from 'drizzle-orm'
 
 export type SurveyModelFactory = typeof surveyModel
@@ -7,13 +7,28 @@ export type SurveyModel = ReturnType<SurveyModelFactory>
 
 export const surveyModel = (db: DBExecutor) => ({
     getUserMods(userId: number) {
-        return db.select().from(usersMods).where(eq(usersMods.userId, userId))
+        return db
+            .select({
+                id: usersMods.id,
+                userId: usersMods.userId,
+                modId: usersMods.modId,
+                modCode: mods.code,
+            })
+            .from(usersMods)
+            .innerJoin(mods, eq(usersMods.modId, mods.id))
+            .where(eq(usersMods.userId, userId))
     },
 
     getUserSkillsets(userId: number) {
         return db
-            .select({ skillsetId: usersSkillsets.skillsetId })
+            .select({
+                id: usersSkillsets.id,
+                userId: usersSkillsets.userId,
+                skillsetId: usersSkillsets.skillsetId,
+                skillsetCode: skillsets.code,
+            })
             .from(usersSkillsets)
+            .innerJoin(skillsets, eq(usersSkillsets.skillsetId, skillsets.id))
             .where(eq(usersSkillsets.userId, userId))
     },
 

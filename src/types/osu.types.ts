@@ -142,7 +142,7 @@ export type BeatmapSkillsets = {
     streams: number
     fingerControl: number
     tech: number
-    alt: number
+    alternate: number
     gimmick: number
 }
 

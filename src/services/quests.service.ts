@@ -1,10 +1,10 @@
 import questsCategories from '@/config/quests-categories-seed'
-import type { QuestModel } from '@/models/quest.model'
+import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
 import type { UserPreferences } from '@/facades/quests.facade'
 
 type Beatmaps = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 
-type Skillset = 'jumps' | 'streams' | 'fingerControl' | 'tech' | 'alt' | 'gimmick'
+type Skillset = 'jumps' | 'streams' | 'fingerControl' | 'tech' | 'alternate' | 'gimmick'
 
 type SkillsetStat = {
     skillset: Skillset
@@ -12,18 +12,35 @@ type SkillsetStat = {
     percentage: number
 }
 
-const skillsets: Skillset[] = ['jumps', 'streams', 'fingerControl', 'tech', 'alt', 'gimmick']
+const skillsets: Skillset[] = ['jumps', 'streams', 'fingerControl', 'tech', 'alternate', 'gimmick']
 
 export default (questsModel: QuestModel) => ({
     async getUserQuests(userId: number, userPreferences: UserPreferences) {
         console.log(userPreferences)
-        const beatmaps = await questsModel.getRandomBeatmapSkillsets(10)
+        const beatmaps: BeatmapSkillset[] = await questsModel.getRandomBeatmapSkillsets(10)
+        const userMatchedBeatmapsSkillsets: BeatmapSkillset[] = []
         beatmaps.forEach((beatmap) => {
-            const mappedBeatmap = this.getSkillsetStats(beatmap)
-            console.log(mappedBeatmap)
-            console.log(this.getDominantSkillsets(beatmap))
+            const dominantSkillsets = this.getDominantSkillsets(beatmap)
+            userPreferences.skillsets.forEach((skillset) => {
+                if (dominantSkillsets.includes(skillset as Skillset)) {
+                    userMatchedBeatmapsSkillsets.push(beatmap)
+                }
+            })
         })
-        //await this.getUserFavoriteSkillsets(userId)
+        console.log(userMatchedBeatmapsSkillsets)
+    },
+
+    getDominantSkillsets(beatmap: Beatmaps[number], threshold = 25): Skillset[] {
+        const stats = this.getSkillsetStats(beatmap)
+
+        const highest = stats[0].value
+
+        return stats
+            .filter(({ value }) => {
+                const difference = ((highest - value) / highest) * 100
+                return difference <= threshold
+            })
+            .map(({ skillset }) => skillset)
     },
 
     getSkillsetStats(beatmap: Beatmaps[number]): SkillsetStat[] {
@@ -44,19 +61,6 @@ export default (questsModel: QuestModel) => ({
                     : 0,
             }
         })
-    },
-
-    getDominantSkillsets(beatmap: Beatmaps[number], threshold = 25): Skillset[] {
-        const stats = this.getSkillsetStats(beatmap)
-
-        const highest = stats[0].value
-
-        return stats
-            .filter(({ value }) => {
-                const difference = ((highest - value) / highest) * 100
-                return difference <= threshold
-            })
-            .map(({ skillset }) => skillset)
     },
 
     generateQuest(userId: number) {},
