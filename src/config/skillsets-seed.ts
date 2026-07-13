@@ -13,7 +13,7 @@ export const skillsetsSeed = [
 
     {
         name: 'Finger Control',
-        code: 'finger_control',
+        code: 'fingerControl',
         surveyDescription:
             'Do you enjoy mechanically challenging patterns, such as bursts followed by a single note?',
     },
@@ -30,13 +30,6 @@ export const skillsetsSeed = [
         code: 'tech',
         surveyDescription:
             'What do you think about large, sweeping sliders and rapidly switching between them?',
-    },
-
-    {
-        name: 'Reading',
-        code: 'reading',
-        surveyDescription:
-            'Do you enjoy playing low AR maps and accurately reading overlapping or difficult-to-read patterns?',
     },
 
     {

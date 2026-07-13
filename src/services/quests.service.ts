@@ -1,10 +1,11 @@
 import questsCategories from '@/config/quests-categories-seed'
 import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
 import type { UserPreferences } from '@/facades/quests.facade'
+import { skillsetsSeed } from '@/config/skillsets-seed'
 
 type Beatmaps = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 
-type Skillset = 'jumps' | 'streams' | 'fingerControl' | 'tech' | 'alternate' | 'gimmick'
+type Skillset = (typeof skillsetsSeed)[number]['code']
 
 type SkillsetStat = {
     skillset: Skillset
@@ -12,7 +13,7 @@ type SkillsetStat = {
     percentage: number
 }
 
-const skillsets: Skillset[] = ['jumps', 'streams', 'fingerControl', 'tech', 'alternate', 'gimmick']
+const skillsets = skillsetsSeed.map((s) => s.code) as readonly Skillset[]
 
 export default (questsModel: QuestModel) => ({
     async getUserQuests(userId: number, userPreferences: UserPreferences) {
