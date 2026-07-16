@@ -1,11 +1,20 @@
 import questsCategories from '@/config/quests-categories-seed'
-import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
+import type { QuestModel } from '@/models/quest.model'
+import type { BeatmapsModel } from '@/models/beatmaps.model'
+import type { MapsetBeatmap } from '@/db/schemas/schema'
 import type { UserPreferences } from '@/facades/quests.facade'
 import { skillsetsSeed } from '@/config/skillsets-seed'
 
 type Beatmaps = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 
 type Skillset = (typeof skillsetsSeed)[number]['code']
+
+type BeatmapSkillsets = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>[number]
+type BeatmapsSkillsets = BeatmapSkillsets[]
+
+type BeatmapWithSkillsets = MapsetBeatmap & {
+    dominantSkillsets: Skillset[]
+}
 
 type SkillsetStat = {
     skillset: Skillset
@@ -15,23 +24,34 @@ type SkillsetStat = {
 
 const skillsets = skillsetsSeed.map((s) => s.code) as readonly Skillset[]
 
-export default (questsModel: QuestModel) => ({
+export default (questsModel: QuestModel, beatmapsModel: BeatmapsModel) => ({
     async getUserQuests(userId: number, userPreferences: UserPreferences) {
-        console.log(userPreferences)
-        const beatmaps: BeatmapSkillset[] = await questsModel.getRandomBeatmapSkillsets(10)
-        const userMatchedBeatmapsSkillsets: BeatmapSkillset[] = []
-        beatmaps.forEach((beatmap) => {
-            const dominantSkillsets = this.getDominantSkillsets(beatmap)
-            userPreferences.skillsets.forEach((skillset) => {
-                if (dominantSkillsets.includes(skillset as Skillset)) {
-                    userMatchedBeatmapsSkillsets.push(beatmap)
-                }
-            })
-        })
-        console.log(userMatchedBeatmapsSkillsets)
+        const beatmaps = await beatmapsModel.getRandomBeatmaps(10)
+
+        const beatmapsWithSkillsets = await Promise.all(
+            beatmaps.map((beatmap) => this.addDominantSkillsets(beatmap)),
+        )
+
+        console.log(beatmapsWithSkillsets)
     },
 
-    getDominantSkillsets(beatmap: Beatmaps[number], threshold = 25): Skillset[] {
+    async addDominantSkillsets(beatmap: MapsetBeatmap): Promise<BeatmapWithSkillsets> {
+        const beatmapSkillsets = await beatmapsModel.getBeatmapSkillsets(beatmap.id)
+        const beatmapDominantSkillsets: Skillset[] = []
+
+        beatmapSkillsets.forEach((beatmapSkillset) => {
+            this.getDominantSkillsets(beatmapSkillset).forEach((dominantSkillset) => {
+                beatmapDominantSkillsets.push(dominantSkillset)
+            })
+        })
+
+        return {
+            ...beatmap,
+            dominantSkillsets: beatmapDominantSkillsets,
+        }
+    },
+
+    getDominantSkillsets(beatmap: BeatmapsSkillsets[number], threshold = 25): Skillset[] {
         const stats = this.getSkillsetStats(beatmap)
 
         const highest = stats[0].value
@@ -44,7 +64,7 @@ export default (questsModel: QuestModel) => ({
             .map(({ skillset }) => skillset)
     },
 
-    getSkillsetStats(beatmap: Beatmaps[number]): SkillsetStat[] {
+    getSkillsetStats(beatmap: BeatmapsSkillsets[number]): SkillsetStat[] {
         const stats = skillsets.map((skillset) => ({
             skillset,
             value: beatmap[skillset],

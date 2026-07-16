@@ -4,7 +4,7 @@ import QuestsService from '@/services/quests.service'
 
 export default fp(async (app) => {
     const tagsService = TagsService(app.models.tags)
-    const questsService = QuestsService(app.models.quests)
+    const questsService = QuestsService(app.models.quests, app.models.beatmap)
 
     await questsService.initQuestsCategories()
     await tagsService.initMods()

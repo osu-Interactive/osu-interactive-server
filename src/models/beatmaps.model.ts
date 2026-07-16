@@ -174,4 +174,12 @@ export const beatmapsModel = (db: DBExecutor) => ({
             ...skillsets,
         })
     },
+
+    getRandomBeatmaps(amount: number) {
+        return db.select().from(mapsetsBeatmaps).orderBy(sql.raw(`random()`)).limit(amount)
+    },
+
+    getBeatmapSkillsets(id: number) {
+        return db.select().from(beatmapSkillsets).where(eq(beatmapSkillsets.beatmapId, id))
+    }
 })

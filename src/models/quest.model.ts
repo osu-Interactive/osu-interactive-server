@@ -22,7 +22,7 @@ export const questsModel = (db: DBExecutor) => ({
             })
     },
 
-    getRandomBeatmapSkillsets(limit: number) {
-        return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
+    getRandomBeatmapSkillsets(amount: number) {
+        return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(amount)
     },
 })

@@ -7,7 +7,7 @@ import SurveyService from '@/services/survey.service'
 import QuestsFacade from '@/facades/quests.facade'
 
 export default async function questsRoutes(app: FastifyInstance) {
-    const questService = QuestsService(app.models.quests)
+    const questService = QuestsService(app.models.quests, app.models.beatmap)
     const surveyService = new SurveyService(app.db, app.models.factories.survey)
 
     app.post('/', { preHandler: authMiddleware }, async (req) => {

@@ -1,6 +1,8 @@
 import { pgTable, integer, real, text, timestamp } from 'drizzle-orm/pg-core'
 import { mapsets } from './mapsets.schema'
 
+export type MapsetBeatmap = typeof mapsetsBeatmaps.$inferInsert
+
 export const mapsetsBeatmaps = pgTable('mapsets_beatmaps', {
     id: integer('id').primaryKey(),
 
