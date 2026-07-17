@@ -1,7 +1,7 @@
-import questsCategories from '@/config/quests-categories-seed'
+import questsCategories from '@/config/seeds/quests-categories-seed'
 import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
 import type { UserPreferences } from '@/facades/quests.facade'
-import { skillsetsSeed } from '@/config/skillsets-seed'
+import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
 
 type Beatmaps = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 

@@ -1,5 +1,5 @@
-import { modsSeed } from '@/config/mods-seed'
-import { skillsetsSeed } from '@/config/skillsets-seed'
+import { modsSeed } from '@/config/seeds/mods-seed'
+import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
 import type { TagsModel } from '@/models/tags.model'
 
 export default (tagsModel: TagsModel) => ({
