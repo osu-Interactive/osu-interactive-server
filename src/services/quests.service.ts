@@ -1,11 +1,10 @@
 import questsCategories from '@/config/seeds/quests-categories-seed'
 import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
 import type { UserPreferences } from '@/facades/quests.facade'
+import type { Skillset } from '@/types/osu.types'
 import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
 
 type Beatmaps = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
-
-type Skillset = (typeof skillsetsSeed)[number]['code']
 
 type SkillsetStat = {
     skillset: Skillset
@@ -17,6 +16,8 @@ const skillsets = skillsetsSeed.map((s) => s.code) as readonly Skillset[]
 
 export default (questsModel: QuestModel) => ({
     async getUserQuests(userId: number, userPreferences: UserPreferences) {
+        await this.findMatchedBms(['jumps', 'streams'])
+
         console.log(userPreferences)
         const beatmaps: BeatmapSkillset[] = await questsModel.getRandomBeatmapSkillsets(10)
         const userMatchedBeatmapsSkillsets: BeatmapSkillset[] = []
@@ -29,6 +30,10 @@ export default (questsModel: QuestModel) => ({
             })
         })
         console.log(userMatchedBeatmapsSkillsets)
+    },
+
+    findMatchedBms(neededSkillsets: Skillset[]) {
+        return questsModel.getRandomMatchedBM(neededSkillsets)
     },
 
     getDominantSkillsets(beatmap: Beatmaps[number], threshold = 25): Skillset[] {
