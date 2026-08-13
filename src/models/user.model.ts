@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { users, usersOauthTokens, usersRefreshTokens } from '../db/schemas/schema'
+import { users, usersOauthTokens, usersRefreshTokens, userPreferences } from '../db/schemas/schema'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
 import { AppError } from '@/errors/app-error'
@@ -108,5 +108,27 @@ export const userModel = (db: DBExecutor) => ({
             .update(usersRefreshTokens)
             .set({ revokedAt: new Date() })
             .where(eq(usersRefreshTokens.id, id))
+    },
+
+    initializePreferences(
+        userId: number,
+        skillsetsShares: { skillset: Skillset; share: number }[],
+    ) {
+        const preferences = {
+            userId,
+            jumps: 0,
+            streams: 0,
+            fingerControl: 0,
+            tech: 0,
+            alternate: 0,
+            gimmick: 0,
+        }
+
+        for (const { skillset, share } of skillsetsShares) {
+            // @ts-ignore
+            preferences[skillset] = share
+        }
+
+        return db.insert(userPreferences).values(preferences)
     },
 })

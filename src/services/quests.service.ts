@@ -4,7 +4,7 @@ import type { UserPreferences } from '@/facades/quests.facade'
 import type { Skillset } from '@/types/osu.types'
 import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
 
-type Beatmaps = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
+type BeatmapsSkillsets = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 
 type SkillsetStat = {
     skillset: Skillset
@@ -36,7 +36,7 @@ export default (questsModel: QuestModel) => ({
         return questsModel.getRandomMatchedBM(neededSkillsets)
     },
 
-    getDominantSkillsets(beatmap: Beatmaps[number], threshold = 25): Skillset[] {
+    getDominantSkillsets(beatmap: BeatmapsSkillsets[number], threshold = 25): Skillset[] {
         const stats = this.getSkillsetStats(beatmap)
 
         const highest = stats[0].value
@@ -49,7 +49,7 @@ export default (questsModel: QuestModel) => ({
             .map(({ skillset }) => skillset)
     },
 
-    getSkillsetStats(beatmap: Beatmaps[number]): SkillsetStat[] {
+    getSkillsetStats(beatmap: BeatmapsSkillsets[number]): SkillsetStat[] {
         const stats = skillsets.map((skillset) => ({
             skillset,
             value: beatmap[skillset],

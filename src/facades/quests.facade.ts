@@ -14,5 +14,6 @@ export default (questsService: QuestsService, surveyService: SurveyService) => (
         const userSkillsetsMapped = userSkillsets.map((userSkillset) => userSkillset.skillsetCode)
 
         await questsService.getUserQuests(userId, { mods: userModsMapped, skillsets: userSkillsetsMapped })
+
     },
 })
