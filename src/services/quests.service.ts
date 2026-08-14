@@ -1,8 +1,7 @@
 import questsCategories from '@/config/seeds/quests-categories-seed'
 import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
 import type { UserPreferences } from '@/facades/quests.facade'
-import type { Skillset } from '@/types/osu.types'
-import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
+import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 
 type BeatmapsSkillsets = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 

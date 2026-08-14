@@ -39,3 +39,5 @@ export const skillsetsSeed = [
             'Do you enjoy unusual patterns that don’t clearly fit into either streams or jumps?',
     },
 ] as const
+
+export type Skillset = (typeof skillsetsSeed)[number]['code']

@@ -1,5 +1,5 @@
 import { mapCalculatedBeatmap } from '@/services/private/osu/beatmaps-mapper.service'
-import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
+import { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type OsuAuthToken = {
     token: string
@@ -154,5 +154,7 @@ export type QuestCategory = {
     maxPP: number | null
 }
 
-export type Skillset = (typeof skillsetsSeed)[number]['code']
-
+export type SharedSkillsets = {
+    skillset: Skillset
+    share: number
+}[]

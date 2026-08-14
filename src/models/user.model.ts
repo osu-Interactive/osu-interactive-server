@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { users, usersOauthTokens, usersRefreshTokens, userPreferences } from '../db/schemas/schema'
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
-import type { OsuAuthToken, OsuUserExtracted, DBUser } from '@/types/osu.types'
 import { AppError } from '@/errors/app-error'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+import { OsuAuthToken, OsuUserExtracted, DBUser, SharedSkillsets } from '@/types/osu.types'
 
 export type UserModelFactory = typeof userModel
 export type UserModel = ReturnType<UserModelFactory>
@@ -112,7 +112,7 @@ export const userModel = (db: DBExecutor) => ({
 
     initializePreferences(
         userId: number,
-        skillsetsShares: { skillset: Skillset; share: number }[],
+        skillsetsShares: SharedSkillsets,
     ) {
         const preferences = {
             userId,
@@ -125,7 +125,6 @@ export const userModel = (db: DBExecutor) => ({
         }
 
         for (const { skillset, share } of skillsetsShares) {
-            // @ts-ignore
             preferences[skillset] = share
         }
 

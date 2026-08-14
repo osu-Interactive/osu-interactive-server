@@ -1,7 +1,8 @@
+import { sql, or } from 'drizzle-orm'
 import { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { questCategories, beatmapSkillsets } from '@/db/schemas/schema'
-import type { Skillset, QuestCategory } from '@/types/osu.types'
-import { sql, or } from 'drizzle-orm'
+import type { QuestCategory } from '@/types/osu.types'
+import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type QuestModelFactory = typeof questsModel
 export type QuestModel = ReturnType<QuestModelFactory>
@@ -30,7 +31,6 @@ export const questsModel = (db: DBExecutor) => ({
         if (skillsets.length === 0) {
             return Promise.resolve([])
         }
-
         const highest = sql<number>`
         GREATEST(
             ${beatmapSkillsets.jumps},
@@ -47,10 +47,10 @@ export const questsModel = (db: DBExecutor) => ({
             .from(beatmapSkillsets)
             .where(
                 or(
-                    ...skillsets.map(skill =>
-                        sql`${beatmapSkillsets[skill]} >= ${highest} * 0.75`
-                    )
-                )
+                    ...skillsets.map((skill) =>
+                        sql`${beatmapSkillsets[skill]} >= ${highest} * 0.75`,
+                    ),
+                ),
             )
             .orderBy(sql`random()`)
             .limit(1)

@@ -10,12 +10,14 @@ import QuestsFacade from '@/facades/quests.facade'
 export default async function questsRoutes(app: FastifyInstance) {
     const questService = QuestsService(app.models.quests)
     const surveyService = new SurveyService(app.db, app.models.factories.survey)
-    const userQuestsGeneratorService = UserQuestsGeneratorService(app.models.user, app.models.tags)
+    const userQuestsGeneratorService = UserQuestsGeneratorService(app.models.user)
 
     app.post('/', { preHandler: authMiddleware }, async (req) => {
+        const userId = req.user.id
+
         const questsFacade = QuestsFacade(questService, surveyService)
         await questsFacade.getUserQuests(req.user.id)
-        await userQuestsGeneratorService.initializePreferences()
+        await userQuestsGeneratorService.initializePreferences(userId)
     })
 
     app.get('/:id/evaluate', async (_, reply) => {

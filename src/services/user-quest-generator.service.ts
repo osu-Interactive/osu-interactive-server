@@ -1,24 +1,22 @@
+import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 import type { UserModel } from '@/models/user.model'
-import type { TagsModel } from '@/models/tags.model'
-import questsConfig from '@/config/quests.config'
+import type { SharedSkillsets } from '@/types/osu.types'
 
-export default (userModel: UserModel, tagsModel: TagsModel) => ({
-    async initializePreferences() {
-        const skillsets = await tagsModel.getSkillsets()
-        const codes = skillsets.map((skillset) => skillset.code)
+export default (userModel: UserModel) => ({
+    async initializePreferences(userId: number) {
+        const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
+        const shares = this.distributeBudgetEvenly(skillsets, 100)
 
-        const shares = this.distributeBudget(questsConfig.preferenceBudget, codes.length)
-
-        const sharedSkillsets = codes.map((skillset, index) => ({
-            skillset,
+        const sharedSkillsets: SharedSkillsets = skillsets.map((skillset, index) => ({
+            skillset: skillset as Skillset,
             share: shares[index],
         }))
 
-        console.log(sharedSkillsets)
-        await userModel.initializePreferences(1, sharedSkillsets)
+        await userModel.initializePreferences(userId, sharedSkillsets)
     },
 
-    distributeBudget(total: number, count: number): number[] {
+    distributeBudgetEvenly(skillsets: Skillset[], total: number): number[] {
+        const count = skillsets.length
         const totalCents = Math.round(total * 100)
         const baseShare = Math.floor(totalCents / count)
         const remainder = totalCents % count

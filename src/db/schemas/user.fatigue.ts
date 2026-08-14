@@ -1,7 +1,7 @@
 import { pgTable, serial, integer, doublePrecision } from 'drizzle-orm/pg-core'
 import { users } from './schema'
 
-export const userPreferences = pgTable('user_preferences', {
+export const userFatigue = pgTable('user_fatigue', {
     id: serial('id').primaryKey(),
 
     userId: integer('user_id').references(() => users.id, {
