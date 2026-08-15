@@ -3,13 +3,13 @@ import { evaluateQuestsCompletion } from '@/services/quest-completion.service'
 import { authMiddleware } from '@/middlewares/auth.middleware'
 
 import QuestsService from '@/services/quests.service'
-import UserQuestsGeneratorService from '@/services/user-quest-generator.service'
+import UserQuestsGeneratorService from '@/services/user.service'
 import SurveyService from '@/services/survey.service'
 import QuestsFacade from '@/facades/quests.facade'
 
 export default async function questsRoutes(app: FastifyInstance) {
     const questService = QuestsService(app.models.quests)
-    const surveyService = new SurveyService(app.db, app.models.factories.survey)
+    const surveyService = SurveyService(app.db, app.models.factories.survey)
     const userQuestsGeneratorService = UserQuestsGeneratorService(app.models.user)
 
     app.post('/', { preHandler: authMiddleware }, async (req) => {

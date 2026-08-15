@@ -3,6 +3,8 @@ import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
 import type { UserPreferences } from '@/facades/quests.facade'
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 
+export type QuestsService = ReturnType<typeof createQuestsService>
+
 type BeatmapsSkillsets = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 
 type SkillsetStat = {
@@ -13,7 +15,7 @@ type SkillsetStat = {
 
 const skillsets = skillsetsSeed.map((s) => s.code) as readonly Skillset[]
 
-export default (questsModel: QuestModel) => ({
+const createQuestsService = (questsModel: QuestModel) => ({
     async getUserQuests(userId: number, userPreferences: UserPreferences) {
         await this.findMatchedBms(['jumps', 'streams'])
 
@@ -76,3 +78,5 @@ export default (questsModel: QuestModel) => ({
         await questsModel.setQuestsCategories(questsCategories)
     },
 })
+
+export default createQuestsService

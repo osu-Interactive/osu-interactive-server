@@ -2,7 +2,9 @@ import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 import type { UserModel } from '@/models/user.model'
 import type { SharedSkillsets } from '@/types/osu.types'
 
-export default (userModel: UserModel) => ({
+export type UserService = ReturnType<typeof createUserService>
+
+const createUserService = (userModel: UserModel) => ({
     async initializePreferences(userId: number) {
         const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
         const shares = this.distributeBudgetEvenly(skillsets, 100)
@@ -26,3 +28,5 @@ export default (userModel: UserModel) => ({
         })
     },
 })
+
+export default createUserService
