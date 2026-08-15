@@ -1,6 +1,6 @@
 import questsCategories from '@/config/seeds/quests-categories-seed'
 import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
-import type { UserPreferences } from '@/facades/quests.facade'
+import type { UserPreferences } from '@/application/quests.application'
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 
 export type QuestsService = ReturnType<typeof createQuestsService>

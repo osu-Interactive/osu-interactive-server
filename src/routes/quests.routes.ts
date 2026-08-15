@@ -5,7 +5,7 @@ import { authMiddleware } from '@/middlewares/auth.middleware'
 import QuestsService from '@/services/quests.service'
 import UserQuestsGeneratorService from '@/services/user.service'
 import SurveyService from '@/services/survey.service'
-import QuestsFacade from '@/facades/quests.facade'
+import QuestsApplication from '@/application/quests.application'
 
 export default async function questsRoutes(app: FastifyInstance) {
     const questService = QuestsService(app.models.quests)
@@ -15,8 +15,8 @@ export default async function questsRoutes(app: FastifyInstance) {
     app.post('/', { preHandler: authMiddleware }, async (req) => {
         const userId = req.user.id
 
-        const questsFacade = QuestsFacade(questService, surveyService)
-        await questsFacade.getUserQuests(req.user.id)
+        const questsApplication = QuestsApplication(questService, surveyService)
+        await questsApplication.getUserQuests(req.user.id)
         await userQuestsGeneratorService.initializePreferences(userId)
     })
 
