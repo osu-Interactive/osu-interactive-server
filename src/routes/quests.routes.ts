@@ -9,7 +9,7 @@ import QuestsApplication from '@/application/quests.application'
 
 export default async function questsRoutes(app: FastifyInstance) {
     const questService = QuestsService(app.models.quests)
-    const surveyService = SurveyService(app.db, app.models.factories.survey)
+    const surveyService = SurveyService(app.db, app.models.factories.survey, app.models.tags)
     const userQuestsGeneratorService = UserQuestsGeneratorService(app.models.user)
 
     app.post('/', { preHandler: authMiddleware }, async (req) => {
@@ -17,7 +17,6 @@ export default async function questsRoutes(app: FastifyInstance) {
 
         const questsApplication = QuestsApplication(questService, surveyService)
         await questsApplication.getUserQuests(req.user.id)
-        await userQuestsGeneratorService.initializePreferences(userId)
     })
 
     app.get('/:id/evaluate', async (_, reply) => {

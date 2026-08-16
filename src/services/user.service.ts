@@ -1,31 +1,43 @@
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 import type { UserModel } from '@/models/user.model'
-import type { SharedSkillsets } from '@/types/osu.types'
+import { SurveyResult } from '@/types/survey.types'
 
 export type UserService = ReturnType<typeof createUserService>
 
 const createUserService = (userModel: UserModel) => ({
-    async initializePreferences(userId: number) {
+    async initializePreferences(userId: number, surveyResult: SurveyResult) {
         const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
-        const shares = this.distributeBudgetEvenly(skillsets, 100)
+        const sharedSkillsets = this.distributeBudgetByPriority(skillsets, 100)
 
-        const sharedSkillsets: SharedSkillsets = skillsets.map((skillset, index) => ({
-            skillset: skillset as Skillset,
-            share: shares[index],
-        }))
+        console.log(this.distributeBudgetByPriority(skillsets, 100, surveyResult.skillsetsCodes))
 
         await userModel.initializePreferences(userId, sharedSkillsets)
     },
 
-    distributeBudgetEvenly(skillsets: Skillset[], total: number): number[] {
-        const count = skillsets.length
+    distributeBudgetByPriority(
+        skillsets: Skillset[],
+        total: number,
+        prioritySkillsets: Skillset[] = [],
+    ): { skillset: Skillset; share: number }[] {
         const totalCents = Math.round(total * 100)
-        const baseShare = Math.floor(totalCents / count)
-        const remainder = totalCents % count
+        const prioritySet = new Set(prioritySkillsets)
 
-        return Array.from({ length: count }, (_, index) => {
-            return (baseShare + (index < remainder ? 1 : 0)) / 100
-        })
+        const weights = skillsets.map((skillset) => (prioritySet.has(skillset) ? 2 : 1))
+
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0)
+
+        const shares = weights.map((weight) => Math.floor((totalCents * weight) / totalWeight))
+
+        let remainder = totalCents - shares.reduce((sum, share) => sum + share, 0)
+
+        for (let i = 0; remainder > 0; i++, remainder--) {
+            shares[i]++
+        }
+
+        return skillsets.map((skillset, index) => ({
+            skillset,
+            share: shares[index] / 100,
+        }))
     },
 })
 

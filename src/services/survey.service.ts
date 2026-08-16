@@ -1,31 +1,34 @@
 import type { DB } from '@/types/drizzle-pg-db.types'
 import  { SurveyModelFactory } from '@/models/survey.model'
 import { AppError } from '@/errors/app-error'
+import type { SurveyResult } from '@/types/survey.types'
+import type { TagsModel } from '@/models/tags.model'
 
 export type SurveyService = ReturnType<typeof createSurveyService>
 
-type SurveyResult = {
-    skillsetsIds: number[]
-    modsIds: number[]
-}
-
-const createSurveyService = (db: DB, surveyModelFactory: SurveyModelFactory) => {
+const createSurveyService = (db: DB, surveyModelFactory: SurveyModelFactory, tagsModel: TagsModel) => {
     const surveyModel = surveyModelFactory(db)
     return {
         async save(userId: number, survey: SurveyResult) {
             const errors: Record<string, string> = {}
 
-            if (!Array.isArray(survey?.skillsetsIds)) {
-                errors.skillsets = 'skillsetsIds must be an array'
+            if (!Array.isArray(survey?.skillsetsCodes)) {
+                errors.skillsets = 'skillsetsCodes must be an array'
             }
 
-            if (!Array.isArray(survey?.modsIds)) {
-                errors.mods = 'modsIds must be an array'
+            if (!Array.isArray(survey?.modsCodes)) {
+                errors.mods = 'modsCodes must be an array'
             }
 
             if (Object.keys(errors).length > 0) {
                 throw AppError.validationError(errors)
             }
+
+            const skillsets = await tagsModel.getSkillsetsByCodes(survey.skillsetsCodes)
+            const mods = await tagsModel.getModsByCodes(survey.modsCodes)
+
+            const skillsetIds = skillsets.map((x) => x.id)
+            const modIds = mods.map((x) => x.id)
 
             return db.transaction(async (tx) => {
                 const surveyModel = surveyModelFactory(tx)
@@ -33,22 +36,22 @@ const createSurveyService = (db: DB, surveyModelFactory: SurveyModelFactory) => 
                 await surveyModel.deleteAllUserSkillsets(userId)
                 await surveyModel.deleteAllUserMods(userId)
 
-                if (survey.modsIds.length > 0) {
-                    const userMods = survey.modsIds.map((modId) => ({
-                        userId,
-                        modId,
-                    }))
-
-                    await surveyModel.insertUserMods(userMods)
-                }
-
-                if (survey.skillsetsIds.length > 0) {
-                    const userSkillsets = survey.skillsetsIds.map((skillsetId) => ({
+                if (skillsetIds.length > 0) {
+                    const userSkillsets = skillsetIds.map((skillsetId) => ({
                         userId,
                         skillsetId,
                     }))
 
                     await surveyModel.insertUserSkillsets(userSkillsets)
+                }
+
+                if (modIds.length > 0) {
+                    const userMods = modIds.map((modId) => ({
+                        userId,
+                        modId,
+                    }))
+
+                    await surveyModel.insertUserMods(userMods)
                 }
             })
         },

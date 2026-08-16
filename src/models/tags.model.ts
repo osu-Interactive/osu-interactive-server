@@ -1,6 +1,7 @@
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { mods, skillsets } from '@/db/schemas/schema'
-import { sql } from 'drizzle-orm'
+import { sql, inArray } from 'drizzle-orm'
+import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type TagsModel = ReturnType<typeof tagsModel>
 
@@ -13,7 +14,15 @@ export const tagsModel = (db: DBExecutor) => ({
         return db.select().from(skillsets)
     },
 
-    async replaceMods(values: { name: string; code: string }[]) {
+    getSkillsetsByCodes(codes: Skillset[]) {
+        return db.select().from(skillsets).where(inArray(skillsets.code, codes))
+    },
+
+    getModsByCodes(codes: string[]) {
+        return db.select().from(mods).where(inArray(mods.code, codes))
+    },
+
+    replaceMods(values: { name: string; code: string }[]) {
         return db
             .insert(mods)
             .values(values)
@@ -25,7 +34,7 @@ export const tagsModel = (db: DBExecutor) => ({
             })
     },
 
-    async replaceSkillsets(values: { name: string; code: string; surveyDescription: string }[]) {
+    replaceSkillsets(values: { name: string; code: string; surveyDescription: string }[]) {
         return db
             .insert(skillsets)
             .values(values)
