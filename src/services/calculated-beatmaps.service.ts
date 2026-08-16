@@ -3,54 +3,57 @@ import rosu, { PerformanceAttributes } from 'rosu-pp-js'
 import { mapCalculatedBeatmap } from '@/services/private/osu/beatmaps-mapper.service'
 import { osuApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
 import { AppError } from '@/errors/app-error'
+
 import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
 import type { MappedPerformanceAttributes } from '@/types/osu.types'
 
-export async function getCalculatedBeatmap(
-    calculatedBeatmapsModel: CalculatedBeatmapsModel,
-    id: number,
-    mapsetId: number,
-) {
-    const structure = await getBeatmapStructure(id)
-    const res = await getCalculatedBeatmapPerformance(id, structure)
-    const mappedRes: MappedPerformanceAttributes = mapCalculatedBeatmap(res)
-    await calculatedBeatmapsModel.setBeatmap(mappedRes, id, mapsetId)
+export type CalculatedBeatmapsService = ReturnType<typeof createCalculatedBeatmapsService>
 
-    return mappedRes
-}
+const createCalculatedBeatmapsService = (calculatedBeatmapsModel: CalculatedBeatmapsModel) => ({
+    async getCalculatedBeatmap(id: number, mapsetId: number) {
+        const structure = await this.getBeatmapStructure(id)
+        const res = await this.getCalculatedBeatmapPerformance(id, structure)
+        const mappedRes: MappedPerformanceAttributes = mapCalculatedBeatmap(res)
+        await calculatedBeatmapsModel.setBeatmap(mappedRes, id, mapsetId)
 
-async function getCalculatedBeatmapPerformance(
-    id: number,
-    structure: string,
-): Promise<PerformanceAttributes> {
-    try {
-        const map = new rosu.Beatmap(structure)
-        return new rosu.Performance({ mods: 'CL' }).calculate(map)
-    } catch (error) {
-        throw new Error(`Failed to calculate data for beatmap ${id}`, {
-            cause: error,
-        })
-    }
-}
+        return mappedRes
+    },
 
-async function getBeatmapStructure(id: number): Promise<string> {
-    const response = await osuApiLimiter.schedule(
-        {
-            id: `[BM_STRUCTURE_FETCH: GET /osu/${id}]`,
-        },
-        () =>
-            axios.get(`https://osu.ppy.sh/osu/${id}`, {
-                responseType: 'text',
-            }),
-    )
+    async getCalculatedBeatmapPerformance(
+        id: number,
+        structure: string,
+    ): Promise<PerformanceAttributes> {
+        try {
+            const map = new rosu.Beatmap(structure)
+            return new rosu.Performance({ mods: 'CL' }).calculate(map)
+        } catch (error) {
+            throw new Error(`Failed to calculate data for beatmap ${id}`, {
+                cause: error,
+            })
+        }
+    },
 
-    const beatmapStructure: unknown = response.data
+    async getBeatmapStructure(id: number): Promise<string> {
+        const response = await osuApiLimiter.schedule(
+            {
+                id: `[BM_STRUCTURE_FETCH: GET /osu/${id}]`,
+            },
+            () =>
+                axios.get(`https://osu.ppy.sh/osu/${id}`, {
+                    responseType: 'text',
+                }),
+        )
 
-    if (typeof beatmapStructure !== 'string' || beatmapStructure.length < 50) {
-        throw new AppError('Invalid beatmap structure', {
-            code: 'INVALID_BEATMAP_STRUCTURE',
-        })
-    }
+        const beatmapStructure: unknown = response.data
 
-    return beatmapStructure
-}
+        if (typeof beatmapStructure !== 'string' || beatmapStructure.length < 50) {
+            throw new AppError('Invalid beatmap structure', {
+                code: 'INVALID_BEATMAP_STRUCTURE',
+            })
+        }
+
+        return beatmapStructure
+    },
+})
+
+export default createCalculatedBeatmapsService

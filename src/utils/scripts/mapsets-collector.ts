@@ -1,7 +1,13 @@
-import { getMapset } from '@/services/beatmaps.service'
+import CreateBeatmapsService, { type BeatmapsService } from '@/services/beatmaps.service'
 import { BeatmapsModel } from '@/models/beatmaps.model'
 
 class MapsetsCollector {
+    private beatmapsService: BeatmapsService
+
+    constructor(beatmapsModel: BeatmapsModel) {
+        this.beatmapsService = CreateBeatmapsService(beatmapsModel)
+    }
+
     public async startFetching(
         mapsetModel: BeatmapsModel,
         amountToFetch: number,
@@ -20,7 +26,7 @@ class MapsetsCollector {
     }
 
     private async fetchBeatmapset(mapsetModel: BeatmapsModel, id: number): Promise<void> {
-        const res = await getMapset(mapsetModel, id, { raw: true })
+        const res = await this.beatmapsService.getMapset(id, { raw: true })
 
         console.log(
             '🎵 Beatmapset fetched:',
@@ -30,4 +36,4 @@ class MapsetsCollector {
     }
 }
 
-export default new MapsetsCollector()
+export default MapsetsCollector

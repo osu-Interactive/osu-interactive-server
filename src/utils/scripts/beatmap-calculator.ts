@@ -1,4 +1,7 @@
-import { getCalculatedBeatmap } from '@/services/calculated-beatmaps.service'
+import CreateCalculatedBeatmapsService, {
+    type CalculatedBeatmapsService,
+} from '@/services/calculated-beatmaps.service'
+
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
@@ -6,6 +9,15 @@ import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-p
 type CalculatedBeatmaps = Awaited<ReturnType<BeatmapsModel['getBeatmapsByCalculationStatus']>>
 
 class BeatmapCalculator {
+    private calculatedBeatmapsService: CalculatedBeatmapsService
+
+    constructor(
+        private beatmapsModel: BeatmapsModel,
+        calculatedBeatmapsModel: CalculatedBeatmapsModel,
+    ) {
+        this.calculatedBeatmapsService = CreateCalculatedBeatmapsService(calculatedBeatmapsModel)
+    }
+
     public async runCalculation(
         beatmapsModel: BeatmapsModel,
         calculatedBeatmapsModel: CalculatedBeatmapsModel,
@@ -49,7 +61,7 @@ class BeatmapCalculator {
 
         for (const beatmap of beatmapsIds) {
             if (calculatedBeatmapsAmount < amount) {
-                await getCalculatedBeatmap(calculatedBeatmapsModel, beatmap[0], beatmap[1])
+                await this.calculatedBeatmapsService.getCalculatedBeatmap(beatmap[0], beatmap[1])
                 calculatedBeatmapsAmount++
             }
         }
@@ -69,4 +81,4 @@ class BeatmapCalculator {
     }
 }
 
-export default new BeatmapCalculator()
+export default BeatmapCalculator

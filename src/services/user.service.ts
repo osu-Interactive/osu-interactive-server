@@ -3,6 +3,7 @@ import type { UserModel } from '@/models/user.model'
 import { SurveyResult } from '@/types/survey.types'
 
 export type UserService = ReturnType<typeof createUserService>
+export type CreateUserService = typeof createUserService
 
 const createUserService = (userModel: UserModel) => ({
     async initializePreferences(userId: number, surveyResult: SurveyResult) {

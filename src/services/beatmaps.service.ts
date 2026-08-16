@@ -14,47 +14,49 @@ type FetchMapsetConfig = {
     saveInDB?: boolean
 }
 
-//TODO: Decide what to do with broken mapsets like max_combo = null
-export async function getMapset(
-    mapsetModel: BeatmapsModel,
-    mapsetId: number,
-    config: FetchMapsetConfig = {},
-): Promise<Mapset | RawMapset | null> {
-    const { raw = false, saveInDB = true } = config
+export type BeatmapsService = ReturnType<typeof createBeatmapsService>
 
-    try {
-        const res = await client.get('/beatmapsets/' + mapsetId)
-        const mapset: RawMapset = res.data
+const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
+    async getMapset(
+        mapsetId: number,
+        config: FetchMapsetConfig = {},
+    ): Promise<Mapset | RawMapset | null> {
+        //TODO: Decide what to do with broken mapsets like max_combo = null
+        const { raw = false, saveInDB = true } = config
 
-        const result = mapMapset(mapset)
+        try {
+            const res = await client.get('/beatmapsets/' + mapsetId)
+            const mapset: RawMapset = res.data
 
-        if (saveInDB) await mapsetModel.setMapset(result)
+            const result = mapMapset(mapset)
 
-        if (log) console.log(result)
+            if (saveInDB) await mapsetModel.setMapset(result)
 
-        return raw ? mapset : result
-    } catch (err: unknown) {
-        if (hasField(err, 'status') && err.status === 404) {
-            mapsetModel.setNonexistentMapset(mapsetId)
-            return null
+            if (log) console.log(result)
+
+            return raw ? mapset : result
+        } catch (err: unknown) {
+            if (this.hasField(err, 'status') && err.status === 404) {
+                mapsetModel.setNonexistentMapset(mapsetId)
+                return null
+            }
+
+            throw errorTransformers.bottleneckOverflow(
+                err,
+                new AppError(`Failed to fetch mapset ${mapsetId}`, {
+                    code: 'FETCH_MAPSET_FAILED',
+                    details: {
+                        statusCode: `${this.hasField(err, 'status') ? err.status : ''}`,
+                    },
+                    cause: err,
+                }),
+            )
         }
+    },
 
-        throw errorTransformers.bottleneckOverflow(
-            err,
-            new AppError(`Failed to fetch mapset ${mapsetId}`, {
-                code: 'FETCH_MAPSET_FAILED',
-                details: {
-                    statusCode: `${hasField(err, 'status') ? err.status : ''}`,
-                },
-                cause: err,
-            }),
-        )
-    }
-}
+    hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {
+        return typeof value === 'object' && value !== null && fieldName in value
+    },
+})
 
-function hasField<K extends PropertyKey>(
-    value: unknown,
-    fieldName: K,
-): value is Record<K, unknown> {
-    return typeof value === 'object' && value !== null && fieldName in value
-}
+export default createBeatmapsService

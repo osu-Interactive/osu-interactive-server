@@ -2,7 +2,9 @@ import { modsSeed } from '@/config/seeds/mods-seed'
 import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
 import type { TagsModel } from '@/models/tags.model'
 
-export default (tagsModel: TagsModel) => ({
+export type TagsService = ReturnType<typeof createTagsService>
+
+const createTagsService = (tagsModel: TagsModel) => ({
     getMods() {
         return tagsModel.getMods()
     },
@@ -31,3 +33,5 @@ export default (tagsModel: TagsModel) => ({
         await tagsModel.replaceSkillsets(skillsetsNames)
     },
 })
+
+export default createTagsService

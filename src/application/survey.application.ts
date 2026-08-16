@@ -1,10 +1,17 @@
-import type { SurveyService } from '@/services/survey.service'
-import type { UserService } from '@/services/user.service'
+import SurveyService from  '@/services/survey.service'
+import UserService from '@/services/user.service'
 import type { SurveyResult } from '@/types/survey.types'
+import type { FastifyInstance } from 'fastify'
 
-export default (userService: UserService, surveyService: SurveyService) => ({
+export default (app: FastifyInstance) => ({
     saveSurvey: async (userId: number, surveyResult: SurveyResult) => {
-        await userService.initializePreferences(userId, surveyResult)
-        await surveyService.save(userId, surveyResult)
+        //TODO: Test this transaction
+        await app.db.transaction(async (tx) => {
+            const surveyService = SurveyService(app.models.factories.survey(tx), app.models.factories.tags(tx))
+            const userService = UserService(app.models.factories.user(tx))
+
+            await userService.initializePreferences(userId, surveyResult)
+            await surveyService.save(userId, surveyResult)
+        })
     }
 })
