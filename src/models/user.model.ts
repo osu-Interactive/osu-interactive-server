@@ -110,10 +110,7 @@ export const userModel = (db: DBExecutor) => ({
             .where(eq(usersRefreshTokens.id, id))
     },
 
-    initializePreferences(
-        userId: number,
-        skillsetsShares: SharedSkillsets,
-    ) {
+    initializePreferences(userId: number, skillsetsShares: SharedSkillsets) {
         const preferences = {
             userId,
             jumps: 0,
@@ -128,6 +125,19 @@ export const userModel = (db: DBExecutor) => ({
             preferences[skillset] = share
         }
 
-        return db.insert(userPreferences).values(preferences)
+        return db
+            .insert(userPreferences)
+            .values(preferences)
+            .onConflictDoUpdate({
+                target: userPreferences.userId,
+                set: {
+                    jumps: preferences.jumps,
+                    streams: preferences.streams,
+                    fingerControl: preferences.fingerControl,
+                    tech: preferences.tech,
+                    alternate: preferences.alternate,
+                    gimmick: preferences.gimmick,
+                },
+            })
     },
 })

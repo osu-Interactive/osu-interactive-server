@@ -1,6 +1,7 @@
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 import type { UserModel } from '@/models/user.model'
 import { SurveyResult } from '@/types/survey.types'
+import questConfig from '@/config/quests.config'
 
 export type UserService = ReturnType<typeof createUserService>
 export type CreateUserService = typeof createUserService
@@ -8,9 +9,14 @@ export type CreateUserService = typeof createUserService
 const createUserService = (userModel: UserModel) => ({
     async initializePreferences(userId: number, surveyResult: SurveyResult) {
         const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
-        const sharedSkillsets = this.distributeBudgetByPriority(skillsets, 100)
 
-        console.log(this.distributeBudgetByPriority(skillsets, 100, surveyResult.skillsetsCodes))
+        const sharedSkillsets = this.distributeBudgetByPriority(
+            skillsets,
+            questConfig.preferenceBudget,
+            surveyResult.skillsetsCodes,
+        )
+
+        console.log(sharedSkillsets)
 
         await userModel.initializePreferences(userId, sharedSkillsets)
     },
