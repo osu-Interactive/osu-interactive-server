@@ -11,7 +11,7 @@ export default (app: FastifyInstance) => ({
             const userService = UserService(app.models.factories.user(tx))
 
             await userService.initializePreferences(userId, surveyResult)
-            await surveyService.save(userId, surveyResult)
+            await surveyService.save(userId, surveyResult, app.models.factories.survey, { tx })
         })
     }
 })
