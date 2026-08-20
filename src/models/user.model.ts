@@ -140,4 +140,18 @@ export const userModel = (db: DBExecutor) => ({
                 },
             })
     },
+
+    getPreferences(userId: number) {
+        return db
+            .select({
+                jumps: userPreferences.jumps,
+                streams: userPreferences.streams,
+                fingerControl: userPreferences.fingerControl,
+                tech: userPreferences.tech,
+                alternate: userPreferences.alternate,
+                gimmick: userPreferences.gimmick,
+            })
+            .from(userPreferences)
+            .where(eq(userPreferences.userId, userId))
+    },
 })

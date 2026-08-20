@@ -27,10 +27,15 @@ export const questsModel = (db: DBExecutor) => ({
         return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
     },
 
-    getRandomMatchedBM(skillsets: Skillset[]) {
+    getBeatmapsByDominatedSkillsets(skillsets: Skillset[]) {
+        console.log(skillsets)
+
         if (skillsets.length === 0) {
-            return Promise.resolve([])
+            throw new Error('Skillsets array has no items')
+        } else if (skillsets.length > 15) {
+            throw new Error('Skillsets array has too many items')
         }
+
         const highest = sql<number>`
         GREATEST(
             ${beatmapSkillsets.jumps},
@@ -42,17 +47,19 @@ export const questsModel = (db: DBExecutor) => ({
         )
     `
 
-        return db
-            .select()
-            .from(beatmapSkillsets)
-            .where(
-                or(
-                    ...skillsets.map((skill) =>
-                        sql`${beatmapSkillsets[skill]} >= ${highest} * 0.75`,
-                    ),
-                ),
-            )
-            .orderBy(sql`random()`)
-            .limit(1)
-    }
+        return Promise.all(
+            skillsets.map(async (skillset) => {
+                const skillsetColumn = beatmapSkillsets[skillset]
+
+                const [beatmap] = await db
+                    .select()
+                    .from(beatmapSkillsets)
+                    .where(sql`${skillsetColumn} >= ${highest}`)
+                    .orderBy(sql`random()`)
+                    .limit(1)
+
+                return beatmap
+            }),
+        )
+    },
 })

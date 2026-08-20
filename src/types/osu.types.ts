@@ -158,3 +158,7 @@ export type SharedSkillsets = {
     skillset: Skillset
     share: number
 }[]
+
+export type UserSkillsetsPreferences = {
+    [key in Skillset]: number
+}

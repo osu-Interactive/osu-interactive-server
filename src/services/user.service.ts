@@ -21,6 +21,10 @@ const createUserService = (userModel: UserModel) => ({
         await userModel.initializePreferences(userId, sharedSkillsets)
     },
 
+    async getUserPreferences(userId: number) {
+        return (await userModel.getPreferences(userId))[0]
+    },
+
     distributeBudgetByPriority(
         skillsets: Skillset[],
         total: number,

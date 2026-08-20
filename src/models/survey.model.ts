@@ -1,6 +1,7 @@
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
-import { usersMods, usersSkillsets, mods, skillsets } from '@/db/schemas/schema'
 import { eq } from 'drizzle-orm'
+import { usersMods, usersSkillsets, mods, skillsets } from '@/db/schemas/schema'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type SurveyModelFactory = typeof surveyModel
 export type SurveyModel = ReturnType<SurveyModelFactory>
@@ -19,8 +20,8 @@ export const surveyModel = (db: DBExecutor) => ({
             .where(eq(usersMods.userId, userId))
     },
 
-    getUserSkillsets(userId: number) {
-        return db
+    async getUserSkillsets(userId: number) {
+        const result = await db
             .select({
                 id: usersSkillsets.id,
                 userId: usersSkillsets.userId,
@@ -30,6 +31,11 @@ export const surveyModel = (db: DBExecutor) => ({
             .from(usersSkillsets)
             .innerJoin(skillsets, eq(usersSkillsets.skillsetId, skillsets.id))
             .where(eq(usersSkillsets.userId, userId))
+
+        return result.map((skillset) => ({
+            ...skillset,
+            skillsetCode: skillset.skillsetCode as Skillset,
+        }))
     },
 
     insertUserSkillsets(values: { userId: number; skillsetId: number }[]) {

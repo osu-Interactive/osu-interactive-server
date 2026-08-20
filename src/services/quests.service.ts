@@ -1,11 +1,9 @@
 import questsCategories from '@/config/seeds/quests-categories-seed'
-import type { QuestModel, BeatmapSkillset } from '@/models/quest.model'
-import type { UserPreferences } from '@/application/quests.application'
+import type { QuestModel } from '@/models/quest.model'
+import type { UserSkillsetsPreferences } from '@/types/osu.types'
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 
 export type QuestsService = ReturnType<typeof createQuestsService>
-
-type BeatmapsSkillsets = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>
 
 type SkillsetStat = {
     skillset: Skillset
@@ -13,66 +11,33 @@ type SkillsetStat = {
     percentage: number
 }
 
-const skillsets = skillsetsSeed.map((s) => s.code) as readonly Skillset[]
-
 const createQuestsService = (questsModel: QuestModel) => ({
-    async getUserQuests(userId: number, userPreferences: UserPreferences) {
-        await this.findMatchedBms(['jumps', 'streams'])
+    async getUserQuests(userPreferences: UserSkillsetsPreferences, amount: number) {
+        const skillsets: Skillset[] = []
 
-        console.log(userPreferences)
-        const beatmaps: BeatmapSkillset[] = await questsModel.getRandomBeatmapSkillsets(10)
-        const userMatchedBeatmapsSkillsets: BeatmapSkillset[] = []
-        beatmaps.forEach((beatmap) => {
-            const dominantSkillsets = this.getDominantSkillsets(beatmap)
-            userPreferences.skillsets.forEach((skillset) => {
-                if (dominantSkillsets.includes(skillset as Skillset)) {
-                    userMatchedBeatmapsSkillsets.push(beatmap)
-                }
-            })
-        })
-        console.log(userMatchedBeatmapsSkillsets)
+        for (let i = 0; i < amount; i++) {
+            skillsets.push(this.weightedRandom(userPreferences))
+        }
+
+        const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(skillsets)
+
+        return beatmaps.map((beatmap) => (beatmap.beatmapId))
     },
 
-    findMatchedBms(neededSkillsets: Skillset[]) {
-        return questsModel.getRandomMatchedBM(neededSkillsets)
-    },
+    weightedRandom<T extends Record<string, number>>(weights: T): keyof T {
+        const random = Math.random() * 100
+        let cumulative = 0
 
-    getDominantSkillsets(beatmap: BeatmapsSkillsets[number], threshold = 25): Skillset[] {
-        const stats = this.getSkillsetStats(beatmap)
+        for (const [item, chance] of Object.entries(weights)) {
+            cumulative += chance
 
-        const highest = stats[0].value
-
-        return stats
-            .filter(({ value }) => {
-                const difference = ((highest - value) / highest) * 100
-                return difference <= threshold
-            })
-            .map(({ skillset }) => skillset)
-    },
-
-    getSkillsetStats(beatmap: BeatmapsSkillsets[number]): SkillsetStat[] {
-        const stats = skillsets.map((skillset) => ({
-            skillset,
-            value: beatmap[skillset],
-        }))
-
-        stats.sort((a, b) => b.value - a.value)
-
-        return stats.map((item, index) => {
-            const next = stats[index + 1]
-
-            return {
-                ...item,
-                percentage: next
-                    ? Number((((item.value - next.value) / next.value) * 100).toFixed(2))
-                    : 0,
+            if (random < cumulative) {
+                return item as keyof T
             }
-        })
+        }
+
+        throw new Error('Weights must sum to 100')
     },
-
-    generateQuest(userId: number) {},
-
-    getQuestBeatmap(userId: number) {},
 
     async initQuestsCategories() {
         await questsModel.setQuestsCategories(questsCategories)

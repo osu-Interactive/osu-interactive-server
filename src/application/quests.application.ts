@@ -1,31 +1,22 @@
-import SurveyService from '@/services/survey.service'
 import QuestsService from '@/services/quests.service'
+import UserService from '@/services/user.service'
+import questConfig from '@/config/quests.config'
 import type { FastifyInstance } from 'fastify'
 
-export type UserPreferences = {
-    mods: string[]
-    skillsets: string[]
-}
-
 export default (app: FastifyInstance) => {
-    const surveyService = SurveyService(app.models.survey, app.models.tags)
     const questsService = QuestsService(app.models.quests)
+    const userService = UserService(app.models.user)
 
     return {
         getUserQuests: async (userId: number) => {
-            const userMods = await surveyService.getUserFavoriteMods(userId)
-            const userModsMapped = userMods.map((userMod) => userMod.modCode)
+            const userSkillsetsPreferences = await userService.getUserPreferences(userId)
 
-            const userSkillsets = await surveyService.getUserFavoriteSkillsets(userId)
-            const userSkillsetsMapped = userSkillsets.map(
-                (userSkillset) => userSkillset.skillsetCode,
+            const quests = await questsService.getUserQuests(
+                userSkillsetsPreferences,
+                questConfig.questsPerGeneration,
             )
 
-            await questsService.getUserQuests(userId, {
-                mods: userModsMapped,
-                skillsets: userSkillsetsMapped,
-            })
+            console.log(quests)
         },
     }
-
 }
