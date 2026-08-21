@@ -6,7 +6,7 @@ export const userPreferences = pgTable('user_preferences', {
 
     userId: integer('user_id').references(() => users.id, {
         onDelete: 'cascade',
-    }).unique(),
+    }).unique().notNull(),
 
     jumps: doublePrecision('jumps').notNull(),
     streams: doublePrecision('streams').notNull(),

@@ -1,8 +1,15 @@
 import { eq } from 'drizzle-orm'
-import { users, usersOauthTokens, usersRefreshTokens, userPreferences } from '../db/schemas/schema'
+import {
+    users,
+    usersOauthTokens,
+    usersRefreshTokens,
+    userPreferences,
+    userFatigue,
+} from '../db/schemas/schema'
 import { AppError } from '@/errors/app-error'
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+import { codes, Skillset } from '@/config/seeds/skillsets-seed'
 import { OsuAuthToken, OsuUserExtracted, DBUser, SharedSkillsets } from '@/types/osu.types'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 
 export type UserModelFactory = typeof userModel
 export type UserModel = ReturnType<UserModelFactory>
@@ -111,15 +118,10 @@ export const userModel = (db: DBExecutor) => ({
     },
 
     initializePreferences(userId: number, skillsetsShares: SharedSkillsets) {
-        const preferences = {
-            userId,
-            jumps: 0,
-            streams: 0,
-            fingerControl: 0,
-            tech: 0,
-            alternate: 0,
-            gimmick: 0,
-        }
+        const preferences = Object.fromEntries(codes.map((key) => [key, 0])) as Record<
+            Skillset,
+            number
+        >
 
         for (const { skillset, share } of skillsetsShares) {
             preferences[skillset] = share
@@ -127,16 +129,28 @@ export const userModel = (db: DBExecutor) => ({
 
         return db
             .insert(userPreferences)
-            .values(preferences)
+            .values({ userId: userId, ...preferences })
             .onConflictDoUpdate({
                 target: userPreferences.userId,
                 set: {
-                    jumps: preferences.jumps,
-                    streams: preferences.streams,
-                    fingerControl: preferences.fingerControl,
-                    tech: preferences.tech,
-                    alternate: preferences.alternate,
-                    gimmick: preferences.gimmick,
+                    ...preferences,
+                },
+            })
+    },
+
+    initializeFatigue(userId: number, defaultValue: number) {
+        const preferences = Object.fromEntries(codes.map((key) => [key, defaultValue])) as Record<
+            Skillset,
+            number
+        >
+
+        return db
+            .insert(userFatigue)
+            .values({ userId: userId, ...preferences })
+            .onConflictDoUpdate({
+                target: userFatigue.userId,
+                set: {
+                    ...preferences,
                 },
             })
     },

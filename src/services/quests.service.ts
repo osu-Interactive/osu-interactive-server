@@ -5,12 +5,6 @@ import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 
 export type QuestsService = ReturnType<typeof createQuestsService>
 
-type SkillsetStat = {
-    skillset: Skillset
-    value: number
-    percentage: number
-}
-
 const createQuestsService = (questsModel: QuestModel) => ({
     async getUserQuests(userPreferences: UserSkillsetsPreferences, amount: number) {
         const skillsets: Skillset[] = []

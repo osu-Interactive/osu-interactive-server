@@ -2,6 +2,7 @@ import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
 import type { UserModel } from '@/models/user.model'
 import { SurveyResult } from '@/types/survey.types'
 import questConfig from '@/config/quests.config'
+import questsConfig from '@/config/quests.config'
 
 export type UserService = ReturnType<typeof createUserService>
 export type CreateUserService = typeof createUserService
@@ -17,8 +18,11 @@ const createUserService = (userModel: UserModel) => ({
         )
 
         console.log(sharedSkillsets)
-
         await userModel.initializePreferences(userId, sharedSkillsets)
+    },
+
+    async initializeFatigue(userId: number) {
+        await userModel.initializeFatigue(userId, questsConfig.defaultUserFatigue)
     },
 
     async getUserPreferences(userId: number) {

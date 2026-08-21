@@ -6,7 +6,7 @@ export const userFatigue = pgTable('user_fatigue', {
 
     userId: integer('user_id').references(() => users.id, {
         onDelete: 'cascade',
-    }).unique(),
+    }).unique().notNull(),
 
     jumps: doublePrecision('jumps').notNull(),
     streams: doublePrecision('streams').notNull(),
