@@ -1,41 +1,68 @@
 import questsCategories from '@/config/seeds/quests-categories-seed'
+import BudgetHelperService from '@/services/private/osu/budget-helper.service'
 import type { QuestModel } from '@/models/quest.model'
 import type { UserSkillsetsPreferences } from '@/types/osu.types'
-import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
+import type { Skillset } from '@/config/seeds/skillsets-seed'
+import type { ForwardOrRerollSkillsetFunc } from '@/services/private/osu/fatigue.service'
 
 export type QuestsService = ReturnType<typeof createQuestsService>
 
-const createQuestsService = (questsModel: QuestModel) => ({
-    async getUserQuests(userPreferences: UserSkillsetsPreferences, amount: number) {
-        const skillsets: Skillset[] = []
+type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
 
-        for (let i = 0; i < amount; i++) {
-            skillsets.push(this.weightedRandom(userPreferences))
-        }
+const createQuestsService = (questsModel: QuestModel) => {
+    const budgetHelperService = BudgetHelperService()
+    return {
+        async getUserQuests(
+            userId: number,
+            userPreferences: UserSkillsetsPreferences,
+            amount: number,
+            forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
+        ) {
+            const skillsets: Skillset[] = []
 
-        const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(skillsets)
+            for (let i = 0; i < amount; i++) {
+                let optionalPreferences: OptionalUserSkillsetsPreferences = userPreferences
+                let skillset = this.weightedRandom(userPreferences)
+                let reroll = await forwardOrRerollSkillset(userId, skillset)
 
-        return beatmaps.map((beatmap) => (beatmap.beatmapId))
-    },
+                while (reroll) {
+                    console.log(`${skillset} was selected, but will be rerolled due to fatigue`)
+                    const { [skillset]: _, ...preferencesWithoutSkillset } = optionalPreferences
 
-    weightedRandom<T extends Record<string, number>>(weights: T): keyof T {
-        const random = Math.random() * 100
-        let cumulative = 0
+                    optionalPreferences = budgetHelperService.normalizeTo100(preferencesWithoutSkillset)
 
-        for (const [item, chance] of Object.entries(weights)) {
-            cumulative += chance
+                    skillset = this.weightedRandom(optionalPreferences)
 
-            if (random < cumulative) {
-                return item as keyof T
+                    reroll = await forwardOrRerollSkillset(userId, skillset)
+                }
+
+                skillsets.push(skillset)
+                console.log(`Accepted skillset: ${skillset} for quest ${i + 1}\n\n`)
             }
-        }
+            const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(skillsets)
 
-        throw new Error('Weights must sum to 100')
-    },
+            return beatmaps.map((beatmap) => beatmap.beatmapId)
+        },
 
-    async initQuestsCategories() {
-        await questsModel.setQuestsCategories(questsCategories)
-    },
-})
+        weightedRandom<T extends Record<string, number>>(weights: T): keyof T {
+            const random = Math.random() * 100
+            let cumulative = 0
+
+            for (const [item, chance] of Object.entries(weights)) {
+                cumulative += chance
+
+                if (random < cumulative) {
+                    return item as keyof T
+                }
+            }
+
+            throw new Error('Weights must sum to 100')
+        },
+
+        async initQuestsCategories() {
+            await questsModel.setQuestsCategories(questsCategories)
+        },
+    }
+}
 
 export default createQuestsService

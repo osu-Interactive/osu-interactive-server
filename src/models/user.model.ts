@@ -168,4 +168,18 @@ export const userModel = (db: DBExecutor) => ({
             .from(userPreferences)
             .where(eq(userPreferences.userId, userId))
     },
+
+    getFatigue(userId: number) {
+        return db
+            .select({
+                jumps: userFatigue.jumps,
+                streams: userFatigue.streams,
+                fingerControl: userFatigue.fingerControl,
+                tech: userFatigue.tech,
+                alternate: userFatigue.alternate,
+                gimmick: userFatigue.gimmick,
+            })
+            .from(userFatigue)
+            .where(eq(userFatigue.userId, userId))
+    }
 })

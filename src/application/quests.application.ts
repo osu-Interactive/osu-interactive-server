@@ -12,8 +12,10 @@ export default (app: FastifyInstance) => {
             const userSkillsetsPreferences = await userService.getUserPreferences(userId)
 
             const quests = await questsService.getUserQuests(
+                userId,
                 userSkillsetsPreferences,
                 questConfig.questsPerGeneration,
+                userService.forwardOrRerollSkillset,
             )
 
             console.log(quests)
