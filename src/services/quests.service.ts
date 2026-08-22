@@ -21,27 +21,56 @@ const createQuestsService = (questsModel: QuestModel) => {
             const skillsets: Skillset[] = []
 
             for (let i = 0; i < amount; i++) {
-                let optionalPreferences: OptionalUserSkillsetsPreferences = userPreferences
-                let skillset = this.weightedRandom(userPreferences)
-                let reroll = await forwardOrRerollSkillset(userId, skillset)
-
-                while (reroll) {
-                    console.log(`${skillset} was selected, but will be rerolled due to fatigue`)
-                    const { [skillset]: _, ...preferencesWithoutSkillset } = optionalPreferences
-
-                    optionalPreferences = budgetHelperService.normalizeTo100(preferencesWithoutSkillset)
-
-                    skillset = this.weightedRandom(optionalPreferences)
-
-                    reroll = await forwardOrRerollSkillset(userId, skillset)
-                }
+                const skillset = await this.getSkillset(
+                    userId,
+                    userPreferences,
+                    forwardOrRerollSkillset,
+                )
 
                 skillsets.push(skillset)
-                console.log(`Accepted skillset: ${skillset} for quest ${i + 1}\n\n`)
+                console.log(`Accepted skillset: ${skillset} for quest ${i + 1}\n`)
             }
             const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(skillsets)
 
             return beatmaps.map((beatmap) => beatmap.beatmapId)
+        },
+
+        async getSkillset(
+            userId: number,
+            userPreferences: UserSkillsetsPreferences,
+            forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
+        ) {
+            let optionalPreferences: OptionalUserSkillsetsPreferences = userPreferences
+            let skillset = this.weightedRandom(userPreferences)
+            let reroll = await forwardOrRerollSkillset(userId, skillset)
+            let prevPreferencesLength = Object.keys(userPreferences).length
+
+            while (reroll) {
+                console.log(`${skillset} was selected, but will be rerolled due to fatigue`)
+                const { [skillset]: _, ...preferencesWithoutSkillset } = optionalPreferences
+
+                const preferencesWithoutSkillsetLength = Object.keys(
+                    preferencesWithoutSkillset,
+                ).length
+
+                if (preferencesWithoutSkillsetLength !== prevPreferencesLength - 1) {
+                    throw new Error('Error while discarding skillset from preferences')
+                } else if (preferencesWithoutSkillsetLength === 0) {
+                    console.warn(
+                        'No skillsets left in preferences. Continue with fallback with any random skillset',
+                    )
+                    skillset = this.weightedRandom(userPreferences)
+                    reroll = false
+                    continue
+                }
+
+                prevPreferencesLength = preferencesWithoutSkillsetLength
+                optionalPreferences = budgetHelperService.normalizeTo100(preferencesWithoutSkillset)
+                skillset = this.weightedRandom(optionalPreferences)
+                reroll = await forwardOrRerollSkillset(userId, skillset)
+            }
+
+            return skillset
         },
 
         weightedRandom<T extends Record<string, number>>(weights: T): keyof T {
