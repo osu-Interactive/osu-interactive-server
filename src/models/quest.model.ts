@@ -1,6 +1,6 @@
-import { sql, or } from 'drizzle-orm'
+import { sql, eq } from 'drizzle-orm'
 import { DBExecutor } from '@/types/drizzle-pg-db.types'
-import { questCategories, beatmapSkillsets } from '@/db/schemas/schema'
+import { questCategories, beatmapSkillsets, userQuests, skillsets } from '@/db/schemas/schema'
 import type { QuestCategory } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
@@ -21,6 +21,10 @@ export const questsModel = (db: DBExecutor) => ({
                     maxPP: sql.raw(`excluded.max_pp`),
                 },
             })
+    },
+
+    getQuestsCategories() {
+        return db.select().from(questCategories)
     },
 
     getRandomBeatmapSkillsets(limit: number) {
@@ -61,5 +65,33 @@ export const questsModel = (db: DBExecutor) => ({
                 return beatmap
             }),
         )
+    },
+
+    setUserQuests(userId: number, beatmapsIds: number[], categoryId: number, expiresAt: Date) {
+        let values = []
+
+        for (const beatmapId of beatmapsIds) {
+            values.push({
+                userId,
+                beatmapId,
+                title: 'placeholder',
+                categoryId: categoryId,
+                expiresAt,
+            })
+        }
+
+        return db.insert(userQuests).values(values)
+    },
+
+    async getQuestCategoryByCode(code: number) {
+        const category = await db.query.questCategories.findFirst({
+            where: eq(questCategories.code, code),
+        })
+
+        if (!category) {
+            throw new Error(`Quest category "${code}" not found`)
+        }
+
+        return category
     },
 })

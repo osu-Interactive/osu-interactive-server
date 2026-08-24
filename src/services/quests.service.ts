@@ -1,5 +1,7 @@
 import questsCategories from '@/config/seeds/quests-categories-seed'
 import BudgetHelperService from '@/services/private/osu/budget-helper.service'
+import questConfig from '@/config/quests.config'
+
 import type { QuestModel } from '@/models/quest.model'
 import type { UserSkillsetsPreferences } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
@@ -11,12 +13,15 @@ type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
 
 const createQuestsService = (questsModel: QuestModel) => {
     const budgetHelperService = BudgetHelperService()
+
+    //TODO: Make sure that ids won't be duplicated'
     return {
-        async getUserQuests(
+        async generateUserQuests(
             userId: number,
             userPreferences: UserSkillsetsPreferences,
             amount: number,
             forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
+            categoryCode: number,
         ) {
             const skillsets: Skillset[] = []
 
@@ -91,6 +96,11 @@ const createQuestsService = (questsModel: QuestModel) => {
         async initQuestsCategories() {
             await questsModel.setQuestsCategories(questsCategories)
         },
+
+        saveUserQuests(userId: number, beatmapIds: number[], categoryId: number) {
+            const expiresAt = new Date(Date.now() + questConfig.lifetime * 1000)
+            return questsModel.setUserQuests(userId, beatmapIds, categoryId, expiresAt)
+        }
     }
 }
 

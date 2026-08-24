@@ -1,6 +1,6 @@
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { mods, skillsets } from '@/db/schemas/schema'
-import { sql, inArray } from 'drizzle-orm'
+import { sql, inArray, eq } from 'drizzle-orm'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type TagsModel = ReturnType<typeof tagsModel>

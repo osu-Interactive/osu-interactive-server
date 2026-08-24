@@ -8,17 +8,21 @@ export default (app: FastifyInstance) => {
     const userService = UserService(app.models.user)
 
     return {
-        getUserQuests: async (userId: number) => {
+        async getUserQuests(userId: number, categoryCode: number)  {
             const userSkillsetsPreferences = await userService.getUserPreferences(userId)
 
-            const quests = await questsService.getUserQuests(
+            const questBeatmapIds = await questsService.generateUserQuests(
                 userId,
                 userSkillsetsPreferences,
                 questConfig.questsPerGeneration,
                 userService.forwardOrRerollSkillset,
+                categoryCode,
             )
 
-            console.log(quests)
+            console.log(questBeatmapIds)
+
+            const categoryId = (await app.models.quests.getQuestCategoryByCode(categoryCode)).id
+            await questsService.saveUserQuests(userId, questBeatmapIds, categoryId)
         },
     }
 }

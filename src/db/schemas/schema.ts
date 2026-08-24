@@ -14,6 +14,6 @@ export * from './users-skillsets.schema'
 export * from './nonexistent_mapsets.schema'
 export * from './beatmap-skillsets.schema'
 
-export * from './quests.schema'
+export * from './user-quests.schema'
 export * from './quest-mods.schema'
 export * from './quest-categories.schema'
