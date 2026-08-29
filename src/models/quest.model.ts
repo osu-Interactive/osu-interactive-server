@@ -1,6 +1,6 @@
-import { sql, eq } from 'drizzle-orm'
+import { sql, eq, and } from 'drizzle-orm'
 import { DBExecutor } from '@/types/drizzle-pg-db.types'
-import { questCategories, beatmapSkillsets, userQuests, skillsets } from '@/db/schemas/schema'
+import { questCategories, beatmapSkillsets, userQuests } from '@/db/schemas/schema'
 import type { QuestCategory } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
@@ -93,5 +93,12 @@ export const questsModel = (db: DBExecutor) => ({
         }
 
         return category
+    },
+
+    getUserQuests(userId: number, categoryId: number) {
+        return db
+            .select()
+            .from(userQuests)
+            .where(and(eq(userQuests.userId, userId), eq(userQuests.categoryId, categoryId)))
     },
 })

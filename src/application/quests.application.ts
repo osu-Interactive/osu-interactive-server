@@ -8,8 +8,12 @@ export default (app: FastifyInstance) => {
     const userService = UserService(app.models.user)
 
     return {
-        async getUserQuests(userId: number, categoryCode: number)  {
+        async getUserQuests(userId: number, categoryCode: number) {
             const userSkillsetsPreferences = await userService.getUserPreferences(userId)
+
+            const categoryId = (await app.models.quests.getQuestCategoryByCode(categoryCode)).id
+
+            console.log(await this.areUserQuestsExpired(userId, categoryId))
 
             const questBeatmapIds = await questsService.generateUserQuests(
                 userId,
@@ -21,8 +25,13 @@ export default (app: FastifyInstance) => {
 
             console.log(questBeatmapIds)
 
-            const categoryId = (await app.models.quests.getQuestCategoryByCode(categoryCode)).id
             await questsService.saveUserQuests(userId, questBeatmapIds, categoryId)
+        },
+
+        async areUserQuestsExpired(userId: number, categoryId: number) {
+            const userQuests = await app.models.quests.getUserQuests(userId, categoryId)
+
+            return userQuests.some((quest) => quest.expiresAt.getTime() < Date.now())
         },
     }
 }
