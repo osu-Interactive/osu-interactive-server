@@ -5,8 +5,11 @@ import { stringify } from 'safe-stable-stringify'
 const logPath = path.join(__dirname, '../../../logs/error.log')
 const maxLogSizeBytes = 50 * 1024 * 1024
 
+
 export default function logError(error: unknown): void {
     try {
+        ensureLogDir()
+
         const message = `[${getTime(true)}]\n` + formatError(error) + '\n\n'
         clearLogIfTooLarge()
 
@@ -17,6 +20,14 @@ export default function logError(error: unknown): void {
         })
     } catch (e) {
         console.error('Logger crashed:', e)
+    }
+}
+
+function ensureLogDir(): void {
+    const logDir = path.dirname(logPath)
+
+    if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true })
     }
 }
 
