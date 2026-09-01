@@ -83,6 +83,12 @@ export const questsModel = (db: DBExecutor) => ({
         return db.insert(userQuests).values(values)
     },
 
+    deleteAllUserQuests(userId: number, categoryId: number) {
+        return db
+            .delete(userQuests)
+            .where(and(eq(userQuests.userId, userId), eq(userQuests.categoryId, categoryId)))
+    },
+
     async getQuestCategoryByCode(code: number) {
         const category = await db.query.questCategories.findFirst({
             where: eq(questCategories.code, code),

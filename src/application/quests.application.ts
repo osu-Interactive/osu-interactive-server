@@ -1,37 +1,49 @@
 import QuestsService from '@/services/quests.service'
-import UserService from '@/services/user.service'
 import questConfig from '@/config/quests.config'
+import { AppError } from '@/errors/app-error'
 import type { FastifyInstance } from 'fastify'
 
 export default (app: FastifyInstance) => {
-    const questsService = QuestsService(app.models.quests)
-    const userService = UserService(app.models.user)
-
     return {
         async getUserQuests(userId: number, categoryCode: number) {
-            const userSkillsetsPreferences = await userService.getUserPreferences(userId)
-
             const categoryId = (await app.models.quests.getQuestCategoryByCode(categoryCode)).id
+            const userQuests = await app.models.quests.getUserQuests(userId, categoryId)
+            const userQuestsExpired = await this.areUserQuestsExpired(userQuests)
 
-            console.log(await this.areUserQuestsExpired(userId, categoryId))
+            if (!userQuestsExpired) {
+                const userSkillsetsPreferences = await app.services.user.getUserPreferences(userId)
 
-            const questBeatmapIds = await questsService.generateUserQuests(
-                userId,
-                userSkillsetsPreferences,
-                questConfig.questsPerGeneration,
-                userService.forwardOrRerollSkillset,
-                categoryCode,
-            )
+                if (!userSkillsetsPreferences) {
+                    throw new AppError('Unable to get user preferences', {
+                        code: 'UNDEFINED_USER_PREFERENCES'
+                    })
+                }
 
-            console.log(questBeatmapIds)
+                const questBeatmapIds = await app.services.quests.generateUserQuests(
+                    userId,
+                    userSkillsetsPreferences,
+                    questConfig.questsPerGeneration,
+                    app.services.user.forwardOrRerollSkillset,
+                    categoryCode,
+                )
 
-            await questsService.saveUserQuests(userId, questBeatmapIds, categoryId)
+                console.log(questBeatmapIds)
+
+                await app.db.transaction(async (tx) => {
+                    const txQuestsModel = app.models.factories.quests(tx)
+                    await txQuestsModel.deleteAllUserQuests(userId, categoryId)
+
+                    const txQuestsService = QuestsService(txQuestsModel)
+                    await txQuestsService.saveUserQuests(userId, questBeatmapIds, categoryId)
+                })
+            } else {
+                console.log('quests are not expired')
+                return userQuests
+            }
         },
 
-        async areUserQuestsExpired(userId: number, categoryId: number) {
-            const userQuests = await app.models.quests.getUserQuests(userId, categoryId)
-
-            return userQuests.some((quest) => quest.expiresAt.getTime() < Date.now())
+        async areUserQuestsExpired(quests: { expiresAt: Date}[]) {
+            return quests.some((quest) => quest.expiresAt.getTime() < Date.now())
         },
     }
 }

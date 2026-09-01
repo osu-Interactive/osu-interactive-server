@@ -41,6 +41,13 @@ const ERROR_SCENARIOS = defineErrorScenarios({
         statusCode: 401,
         isOperational: true,
     }),
+
+    UNDEFINED_USER_PREFERENCES: () => ({
+        message: 'Complete the survey before requesting quests',
+        code: 'SURVEY_REQUIRED',
+        statusCode: 429,
+        isOperational: true
+    }),
 })
 
 export { DEFAULT_ERROR, ERROR_SCENARIOS }
