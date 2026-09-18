@@ -1,7 +1,9 @@
 import client from '@/infrastructure/osu-api/osu-api-app-client'
+import rosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { mapMapset } from './private/osu/beatmaps-mapper.service'
 import { AppError } from '@/errors/app-error'
 import { errorTransformers } from '@/errors/error-transformer'
+import comboDifficultyCalculator from '@/services/private/osu/combo-difficulty-calculator'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
@@ -16,7 +18,9 @@ type FetchMapsetConfig = {
 
 export type BeatmapsService = ReturnType<typeof createBeatmapsService>
 
-const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
+const createBeatmapsService = (
+    mapsetModel: BeatmapsModel,
+) => ({
     async getMapset(
         mapsetId: number,
         config: FetchMapsetConfig = {},
@@ -52,6 +56,19 @@ const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
                 }),
             )
         }
+    },
+
+    async getCalculatedBeatmap(id: number, mapsetId: number) {
+        const beatmap = await rosuBeatmapWrapper.create(id)
+        const calculatedBeatmap = beatmap.calculate({ mods: 'CL' })
+        const mappedCalculatedBeatmap = rosuBeatmapWrapper.map(calculatedBeatmap)
+        await mapsetModel.setCalculatedBeatmap(mappedCalculatedBeatmap, id, mapsetId)
+
+        return mappedCalculatedBeatmap
+    },
+
+    async getBMComboDifficulty(beatmapId: number) {
+        await comboDifficultyCalculator().getBMComboPP(beatmapId)
     },
 
     hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {

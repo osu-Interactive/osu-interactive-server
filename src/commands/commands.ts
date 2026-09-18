@@ -7,7 +7,7 @@ import type { FastifyInstance } from 'fastify'
 
 const commands = (app: FastifyInstance) => {
     const mapsetsCollector = new MapsetsCollector(app.models.beatmap)
-    const beatmapsCalculator = new BeatmapCalculator(app.models.beatmap, app.models.calculatedBeatmap)
+    const beatmapsCalculator = new BeatmapCalculator(app.models.beatmap)
 
     return {
         /**
@@ -75,7 +75,6 @@ const commands = (app: FastifyInstance) => {
         ) {
             await beatmapsCalculator.runCalculation(
                 app.models.beatmap,
-                app.models.calculatedBeatmap,
                 amount,
                 startId,
                 extraCondition,

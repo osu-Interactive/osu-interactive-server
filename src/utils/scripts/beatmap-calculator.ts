@@ -1,26 +1,19 @@
-import CreateCalculatedBeatmapsService, {
-    type CalculatedBeatmapsService,
-} from '@/services/calculated-beatmaps.service'
+import CreateBeatmapsService, { type BeatmapsService } from '@/services/beatmaps.service'
 
 import type { BeatmapsModel } from '@/models/beatmaps.model'
-import type { CalculatedBeatmapsModel } from '@/models/calculated-beatmaps.model'
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
 
 type CalculatedBeatmaps = Awaited<ReturnType<BeatmapsModel['getBeatmapsByCalculationStatus']>>
 
 class BeatmapCalculator {
-    private calculatedBeatmapsService: CalculatedBeatmapsService
+    private beatmapsService: BeatmapsService
 
-    constructor(
-        private beatmapsModel: BeatmapsModel,
-        calculatedBeatmapsModel: CalculatedBeatmapsModel,
-    ) {
-        this.calculatedBeatmapsService = CreateCalculatedBeatmapsService(calculatedBeatmapsModel)
+    constructor(private beatmapsModel: BeatmapsModel) {
+        this.beatmapsService = CreateBeatmapsService(this.beatmapsModel)
     }
 
     public async runCalculation(
         beatmapsModel: BeatmapsModel,
-        calculatedBeatmapsModel: CalculatedBeatmapsModel,
         amount: number,
         startId: number,
         extraCondition: string | null = null,
@@ -48,20 +41,20 @@ class BeatmapCalculator {
             )
         }
 
-        await this.calculateBeatmapsByIds(calculatedBeatmapsModel, beatmapsIds, amount)
+        await this.calculateBeatmapsByIds(beatmapsIds, amount)
         console.log(`Successfully calculated data for ${amount} beatmaps`)
     }
 
-    private async calculateBeatmapsByIds(
-        calculatedBeatmapsModel: CalculatedBeatmapsModel,
-        beatmapsIds: number[][],
-        amount: number,
-    ) {
+    private async calculateBeatmapsByIds(beatmapsIds: number[][], amount: number) {
         let calculatedBeatmapsAmount = 0
 
         for (const beatmap of beatmapsIds) {
             if (calculatedBeatmapsAmount < amount) {
-                await this.calculatedBeatmapsService.getCalculatedBeatmap(beatmap[0], beatmap[1])
+                const calculatedBeatmap = await this.beatmapsService.getCalculatedBeatmap(
+                    beatmap[0],
+                    beatmap[1],
+                )
+                console.log(calculatedBeatmap)
                 calculatedBeatmapsAmount++
             }
         }
