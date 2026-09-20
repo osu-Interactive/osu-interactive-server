@@ -42,7 +42,7 @@ export async function buildApp() {
 
     initCommands(app)
 
-    await app.services.beatmap.getBMComboDifficulty(3884667)
+    await app.services.beatmap.getBMComboDifficulty(4793132)
 
     console.log('Application is ready')
 

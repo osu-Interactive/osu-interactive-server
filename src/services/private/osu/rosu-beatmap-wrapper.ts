@@ -18,6 +18,10 @@ type CalculatedBeatmap = ReturnType<InstanceType<typeof rosu.Performance>['calcu
 class RosuBeatmapWrapper {
     public static async create(beatmapId: number): Promise<RosuBeatmap> {
         const structure = await this.getBeatmapStructure(beatmapId)
+        return this.createWithStructure(structure)
+    }
+
+    public static createWithStructure(structure: string): RosuBeatmap {
         const beatmap = new rosu.Beatmap(structure)
 
         return Object.assign(beatmap, {
@@ -29,7 +33,7 @@ class RosuBeatmapWrapper {
         return mapCalculatedBeatmap(beatmap)
     }
 
-    private static async getBeatmapStructure(id: number): Promise<string> {
+    public static async getBeatmapStructure(id: number): Promise<string> {
         const response = await osuApiLimiter.schedule(
             {
                 id: `[BM_STRUCTURE_FETCH: GET /osu/${id}]`,

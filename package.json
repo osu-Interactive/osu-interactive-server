@@ -28,6 +28,9 @@
         "drizzle-kit": "^0.31.10",
         "drizzle-orm": "^0.45.2",
         "fastify": "5.8.5",
+        "osu-classes": "^3.1.0",
+        "osu-parsers": "^4.1.7",
+        "osu-standard-stable": "^5.0.1",
         "pg": "^8.20.0",
         "rosu-pp-js": "^4.0.1",
         "safe-stable-stringify": "^2.5.0"
