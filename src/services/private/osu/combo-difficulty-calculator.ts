@@ -1,4 +1,4 @@
-import RosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
+import RosuBeatmapWrapper, { type RosuBeatmap } from '@/services/private/osu/rosu-beatmap-wrapper'
 import { BeatmapDecoder } from 'osu-parsers'
 import { StandardRuleset } from 'osu-standard-stable'
 
@@ -14,21 +14,25 @@ const comboDifficultyCalculator = () => ({
 
         const ranges = await this.getObjectsComboRanges(structure, 100)
         console.log(ranges)
-        const ppRanges: number[] = []
+        const ppRanges: [number, number][] = []
         for (const range of ranges) {
             const objects = this.getRawObjectsFromBeatmap(structure, range)
             const beatmapPart = this.replaceTimingPoints(structure, objects)
             const rosuBeatmap = RosuBeatmapWrapper.createWithStructure(beatmapPart)
-            const pp = rosuBeatmap.calculate({ mods: 'CL' }).pp
-            const ppRounded = Math.round(pp * 100) / 100
+            const ppTop = rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp
+            const ppBottom = rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp
+            const ppRounded: [number, number] = [this.round(ppTop), this.round(ppBottom)]
             ppRanges.push(ppRounded)
         }
-
-        console.log(this.estimatePP(600, ppRanges))
+        this.estimatePP(ppRanges)
     },
 
-    estimatePP(combo: number, pp: number[]) {
-        //TODO: Implement
+    estimatePP(pp: [number, number][]) {
+        console.log(pp)
+    },
+
+    round(number: number) {
+        return Math.round(number * 100) / 100
     },
 
     async getObjectsComboRanges(structure: string, comboRange: number) {
