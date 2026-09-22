@@ -14,12 +14,39 @@ const comboDifficultyCalculator = () => ({
             mods: 'CL',
         }).difficulty
 
+        const questCategoryAverageDoablePP = this.getQuestCategoryAverageDoablePP(questCategory)
+        console.log(`Estimated PP for category ${questCategory}:`, questCategoryAverageDoablePP)
+
         const totalObjects =
             (beatmapRosu.nCircles ?? 0) + (beatmapRosu.nSliders ?? 0) + (beatmapRosu.nSpinners ?? 0)
 
-        const ranges = this.getObjectsComboRangesSlided(structure, 100, totalObjects)
+        let combo = 300
+        let comboDifficulty = this.getComboPP(structure, combo, totalObjects)
+        let comboPass = this.isComboDifficultyValid(comboDifficulty, questCategoryAverageDoablePP)
 
+        while (!comboPass.valid && comboDifficulty > 0) {
+            console.log(comboDifficulty, 'pp for', combo, 'combo')
+            if (comboPass.direction === 'higher') {
+                combo = combo + 10 * (comboPass.percentage)
+            } else {
+                combo = combo - 10 * (comboPass.percentage)
+            }
+
+            comboDifficulty = this.getComboPP(structure, combo, totalObjects)
+
+
+            comboPass = this.isComboDifficultyValid(comboDifficulty, questCategoryAverageDoablePP)
+        }
+        console.log(combo, 'combo corresponds to', comboDifficulty, 'pp')
+        // console.log(estimatedPP)
+        // console.log(questCategoryAverageDoablePP)
+        // console.log(this.isComboDifficultyValid(estimatedPP, questCategoryAverageDoablePP))
+    },
+
+    getComboPP(structure: string, combo: number, totalObjects: number) {
         const ppRanges: [number, number][] = []
+        const ranges = this.getObjectsComboRangesSlided(structure, combo, totalObjects)
+
         for (const range of ranges) {
             const objects = this.getRawObjectsFromBeatmap(structure, range)
             const beatmapPart = this.replaceTimingPoints(structure, objects)
@@ -30,9 +57,9 @@ const comboDifficultyCalculator = () => ({
 
             ppRanges.push(ppRounded)
         }
-        const estimatedPP = this.estimatePP(ppRanges)
-        console.log(estimatedPP)
-        console.log(this.getQuestCategoryAverageDoablePP(questCategory))
+
+        //console.log(`${this.estimatePP(ppRanges)} pp for ${combo} combo`)
+        return this.estimatePP(ppRanges)
     },
 
     getObjectsComboRangesSlided(structure: string, comboRange: number, maxCombo: number) {
@@ -41,7 +68,6 @@ const comboDifficultyCalculator = () => ({
         const parsed = decoder.decodeFromString(structure)
         const beatmap = ruleset.applyToBeatmap(parsed).hitObjects
 
-        let baseRange = comboRange
         let slideStep = 10
 
         let combo = 0
@@ -55,8 +81,7 @@ const comboDifficultyCalculator = () => ({
             combo += this.getObjectCombo(object)
             const neededCombo = objects > 1 ? slideStep * sectionCounter : 0
             if (combo >= neededCombo) {
-                const section = this.getSection(beatmap, baseRange, objects > 1 ? objects : 0)
-                console.log(section)
+                const section = this.getSection(beatmap, comboRange, objects > 1 ? objects : 0)
                 if (section[1] === maxCombo) {
                     break
                 }
@@ -70,26 +95,46 @@ const comboDifficultyCalculator = () => ({
 
     getSection(
         beatmap: BeatmapObjects,
-        sectionLength: number,
+        sectionLengthCombo: number,
         startWith: number,
     ): [number, number] {
+        //console.log(sectionLengthCombo, 'Длина отрезка')
         let combo = 0
         let objects = 0
 
         let i = startWith
 
-        while (beatmap[i] !== undefined && combo < sectionLength) {
+        while (beatmap[i] !== undefined && combo < sectionLengthCombo) {
             const object = beatmap[i]
             i++
 
             objects++
             combo += this.getObjectCombo(object)
 
-            if (i - startWith > sectionLength) {
+            if (i - startWith > sectionLengthCombo) {
                 throw new Error('Section length is greater than beatmap length')
             }
         }
         return [startWith, objects + startWith]
+    },
+
+    isComboDifficultyValid(ppForCategory: number, ppForQuest: number) {
+        const difference = ppForQuest - ppForCategory;
+        const percentage = Math.abs(difference / ppForCategory) * 100;
+
+        if (Math.abs(difference) <= ppForCategory * 0.01) {
+            return {
+                valid: true,
+                direction: null,
+                percentage: 0,
+            }
+        }
+
+        return {
+            valid: false,
+            direction: difference > 0 ? 'higher' : 'lower',
+            percentage
+        };
     },
 
     getQuestCategoryAverageDoablePP(questCategory: QuestCategoryName) {
@@ -116,36 +161,6 @@ const comboDifficultyCalculator = () => ({
 
     round(number: number) {
         return Math.round(number * 100) / 100
-    },
-
-    async getObjectsComboRanges(structure: string, comboRange: number) {
-        const ruleset = new StandardRuleset()
-        const decoder = new BeatmapDecoder()
-        const parsed = decoder.decodeFromString(structure)
-        const beatmap = ruleset.applyToBeatmap(parsed).hitObjects
-
-        let combo = 0
-        let objects = 0
-        let ranges: [number, number][] = []
-        let lastCombo = 0
-
-        for (const object of beatmap) {
-            lastCombo = combo
-            objects++
-
-            combo += this.getObjectCombo(object)
-
-            let nextCombo = comboRange * (ranges.length + 1)
-
-            if (combo === nextCombo || (lastCombo < nextCombo && combo > nextCombo)) {
-                this.addRange(ranges, objects)
-                // Сохраняем последний отрезок комбо карты даже если он меньше необходимого
-            } else if (combo < nextCombo && objects === beatmap.length) {
-                this.addRange(ranges, objects)
-            }
-        }
-
-        return ranges
     },
 
     addRange(ranges: [number, number][], objects: number) {
