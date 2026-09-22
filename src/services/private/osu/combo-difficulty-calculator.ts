@@ -20,27 +20,57 @@ const comboDifficultyCalculator = () => ({
         const totalObjects =
             (beatmapRosu.nCircles ?? 0) + (beatmapRosu.nSliders ?? 0) + (beatmapRosu.nSpinners ?? 0)
 
-        let combo = 300
-        let comboDifficulty = this.getComboPP(structure, combo, totalObjects)
-        let comboPass = this.isComboDifficultyValid(comboDifficulty, questCategoryAverageDoablePP)
+        const { combo, comboDifficulty } = this.findClosestComboForPP(
+            structure,
+            questCategoryAverageDoablePP,
+            totalObjects,
+            beatmapRosu.maxCombo,
+        )
 
-        while (!comboPass.valid && comboDifficulty > 0) {
-            console.log(comboDifficulty, 'pp for', combo, 'combo')
-            if (comboPass.direction === 'higher') {
-                combo = combo + 10 * (comboPass.percentage)
-            } else {
-                combo = combo - 10 * (comboPass.percentage)
-            }
-
-            comboDifficulty = this.getComboPP(structure, combo, totalObjects)
-
-
-            comboPass = this.isComboDifficultyValid(comboDifficulty, questCategoryAverageDoablePP)
-        }
         console.log(combo, 'combo corresponds to', comboDifficulty, 'pp')
         // console.log(estimatedPP)
         // console.log(questCategoryAverageDoablePP)
         // console.log(this.isComboDifficultyValid(estimatedPP, questCategoryAverageDoablePP))
+    },
+
+    findClosestComboForPP(
+        structure: string,
+        targetPP: number,
+        totalObjects: number,
+        maxCombo: number,
+    ) {
+        let left = 1
+        let right = Math.max(1, Math.floor(maxCombo))
+        let bestCombo = left
+        let bestComboDifficulty = this.getComboPP(structure, bestCombo, totalObjects)
+        let bestDifference = Math.abs(targetPP - bestComboDifficulty)
+
+        while (left <= right) {
+            const combo = Math.floor((left + right) / 2)
+            const comboDifficulty = this.getComboPP(structure, combo, totalObjects)
+            const difference = Math.abs(targetPP - comboDifficulty)
+            const comboPass = this.isComboDifficultyValid(comboDifficulty, targetPP)
+
+            console.log(comboDifficulty, 'pp for', combo, 'combo')
+
+            if (difference < bestDifference) {
+                bestCombo = combo
+                bestComboDifficulty = comboDifficulty
+                bestDifference = difference
+            }
+
+            if (comboPass.valid) {
+                return { combo, comboDifficulty }
+            }
+
+            if (comboPass.direction === 'higher') {
+                left = combo + 1
+            } else {
+                right = combo - 1
+            }
+        }
+
+        return { combo: bestCombo, comboDifficulty: bestComboDifficulty }
     },
 
     getComboPP(structure: string, combo: number, totalObjects: number) {
