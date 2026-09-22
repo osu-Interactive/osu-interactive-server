@@ -43,4 +43,4 @@ export default [
         minPP: 10000,
         maxPP: null,
     },
-] satisfies readonly QuestCategory[]
+] as const satisfies readonly QuestCategory[]
