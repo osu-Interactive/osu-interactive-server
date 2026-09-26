@@ -6,13 +6,12 @@ import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type QuestModelFactory = typeof questsModel
 export type QuestModel = ReturnType<QuestModelFactory>
-export type BeatmapSkillset = Awaited<ReturnType<QuestModel['getRandomBeatmapSkillsets']>>[number]
 
 export const questsModel = (db: DBExecutor) => ({
-    setQuestsCategories(categories: QuestCategory[]) {
+    setQuestsCategories(categories: readonly QuestCategory[]) {
         return db
             .insert(questCategories)
-            .values(categories)
+            .values([...categories])
             .onConflictDoUpdate({
                 target: questCategories.code,
                 set: {
