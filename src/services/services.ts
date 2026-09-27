@@ -1,10 +1,11 @@
-import type { FastifyInstance } from 'fastify'
-
+import AuthService from '@/services/auth.service'
 import UserService from '@/services/user.service'
 import QuestsService from '@/services/quests.service'
 import BeatmapsService from '@/services/beatmaps.service'
 import TagsService from '@/services/tags.service'
 import SurveyService from '@/services/survey.service'
+
+import type { FastifyInstance } from 'fastify'
 
 type AppModels = FastifyInstance['models']
 
@@ -16,6 +17,8 @@ export const serviceFactories = {
     beatmap: BeatmapsService,
     tags: TagsService,
     survey: SurveyService,
+
+    auth: AuthService,
 }
 
 export function buildServices(appModels: AppModels) {

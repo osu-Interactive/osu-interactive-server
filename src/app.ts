@@ -10,7 +10,6 @@ import modelsPlugin from './plugins/models.plugin'
 import servicesPlugin from './plugins/services.plugin'
 import initTagsPlugin from '@/plugins/init-db-tables.plugin'
 import authPlugin from './plugins/auth.plugin'
-import authTokensPlugin from './plugins/auth-tokens.plugin'
 import errorPlugin from './plugins/error.plugin'
 import successResponsePlugin from '@/plugins/success-response.plugin'
 
@@ -35,7 +34,6 @@ export async function buildApp() {
     await app.register(modelsPlugin)
     await app.register(servicesPlugin)
     await app.register(initTagsPlugin)
-    await app.register(authTokensPlugin)
     await app.register(successResponsePlugin)
 
     await app.register(routes)

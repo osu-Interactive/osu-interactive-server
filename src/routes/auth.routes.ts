@@ -1,8 +1,7 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { getOsuApiAuthLink, loginWithOsu } from '@/services/auth.service'
 import crypto from 'crypto'
-import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { AppError } from '@/errors/app-error'
+import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
 
 /**
  * In production, HTTPS is expected.
@@ -19,6 +18,8 @@ const cookieOptions = {
 }
 
 export default async function authRoutes(app: FastifyInstance) {
+    const authService = new app.services.factories.auth(app.models.user, app.jwt)
+
     app.get('/osuApiAuthLink', async (_, reply) => {
         const state: string = crypto.randomBytes(16).toString('hex')
 
@@ -27,7 +28,7 @@ export default async function authRoutes(app: FastifyInstance) {
             maxAge: 10 * 60, // 10 min
         })
 
-        return { authLink: getOsuApiAuthLink(state) }
+        return { authLink: authService.getOsuApiAuthLink(state) }
     })
 
     app.post<{
@@ -39,20 +40,20 @@ export default async function authRoutes(app: FastifyInstance) {
         }
 
         const { osuApiCode } = req.body
-        const loginResult = await loginWithOsu(app.db, app.models.factories.user, osuApiCode)
+        const loginResult = await authService.loginWithOsu(app.db, app.models.factories.user, osuApiCode)
 
-        const { accessToken, refreshToken } = await app.authTokens.getJwtAndRefreshToken(
+        const { accessToken, refreshToken } = await authService.getJwtAndRefreshToken(
             loginResult.id,
             loginResult.osuId,
         )
 
-        setAuthCookie(reply, 'auth', accessToken, app.authTokens.accessTokenTtlSeconds)
-        setAuthCookie(reply, 'refresh', refreshToken, app.authTokens.refreshTokenTtlSeconds)
+        setAuthCookie(reply, 'auth', accessToken, authService.accessTokenTtlSeconds)
+        setAuthCookie(reply, 'refresh', refreshToken, authService.refreshTokenTtlSeconds)
 
         return {
             user: loginResult,
-            authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
-            refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
+            authTokenExpiresIn: authService.accessTokenTtlSeconds,
+            refreshTokenExpiresIn: authService.refreshTokenTtlSeconds,
         }
     })
 
@@ -73,14 +74,14 @@ export default async function authRoutes(app: FastifyInstance) {
 
         try {
             const { accessToken, refreshToken: newRefreshToken } =
-                await app.authTokens.refreshTokens(refreshToken)
+                await authService.refreshTokens(refreshToken)
 
-            setAuthCookie(reply, 'auth', accessToken, app.authTokens.accessTokenTtlSeconds)
-            setAuthCookie(reply, 'refresh', newRefreshToken, app.authTokens.refreshTokenTtlSeconds)
+            setAuthCookie(reply, 'auth', accessToken, authService.accessTokenTtlSeconds)
+            setAuthCookie(reply, 'refresh', newRefreshToken, authService.refreshTokenTtlSeconds)
 
             return {
-                authTokenExpiresIn: app.authTokens.accessTokenTtlSeconds,
-                refreshTokenExpiresIn: app.authTokens.refreshTokenTtlSeconds,
+                authTokenExpiresIn: authService.accessTokenTtlSeconds,
+                refreshTokenExpiresIn: authService.refreshTokenTtlSeconds,
             }
         } catch (error) {
             clearAuthCookies(reply)

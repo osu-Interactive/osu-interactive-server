@@ -1,20 +1,20 @@
 import crypto from 'crypto'
 import bcrypt from 'bcrypt'
-import type { UserModel } from '@/models/user.model'
-import type { JWT } from '@fastify/jwt'
 import { AppError } from '@/errors/app-error'
+import type { JWT } from '@fastify/jwt'
+import type { UserModel } from '@/models/user.model'
 
 type RefreshTokenPayload = {
-    userId: number
+    id: number
     osuId: number
     tokenId: string
 }
 
-export class AuthTokensService {
+class AuthTokensService {
     public accessTokenTtlSeconds = 60 * 15
     public refreshTokenTtlSeconds = 60 * 60 * 24 * 14
 
-    constructor(private userModel: UserModel, private jwt: JWT) {}
+    constructor(protected userModel: UserModel, protected jwt: JWT) {}
 
     async getJwtAndRefreshToken(userId: number, userOsuId: number) {
         const accessToken = this.signAccessToken(userId, userOsuId)
@@ -59,7 +59,7 @@ export class AuthTokensService {
         const payload = this.jwt.verify<RefreshTokenPayload>(currentRefreshToken)
 
         const refreshToken = await this.userModel.getValidRefreshToken(
-            payload.userId,
+            payload.id,
             payload.tokenId,
         )
 
@@ -75,6 +75,8 @@ export class AuthTokensService {
 
         await this.userModel.updateRefreshToken(refreshToken.id)
 
-        return this.getJwtAndRefreshToken(payload.userId, payload.osuId)
+        return this.getJwtAndRefreshToken(payload.id, payload.osuId)
     }
 }
+
+export default AuthTokensService
