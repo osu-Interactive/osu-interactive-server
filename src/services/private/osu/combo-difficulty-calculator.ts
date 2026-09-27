@@ -3,11 +3,11 @@ import { BeatmapDecoder } from 'osu-parsers'
 import { StandardRuleset } from 'osu-standard-stable'
 import questCategories from '@/config/seeds/quests-categories-seed'
 
-type QuestCategoryName = (typeof questCategories)[number]['name']
+type QuestCategoryCode = (typeof questCategories)[number]['code']
 type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects']
 
 const comboDifficultyCalculator = () => ({
-    async getBMComboPP(beatmapId: number, questCategory: QuestCategoryName) {
+    async getBMComboPP(beatmapId: number, questCategory: QuestCategoryCode) {
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
         const beatmapRosu = RosuBeatmapWrapper.createWithStructure(structure).calculate({
             mods: 'CL',
@@ -235,8 +235,8 @@ const comboDifficultyCalculator = () => ({
      * For example, if the player's top scores average around 300 PP,
      * the player would have approximately 6,000 total PP.
      */
-    getQuestCategoryAveragePP(questCategory: QuestCategoryName) {
-        const category = questCategories.find((category) => category.name === questCategory)
+    getQuestCategoryAveragePP(questCategory: QuestCategoryCode) {
+        const category = questCategories.find((category) => category.code === questCategory)
         if (!category) throw new Error('Category not found')
         if (category.maxPP === null) {
             //TODO: Decide what to do with highest quests category
