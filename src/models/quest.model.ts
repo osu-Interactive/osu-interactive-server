@@ -30,8 +30,11 @@ export const questsModel = (db: DBExecutor) => ({
         return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
     },
 
-    getBeatmapsByDominatedSkillsets(skillsets: Skillset[]) {
-        console.log(skillsets)
+    getBeatmapsByDominatedSkillsets(
+        skillsets: Skillset[],
+        skillsetDifficultyRange: [min: number, max: number],
+    ) {
+        const [min, max] = skillsetDifficultyRange
 
         if (skillsets.length === 0) {
             throw new Error('Skillsets array has no items')
@@ -57,7 +60,10 @@ export const questsModel = (db: DBExecutor) => ({
                 const [beatmap] = await db
                     .select()
                     .from(beatmapSkillsets)
-                    .where(sql`${skillsetColumn} >= ${highest}`)
+                    .where(
+                        sql`${skillsetColumn} >= ${highest}
+                        AND ${highest} BETWEEN ${min} AND ${max}`,
+                    )
                     .orderBy(sql`random()`)
                     .limit(1)
 

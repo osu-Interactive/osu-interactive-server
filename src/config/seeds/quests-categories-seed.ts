@@ -1,6 +1,7 @@
 import type { QuestCategory } from '@/types/osu.types'
+export type QuestCategoryCode = (typeof categories)[number]['code']
 
-export default [
+const categories = [
     {
         name: 'Beginner',
         code: 1,
@@ -44,3 +45,13 @@ export default [
         maxPP: null,
     },
 ] as const satisfies readonly QuestCategory[]
+
+export function getQuestCategoryByCode(code: number) {
+    return categories.find((x) => x.code === code)
+}
+
+export function isQuestCategoryCode(code: number): code is QuestCategoryCode {
+    return categories.some((category) => category.code === code)
+}
+
+export default categories

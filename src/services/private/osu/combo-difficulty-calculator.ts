@@ -1,9 +1,9 @@
 import RosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { BeatmapDecoder } from 'osu-parsers'
 import { StandardRuleset } from 'osu-standard-stable'
-import questCategories from '@/config/seeds/quests-categories-seed'
+import questCategories, { type QuestCategoryCode } from '@/config/seeds/quests-categories-seed'
+import { round, average } from '@/utils/math'
 
-type QuestCategoryCode = (typeof questCategories)[number]['code']
 type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects']
 
 const comboDifficultyCalculator = () => ({
@@ -86,8 +86,8 @@ const comboDifficultyCalculator = () => ({
             const objects = this.getBeatmapStructureHitObjects(structure, range)
             const beatmapPart = this.replaceBeatmapStructureHitObjects(structure, objects)
             const rosuBeatmap = RosuBeatmapWrapper.createWithStructure(beatmapPart)
-            const ppTop = this.round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp)
-            const ppBottom = this.round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp)
+            const ppTop = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp)
+            const ppBottom = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp)
             ppRanges.push([ppBottom, ppTop])
         }
 
@@ -173,7 +173,7 @@ const comboDifficultyCalculator = () => ({
         const averagePP: number[] = []
 
         for (const range of ppRanges) {
-            averagePP.push(this.round(this.average(range[0], range[1])))
+            averagePP.push(round(average(range[0], range[1])))
         }
 
         return averagePP
@@ -194,11 +194,11 @@ const comboDifficultyCalculator = () => ({
         const minPP = Math.min(...pp)
         const nearMinPP = pp.filter((pp) => pp >= minPP * 0.9 && pp <= minPP * 1.1)
 
-        const reductionPercent = this.round(
+        const reductionPercent = round(
             Math.min(nearMinPP.length * reducePerNearPP, minPPReductionPercent),
         )
 
-        return this.round(minPP * (1 - reductionPercent / 100))
+        return round(minPP * (1 - reductionPercent / 100))
     },
 
     /**
@@ -241,7 +241,7 @@ const comboDifficultyCalculator = () => ({
         if (category.maxPP === null) {
             //TODO: Decide what to do with highest quests category
         }
-        return this.average(category.minPP / 20, (category.maxPP ?? 20000) / 20)
+        return average(category.minPP / 20, (category.maxPP ?? 20000) / 20)
     },
 
     /**
@@ -287,15 +287,7 @@ const comboDifficultyCalculator = () => ({
             /(\[HitObjects]\r?\n)([\s\S]*?)(?=\r?\n\[|$)/,
             (_, header) => `${header}${hitObjects.join('\r\n')}\r\n`,
         )
-    },
-
-    average(a: number, b: number) {
-        return (a + b) / 2
-    },
-
-    round(number: number) {
-        return Math.round(number * 100) / 100
-    },
+    }
 })
 
 export default comboDifficultyCalculator

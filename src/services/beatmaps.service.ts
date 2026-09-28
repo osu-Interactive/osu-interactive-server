@@ -8,6 +8,7 @@ import comboDifficultyCalculator from '@/services/private/osu/combo-difficulty-c
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { Mapset } from '@/types/osu.types'
+import type { QuestCategoryCode } from '@/config/seeds/quests-categories-seed'
 
 const log = false
 
@@ -18,9 +19,7 @@ type FetchMapsetConfig = {
 
 export type BeatmapsService = ReturnType<typeof createBeatmapsService>
 
-const createBeatmapsService = (
-    mapsetModel: BeatmapsModel,
-) => ({
+const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
     async getMapset(
         mapsetId: number,
         config: FetchMapsetConfig = {},
@@ -67,8 +66,8 @@ const createBeatmapsService = (
         return mappedCalculatedBeatmap
     },
 
-    async getBMComboDifficulty(beatmapId: number) {
-        await comboDifficultyCalculator().getBMComboPP(beatmapId, 4)
+    async getBMComboDifficulty(beatmapId: number, categoryCode: QuestCategoryCode) {
+        await comboDifficultyCalculator().getBMComboPP(beatmapId, categoryCode)
     },
 
     hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {

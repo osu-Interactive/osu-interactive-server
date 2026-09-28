@@ -1,6 +1,7 @@
-import questsCategories from '@/config/seeds/quests-categories-seed'
+import questsCategories, { getQuestCategoryByCode, type QuestCategoryCode } from '@/config/seeds/quests-categories-seed'
 import BudgetHelperService from '@/services/private/osu/budget-helper.service'
 import questConfig from '@/config/quests.config'
+import { average } from '@/utils/math'
 
 import type { QuestModel } from '@/models/quest.model'
 import type { UserSkillsetsPreferences } from '@/types/osu.types'
@@ -21,8 +22,13 @@ const createQuestsService = (questsModel: QuestModel) => {
             userPreferences: UserSkillsetsPreferences,
             amount: number,
             forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
-            categoryCode: number,
+            categoryCode: QuestCategoryCode,
         ) {
+            const category = getQuestCategoryByCode(categoryCode)
+            if (!category) {
+                throw new Error(`Category with code ${categoryCode} not found`)
+            }
+
             const skillsets: Skillset[] = []
 
             for (let i = 0; i < amount; i++) {
@@ -35,8 +41,23 @@ const createQuestsService = (questsModel: QuestModel) => {
                 skillsets.push(skillset)
                 console.log(`Accepted skillset: ${skillset} for quest ${i + 1}\n`)
             }
-            const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(skillsets)
 
+            //TODO: Decide what to do with highest quests category
+
+            const averageSkillsetDifficulty = this.getDominativeSkillsetRangeDifficulty(
+                category.minPP,
+                category.maxPP ?? 20000,
+            )
+
+            const skillsetDifficultyRange = [
+                Math.max(0, averageSkillsetDifficulty - 20),
+                Math.min(100, averageSkillsetDifficulty + 20),
+            ] satisfies [number, number]
+
+            const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(
+                skillsets,
+                skillsetDifficultyRange,
+            )
             return beatmaps.map((beatmap) => beatmap.beatmapId)
         },
 
@@ -100,7 +121,17 @@ const createQuestsService = (questsModel: QuestModel) => {
         saveUserQuests(userId: number, beatmapIds: number[], categoryId: number) {
             const expiresAt = new Date(Date.now() + questConfig.lifetime * 1000)
             return questsModel.setUserQuests(userId, beatmapIds, categoryId, expiresAt)
-        }
+        },
+
+        getDominativeSkillsetRangeDifficulty(categoryMinPP: number, categoryMaxPP: number) {
+            const averagePP = average(categoryMinPP, categoryMaxPP)
+            const roundedPP = Math.round(averagePP / 1000) * 1000
+            const thousands = Math.floor(roundedPP / 1000)
+
+            const coefficient = 1 + (thousands - 1) * 0.1
+
+            return 10 * thousands * coefficient
+        },
     }
 }
 
