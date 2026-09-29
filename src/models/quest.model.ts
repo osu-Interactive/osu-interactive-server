@@ -1,6 +1,6 @@
 import { sql, eq, and } from 'drizzle-orm'
 import { DBExecutor } from '@/types/drizzle-pg-db.types'
-import { questCategories, beatmapSkillsets, userQuests } from '@/db/schemas/schema'
+import { questCategories, beatmapSkillsets, userQuests, mapsetsBeatmaps } from '@/db/schemas/schema'
 import type { QuestCategory } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
@@ -33,6 +33,7 @@ export const questsModel = (db: DBExecutor) => ({
     getBeatmapsByDominatedSkillsets(
         skillsets: Skillset[],
         skillsetDifficultyRange: [min: number, max: number],
+        minCombo: number
     ) {
         const [min, max] = skillsetDifficultyRange
 
@@ -50,24 +51,26 @@ export const questsModel = (db: DBExecutor) => ({
             ${beatmapSkillsets.tech},
             ${beatmapSkillsets.alternate},
             ${beatmapSkillsets.gimmick}
-        )
-    `
+        )`
 
         return Promise.all(
             skillsets.map(async (skillset) => {
                 const skillsetColumn = beatmapSkillsets[skillset]
 
                 const [beatmap] = await db
-                    .select()
+                    .select({ beatmapSkillsets })
                     .from(beatmapSkillsets)
+                    .innerJoin(mapsetsBeatmaps, eq(mapsetsBeatmaps.id, beatmapSkillsets.beatmapId))
                     .where(
                         sql`${skillsetColumn} >= ${highest}
-                        AND ${highest} BETWEEN ${min} AND ${max}`,
+                        AND ${highest} BETWEEN ${min} AND ${max}
+                        AND ${mapsetsBeatmaps.combo} >= ${minCombo}
+                        AND ${mapsetsBeatmaps.mode} = 'osu'`,
                     )
                     .orderBy(sql`random()`)
                     .limit(1)
 
-                return beatmap
+                return beatmap?.beatmapSkillsets
             }),
         )
     },

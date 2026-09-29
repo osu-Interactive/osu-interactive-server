@@ -54,11 +54,10 @@ const createQuestsService = (questsModel: QuestModel) => {
                 Math.min(100, averageSkillsetDifficulty + 20),
             ] satisfies [number, number]
 
-            const beatmaps = await questsModel.getBeatmapsByDominatedSkillsets(
-                skillsets,
-                skillsetDifficultyRange,
-            )
-            return beatmaps.map((beatmap) => beatmap.beatmapId)
+            console.log('Skillset difficulty range: ', skillsetDifficultyRange)
+
+            const beatmaps = await this.getBeatmaps(skillsets, skillsetDifficultyRange)
+            return beatmaps.map((beatmap) => beatmap?.beatmapId ?? null)
         },
 
         async getSkillset(
@@ -97,6 +96,19 @@ const createQuestsService = (questsModel: QuestModel) => {
             }
 
             return skillset
+        },
+
+        async getBeatmaps(
+            skillsets: Skillset[],
+            skillsetDifficultyRange: [min: number, max: number],
+        ) {
+            const minCombo = 100
+
+            return await questsModel.getBeatmapsByDominatedSkillsets(
+                skillsets,
+                skillsetDifficultyRange,
+                minCombo,
+            )
         },
 
         weightedRandom<T extends Record<string, number>>(weights: T): keyof T {
