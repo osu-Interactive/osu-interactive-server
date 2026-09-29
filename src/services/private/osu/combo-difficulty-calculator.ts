@@ -8,20 +8,25 @@ type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects'
 
 const comboDifficultyCalculator = () => ({
     async getBMComboPP(beatmapId: number, questCategory: QuestCategoryCode) {
+        const categoryPP = this.getQuestCategoryAveragePP(questCategory)
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
+
+        if (!this.isMaxPPEnough(structure, categoryPP)) {
+            throw new Error(`Beatmap max pp is lower than ${categoryPP}`)
+        }
+
         const beatmapRosu = RosuBeatmapWrapper.createWithStructure(structure).calculate({
             mods: 'CL',
         }).difficulty
 
-        const questCategoryAverageDoablePP = this.getQuestCategoryAveragePP(questCategory)
-        console.log(`Estimated PP for category ${questCategory}:`, questCategoryAverageDoablePP)
+        console.log(`Estimated PP for category ${questCategory}:`, categoryPP)
 
         const totalObjects =
             (beatmapRosu.nCircles ?? 0) + (beatmapRosu.nSliders ?? 0) + (beatmapRosu.nSpinners ?? 0)
 
         const { combo, comboDifficulty } = this.findClosestComboForPP(
             structure,
-            questCategoryAverageDoablePP,
+            categoryPP,
             totalObjects,
             beatmapRosu.maxCombo,
         )
@@ -79,19 +84,12 @@ const comboDifficultyCalculator = () => ({
      * Calculates the estimated PP for the required combo across the entire beatmap.
      */
     getComboPP(structure: string, combo: number, totalObjects: number) {
-        const ppRanges: [number, number][] = []
         const ranges = this.getObjectsComboRangesSlided(structure, combo, totalObjects)
+        const averagePP: number[] = []
 
         for (const range of ranges) {
-            const objects = this.getBeatmapStructureHitObjects(structure, range)
-            const beatmapPart = this.replaceBeatmapStructureHitObjects(structure, objects)
-            const rosuBeatmap = RosuBeatmapWrapper.createWithStructure(beatmapPart)
-            const ppTop = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp)
-            const ppBottom = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp)
-            ppRanges.push([ppBottom, ppTop])
+            averagePP.push(this.getPPForBeatmapRange(structure, range))
         }
-
-        const averagePP = this.getPPAccountingForAccuracy(ppRanges)
 
         return this.estimatePPForSections(averagePP)
     },
@@ -163,20 +161,17 @@ const comboDifficultyCalculator = () => ({
     },
 
     /**
-     * Estimates PP for different accuracy values to account for accuracy
-     * affecting the final PP.
-     *
-     * Currently, it simply takes the average of the two estimates,
-     * but this could be improved in the future.
+     * Calculates PP for a specific part of a beatmap based on an object range.
+     * To account for accuracy, it simply takes the average between 90% and 100%.
+     * The right thing to do later would be to improve how accuracy is accounted for.
      */
-    getPPAccountingForAccuracy(ppRanges: [min: number, max: number][]) {
-        const averagePP: number[] = []
-
-        for (const range of ppRanges) {
-            averagePP.push(round(average(range[0], range[1])))
-        }
-
-        return averagePP
+    getPPForBeatmapRange(structure: string, range: [number, number] | null) {
+        const objects = this.getBeatmapStructureHitObjects(structure, range)
+        const beatmapPart = this.replaceBeatmapStructureHitObjects(structure, objects)
+        const rosuBeatmap = RosuBeatmapWrapper.createWithStructure(beatmapPart)
+        const ppTop = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp)
+        const ppBottom = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp)
+        return round(average(ppBottom, ppTop))
     },
 
     /**
@@ -207,9 +202,9 @@ const comboDifficultyCalculator = () => ({
      *
      * The maximum allowed deviation is defined by `allowedDeviationFactor`.
      */
-    isPPWithinAllowedDeviation(ppForCategory: number, ppForQuest: number) {
+    isPPWithinAllowedDeviation(ppForCategory: number, targetPP: number) {
         const allowedDeviationFactor = 0.1 // 10%
-        const difference = ppForQuest - ppForCategory
+        const difference = targetPP - ppForCategory
 
         if (Math.abs(difference) <= ppForCategory * allowedDeviationFactor) {
             return {
@@ -242,6 +237,17 @@ const comboDifficultyCalculator = () => ({
             //TODO: Decide what to do with highest quests category
         }
         return average(category.minPP / 20, (category.maxPP ?? 20000) / 20)
+    },
+
+    /**
+     * Checks whether the beatmap's maximum combo PP, accounting for accuracy,
+     * is enough for the category's double PP requirement.
+     */
+    isMaxPPEnough(structure: string, categoryPP: number) {
+        const maxPP = this.getPPForBeatmapRange(structure, null)
+        const deviation = this.isPPWithinAllowedDeviation(maxPP, categoryPP)
+
+        return deviation.valid || deviation.direction === 'lower'
     },
 
     /**
@@ -287,7 +293,7 @@ const comboDifficultyCalculator = () => ({
             /(\[HitObjects]\r?\n)([\s\S]*?)(?=\r?\n\[|$)/,
             (_, header) => `${header}${hitObjects.join('\r\n')}\r\n`,
         )
-    }
+    },
 })
 
 export default comboDifficultyCalculator
