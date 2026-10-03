@@ -1,4 +1,4 @@
-import { sql, eq, and } from 'drizzle-orm'
+import { sql, eq, and, notInArray } from 'drizzle-orm'
 import { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { questCategories, beatmapSkillsets, userQuests, mapsetsBeatmaps } from '@/db/schemas/schema'
 import type { QuestCategory } from '@/types/osu.types'
@@ -30,49 +30,55 @@ export const questsModel = (db: DBExecutor) => ({
         return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
     },
 
-    getBeatmapsByDominatedSkillsets(
+    async getBeatmapsByDominatedSkillsets(
         skillsets: Skillset[],
         skillsetDifficultyRange: [min: number, max: number],
-        minCombo: number
+        minCombo: number,
+        excludeBeatmapsIds: number[],
     ) {
         const [min, max] = skillsetDifficultyRange
 
         if (skillsets.length === 0) {
             throw new Error('Skillsets array has no items')
-        } else if (skillsets.length > 15) {
+        }
+
+        if (skillsets.length > 15) {
             throw new Error('Skillsets array has too many items')
         }
 
-        const highest = sql<number>`
-        GREATEST(
-            ${beatmapSkillsets.jumps},
-            ${beatmapSkillsets.streams},
-            ${beatmapSkillsets.fingerControl},
-            ${beatmapSkillsets.tech},
-            ${beatmapSkillsets.alternate},
-            ${beatmapSkillsets.gimmick}
-        )`
+        const excludedIds = new Set(excludeBeatmapsIds)
 
-        return Promise.all(
-            skillsets.map(async (skillset) => {
-                const skillsetColumn = beatmapSkillsets[skillset]
+        const results = []
 
-                const [beatmap] = await db
-                    .select({ beatmapSkillsets })
-                    .from(beatmapSkillsets)
-                    .innerJoin(mapsetsBeatmaps, eq(mapsetsBeatmaps.id, beatmapSkillsets.beatmapId))
-                    .where(
-                        sql`${skillsetColumn} >= ${highest}
-                        AND ${highest} BETWEEN ${min} AND ${max}
-                        AND ${mapsetsBeatmaps.combo} >= ${minCombo}
-                        AND ${mapsetsBeatmaps.mode} = 'osu'`,
-                    )
-                    .orderBy(sql`random()`)
-                    .limit(1)
+        for (const skillset of skillsets) {
+            const [result] = await db
+                .select({
+                    skillset: sql<Skillset>`${skillset}`,
+                    beatmapSkillsets,
+                })
+                .from(beatmapSkillsets)
+                .innerJoin(mapsetsBeatmaps, eq(mapsetsBeatmaps.id, beatmapSkillsets.beatmapId))
+                .where(
+                    and(
+                        eq(beatmapSkillsets.dominantSkillset, skillset),
+                        sql`${beatmapSkillsets[skillset]} BETWEEN ${min} AND ${max}`,
+                        sql`${mapsetsBeatmaps.combo} >= ${minCombo}`,
+                        eq(mapsetsBeatmaps.mode, 'osu'),
+                        notInArray(mapsetsBeatmaps.id, [...excludedIds]),
+                    ),
+                )
+                .orderBy(sql`random()`)
+                .limit(1)
 
-                return beatmap?.beatmapSkillsets
-            }),
-        )
+            if (result) {
+                results.push(result.beatmapSkillsets)
+                excludedIds.add(result.beatmapSkillsets.beatmapId)
+            } else {
+                results.push(undefined)
+            }
+        }
+
+        return results
     },
 
     setUserQuests(userId: number, beatmapsIds: number[], categoryId: number, expiresAt: Date) {

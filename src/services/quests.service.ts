@@ -56,7 +56,7 @@ const createQuestsService = (questsModel: QuestModel) => {
 
             console.log('Skillset difficulty range: ', skillsetDifficultyRange)
 
-            const beatmaps = await this.getBeatmaps(skillsets, skillsetDifficultyRange)
+            const beatmaps = await this.getBeatmaps(skillsets, skillsetDifficultyRange, [])
             return beatmaps.map((beatmap) => beatmap?.beatmapId ?? null)
         },
 
@@ -101,6 +101,7 @@ const createQuestsService = (questsModel: QuestModel) => {
         async getBeatmaps(
             skillsets: Skillset[],
             skillsetDifficultyRange: [min: number, max: number],
+            excludeBeatmapIds: number[]
         ) {
             const minCombo = 100
 
@@ -108,6 +109,7 @@ const createQuestsService = (questsModel: QuestModel) => {
                 skillsets,
                 skillsetDifficultyRange,
                 minCombo,
+                excludeBeatmapIds,
             )
         },
 

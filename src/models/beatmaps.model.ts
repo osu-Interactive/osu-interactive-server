@@ -170,9 +170,21 @@ export const beatmapsModel = (db: DBExecutor) => ({
     },
 
     setBeatmapSkillsets(beatmapId: number, skillsets: BeatmapSkillsets) {
+        const entries = Object.entries(skillsets) as [keyof BeatmapSkillsets, number][]
+
+        const max = Math.max(...entries.map(([, value]) => value))
+
+        const dominantSkillset = entries.find(([, value]) => value === max)![0]
+
+        const subDominantSkillsets = entries
+            .filter(([, value]) => value >= max * 0.9)
+            .map(([key]) => key)
+
         return db.insert(beatmapSkillsets).values({
             beatmapId,
             ...skillsets,
+            dominantSkillset,
+            subDominantSkillsets,
         })
     },
 

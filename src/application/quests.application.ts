@@ -18,6 +18,13 @@ export default (app: FastifyInstance) => ({
 
         if (!userQuestsExpired) {
             const beatmapIds = await this.generateUserQuests(userId, categoryCode)
+            if (beatmapIds.length < 1) {
+                throw new AppError('No user quests generated', { code: 'NO_QUESTS_GENERATED' })
+            } else if (beatmapIds.length < 6) {
+                throw new AppError('Invalid amount of generated quests', {
+                    code: 'INVALID_QUESTS_AMOUNT_GENERATED',
+                })
+            }
             await this.saveUserQuests(userId, categoryId, beatmapIds)
         } else {
             console.log('quests are not expired')
@@ -34,7 +41,7 @@ export default (app: FastifyInstance) => ({
             })
         }
 
-        let beatmapIds = await app.services.quests.generateUserQuests(
+        const beatmapIds = await app.services.quests.generateUserQuests(
             userId,
             userSkillsetsPreferences,
             questConfig.questsPerGeneration,
@@ -42,14 +49,13 @@ export default (app: FastifyInstance) => ({
             categoryCode,
         )
 
-        beatmapIds = beatmapIds.filter((id) => typeof id === 'number')
-        console.log(beatmapIds)
+        const filteredIds = beatmapIds.filter((id) => typeof id === 'number')
 
-        for (const id of beatmapIds) {
+        for (const id of filteredIds) {
             await app.services.beatmap.getBMComboDifficulty(id, categoryCode)
         }
 
-        return beatmapIds
+        return filteredIds
     },
 
     async saveUserQuests(userId: number, categoryId: number, beatmapsIds: number[]) {

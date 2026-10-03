@@ -1,12 +1,17 @@
-import { pgTable, serial, integer } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, text } from 'drizzle-orm/pg-core'
 import { mapsetsBeatmaps } from './schema'
 
 export const beatmapSkillsets = pgTable('beatmap_skillsets', {
     id: serial('id').primaryKey(),
 
-    beatmapId: integer('beatmap_id').references(() => mapsetsBeatmaps.id, {
-        onDelete: 'cascade',
-    }).notNull(),
+    beatmapId: integer('beatmap_id')
+        .references(() => mapsetsBeatmaps.id, {
+            onDelete: 'cascade',
+        })
+        .notNull(),
+
+    dominantSkillset: text('dominant_skillset').notNull(),
+    subDominantSkillsets: text('sub_dominant_skillsets').array().notNull(),
 
     jumps: integer('jumps').notNull(),
     streams: integer('streams').notNull(),
