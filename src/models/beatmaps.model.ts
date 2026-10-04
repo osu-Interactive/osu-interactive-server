@@ -104,6 +104,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         const query = db
             .select({
                 id: mapsetsBeatmaps.id,
+                stars: mapsetsBeatmaps.stars,
             })
             .from(mapsetsBeatmaps)
             .where(and(...conditions))
