@@ -5,6 +5,7 @@ import FatigueService from '@/services/private/osu/fatigue.service'
 import BudgetHelperService from '@/services/private/osu/budget-helper.service'
 import questConfig from '@/config/quests.config'
 import questsConfig from '@/config/quests.config'
+import { AppError } from '@/errors/app-error'
 
 export type UserService = ReturnType<typeof createUserService>
 export type CreateUserService = typeof createUserService
@@ -32,7 +33,15 @@ const createUserService = (userModel: UserModel) => {
         },
 
         async getUserPreferences(userId: number) {
-            return (await userModel.getPreferences(userId))[0]
+            const preferences = (await userModel.getPreferences(userId))[0]
+
+            if (!preferences) {
+                throw new AppError('Unable to get user preferences', {
+                    code: 'UNDEFINED_USER_PREFERENCES',
+                })
+            }
+
+            return preferences
         },
 
         forwardOrRerollSkillset(userId: number, skillset: Skillset) {

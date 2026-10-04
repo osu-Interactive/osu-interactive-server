@@ -1,25 +1,28 @@
 import RosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { BeatmapDecoder } from 'osu-parsers'
 import { StandardRuleset } from 'osu-standard-stable'
-import questCategories, { type QuestCategoryCode } from '@/config/seeds/quests-categories-seed'
+import questCategories, { type Category } from '@/config/seeds/quests-categories-seed'
 import { round, average } from '@/utils/math'
+import { AppError } from '@/errors/app-error'
 
 type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects']
 
 const comboDifficultyCalculator = () => ({
-    async getBMComboPP(beatmapId: number, questCategory: QuestCategoryCode) {
+    async getBMComboPP(beatmapId: number, questCategory: Category) {
         const categoryPP = this.getQuestCategoryAveragePP(questCategory)
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
 
         if (!this.isMaxPPEnough(structure, categoryPP)) {
-            throw new Error(`Beatmap max pp is lower than ${categoryPP}`)
+            throw new AppError(`Beatmap max pp is lower than ${categoryPP}`, {
+                code: 'BEATMAP_PP_TOO_LOW',
+            })
         }
 
         const beatmapRosu = RosuBeatmapWrapper.createWithStructure(structure).calculate({
             mods: 'CL',
         }).difficulty
 
-        console.log(`Estimated PP for category ${questCategory}:`, categoryPP)
+        console.log(`Estimated PP for category ${questCategory.code}:`, categoryPP)
 
         const totalObjects =
             (beatmapRosu.nCircles ?? 0) + (beatmapRosu.nSliders ?? 0) + (beatmapRosu.nSpinners ?? 0)
@@ -32,6 +35,7 @@ const comboDifficultyCalculator = () => ({
         )
 
         console.log(combo, 'combo corresponds to', comboDifficulty, 'pp')
+        return combo
     },
 
     /**
@@ -230,13 +234,11 @@ const comboDifficultyCalculator = () => ({
      * For example, if the player's top scores average around 300 PP,
      * the player would have approximately 6,000 total PP.
      */
-    getQuestCategoryAveragePP(questCategory: QuestCategoryCode) {
-        const category = questCategories.find((category) => category.code === questCategory)
-        if (!category) throw new Error('Category not found')
-        if (category.maxPP === null) {
+    getQuestCategoryAveragePP(questCategory: Category) {
+        if (questCategory.maxPP === null) {
             //TODO: Decide what to do with highest quests category
         }
-        return average(category.minPP / 20, (category.maxPP ?? 20000) / 20)
+        return average(questCategory.minPP / 20, (questCategory.maxPP ?? 20000) / 20)
     },
 
     /**

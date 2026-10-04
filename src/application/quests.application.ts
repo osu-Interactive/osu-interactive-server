@@ -1,9 +1,15 @@
-import QuestsService from '@/services/quests.service'
+import CreateQuestsService, { type Beatmap } from '@/services/quests.service'
 import questConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
-import { isQuestCategoryCode, type QuestCategoryCode } from '@/config/seeds/quests-categories-seed'
+import {
+    Category,
+    getQuestCategoryByCode,
+    isQuestCategoryCode,
+    type QuestCategoryCode,
+} from '@/config/seeds/quests-categories-seed'
 
 import type { FastifyInstance } from 'fastify'
+import { Skillset } from '@/config/seeds/skillsets-seed'
 
 export default (app: FastifyInstance) => ({
     async getUserQuests(userId: number, categoryCode: number) {
@@ -14,34 +20,41 @@ export default (app: FastifyInstance) => ({
         }
         const categoryId = (await app.models.quests.getQuestCategoryByCode(categoryCode)).id
         const userQuests = await app.models.quests.getUserQuests(userId, categoryId)
-        const userQuestsExpired = await this.areUserQuestsExpired(userQuests)
+        const userQuestsExpired = await this.hasExpiredQuests(userQuests)
 
         if (!userQuestsExpired) {
-            const beatmapIds = await this.generateUserQuests(userId, categoryCode)
-            if (beatmapIds.length < 1) {
+            const category = getQuestCategoryByCode(categoryCode)
+
+            if (!category) {
+                throw new Error(`Category with code ${categoryCode} not found`)
+            }
+
+            const beatmaps = await this.generateUserQuestsBeatmaps(userId, categoryCode)
+
+            if (beatmaps.length < 1) {
                 throw new AppError('No user quests generated', { code: 'NO_QUESTS_GENERATED' })
-            } else if (beatmapIds.length < 6) {
+            } else if (beatmaps.length < 6) {
                 throw new AppError('Invalid amount of generated quests', {
                     code: 'INVALID_QUESTS_AMOUNT_GENERATED',
                 })
             }
-            await this.saveUserQuests(userId, categoryId, beatmapIds)
+
+            const quests = await this.generateUserQuests(beatmaps, category)
+
+            console.log('Result:', quests)
+            const beatmapsIds = beatmaps.map((beatmap) => Object.values(beatmap)[0]!.beatmapId)
+
+            await this.replaceUserQuests(userId, categoryId, beatmapsIds)
         } else {
             console.log('quests are not expired')
             return userQuests
         }
     },
 
-    async generateUserQuests(userId: number, categoryCode: QuestCategoryCode) {
+    async generateUserQuestsBeatmaps(userId: number, categoryCode: QuestCategoryCode) {
         const userSkillsetsPreferences = await app.services.user.getUserPreferences(userId)
 
-        if (!userSkillsetsPreferences) {
-            throw new AppError('Unable to get user preferences', {
-                code: 'UNDEFINED_USER_PREFERENCES',
-            })
-        }
-
-        const beatmapIds = await app.services.quests.generateUserQuests(
+        const beatmaps = await app.services.quests.getQuestsBeatmaps(
             userId,
             userSkillsetsPreferences,
             questConfig.questsPerGeneration,
@@ -49,26 +62,105 @@ export default (app: FastifyInstance) => ({
             categoryCode,
         )
 
-        const filteredIds = beatmapIds.filter((id) => typeof id === 'number')
-
-        for (const id of filteredIds) {
-            await app.services.beatmap.getBMComboDifficulty(id, categoryCode)
-        }
-
-        return filteredIds
+        return beatmaps.filter(
+            (beatmap) => typeof Object.values(beatmap)[0]?.beatmapId === 'number',
+        )
     },
 
-    async saveUserQuests(userId: number, categoryId: number, beatmapsIds: number[]) {
+    async generateUserQuests(beatmaps: { Skillset: Beatmap }[], category: Category) {
+        const quests = []
+        const excludedBeatmapIds: number[] = []
+
+        for (const beatmap of beatmaps) {
+            const [skillset, beatmapBody] = Object.entries(beatmap)[0]
+            if (!beatmapBody) {
+                console.log(1111111111)
+                continue
+            }
+
+            const quest = await this.generateQuest(
+                beatmapBody,
+                skillset as Skillset,
+                excludedBeatmapIds,
+                category,
+            )
+
+            if (!quest || !quest.id) {
+                throw new Error('Quest generation failed')
+            }
+
+            quests.push({ [skillset]: quest.id, combo: quest.combo })
+        }
+
+        return quests
+    },
+
+    async generateQuest(
+        beatmap: Beatmap,
+        skillset: Skillset,
+        excludedBeatmapIds: number[],
+        category: NonNullable<ReturnType<typeof getQuestCategoryByCode>>,
+    ) {
+        //TODO: Fix duplicates
+        let currentBeatmapId = beatmap.beatmapId
+        excludedBeatmapIds.push(currentBeatmapId)
+
+        while (true) {
+            try {
+                const combo = await app.services.beatmap.getBMComboDifficulty(
+                    currentBeatmapId,
+                    category,
+                )
+
+                console.log(`Beatmap ${currentBeatmapId} is valid`)
+                excludedBeatmapIds.push(currentBeatmapId)
+
+                return { id: currentBeatmapId, combo }
+            } catch (error) {
+                const newBeatmap = await this.findReplacementBeatmap(error, skillset, category, [
+                    ...excludedBeatmapIds,
+                ])
+
+                if (!newBeatmap) {
+                    break
+                }
+
+                currentBeatmapId = newBeatmap.beatmapId
+                excludedBeatmapIds.push(currentBeatmapId)
+            }
+        }
+    },
+
+    async findReplacementBeatmap(
+        error: unknown,
+        skillset: Skillset,
+        category: Category,
+        excludedBeatmapIds: number[],
+    ) {
+        if (!(error instanceof AppError) || error.code !== 'BEATMAP_PP_TOO_LOW') {
+            throw error
+        }
+
+        const newBeatmaps = await app.services.quests.getBeatmaps(
+            [skillset as Skillset],
+            category,
+            excludedBeatmapIds,
+        )
+
+        return newBeatmaps[0]
+    },
+
+    async replaceUserQuests(userId: number, categoryId: number, beatmapsIds: number[]) {
         return await app.db.transaction(async (tx) => {
             const txQuestsModel = app.models.factories.quests(tx)
             await txQuestsModel.deleteAllUserQuests(userId, categoryId)
 
-            const txQuestsService = QuestsService(txQuestsModel)
+            const txQuestsService = CreateQuestsService(txQuestsModel)
             await txQuestsService.saveUserQuests(userId, beatmapsIds, categoryId)
         })
     },
 
-    async areUserQuestsExpired(quests: { expiresAt: Date }[]) {
+    async hasExpiredQuests(quests: { expiresAt: Date }[]) {
         return quests.some((quest) => quest.expiresAt.getTime() < Date.now())
     },
 })

@@ -1,4 +1,4 @@
-import questsCategories, { getQuestCategoryByCode, type QuestCategoryCode } from '@/config/seeds/quests-categories-seed'
+import questsCategories, { getQuestCategoryByCode, type QuestCategoryCode, Category } from '@/config/seeds/quests-categories-seed'
 import BudgetHelperService from '@/services/private/osu/budget-helper.service'
 import questConfig from '@/config/quests.config'
 import { average } from '@/utils/math'
@@ -9,6 +9,7 @@ import type { Skillset } from '@/config/seeds/skillsets-seed'
 import type { ForwardOrRerollSkillsetFunc } from '@/services/private/osu/fatigue.service'
 
 export type QuestsService = ReturnType<typeof createQuestsService>
+export type Beatmap = NonNullable<Awaited<ReturnType<QuestsService['getBeatmaps']>>[number]>
 
 type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
 
@@ -17,7 +18,7 @@ const createQuestsService = (questsModel: QuestModel) => {
 
     //TODO: Make sure that ids won't be duplicated'
     return {
-        async generateUserQuests(
+        async getQuestsBeatmaps(
             userId: number,
             userPreferences: UserSkillsetsPreferences,
             amount: number,
@@ -25,6 +26,7 @@ const createQuestsService = (questsModel: QuestModel) => {
             categoryCode: QuestCategoryCode,
         ) {
             const category = getQuestCategoryByCode(categoryCode)
+
             if (!category) {
                 throw new Error(`Category with code ${categoryCode} not found`)
             }
@@ -42,6 +44,18 @@ const createQuestsService = (questsModel: QuestModel) => {
                 console.log(`Accepted skillset: ${skillset} for quest ${i + 1}\n`)
             }
 
+            const beatmaps = await this.getBeatmaps(skillsets, category, [])
+            const res = []
+
+            for (const skillset of skillsets) {
+                const beatmap = beatmaps[skillsets.indexOf(skillset)] ?? null
+                res.push({ [skillset]: beatmap })
+            }
+
+            return res as { Skillset: Beatmap }[]
+        },
+
+        async getBeatmaps(skillsets: Skillset[], category: Category, excludeBeatmapIds: number[]) {
             //TODO: Decide what to do with highest quests category
 
             const averageSkillsetDifficulty = this.getDominativeSkillsetRangeDifficulty(
@@ -56,8 +70,14 @@ const createQuestsService = (questsModel: QuestModel) => {
 
             console.log('Skillset difficulty range: ', skillsetDifficultyRange)
 
-            const beatmaps = await this.getBeatmaps(skillsets, skillsetDifficultyRange, [])
-            return beatmaps.map((beatmap) => beatmap?.beatmapId ?? null)
+            const minCombo = 100
+
+            return await questsModel.getBeatmapsByDominatedSkillsets(
+                skillsets,
+                skillsetDifficultyRange,
+                minCombo,
+                excludeBeatmapIds,
+            )
         },
 
         async getSkillset(
@@ -96,21 +116,6 @@ const createQuestsService = (questsModel: QuestModel) => {
             }
 
             return skillset
-        },
-
-        async getBeatmaps(
-            skillsets: Skillset[],
-            skillsetDifficultyRange: [min: number, max: number],
-            excludeBeatmapIds: number[]
-        ) {
-            const minCombo = 100
-
-            return await questsModel.getBeatmapsByDominatedSkillsets(
-                skillsets,
-                skillsetDifficultyRange,
-                minCombo,
-                excludeBeatmapIds,
-            )
         },
 
         weightedRandom<T extends Record<string, number>>(weights: T): keyof T {

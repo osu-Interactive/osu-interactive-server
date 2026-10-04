@@ -1,5 +1,6 @@
 import type { QuestCategory } from '@/types/osu.types'
 export type QuestCategoryCode = (typeof categories)[number]['code']
+export type Category = (typeof categories)[number]
 
 const categories = [
     {
