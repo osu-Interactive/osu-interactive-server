@@ -6,6 +6,7 @@ import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type QuestModelFactory = typeof questsModel
 export type QuestModel = ReturnType<QuestModelFactory>
+export type Beatmaps = Awaited<ReturnType<ReturnType<typeof questsModel>['getBeatmapsByDominatedSkillsets']>>
 
 export const questsModel = (db: DBExecutor) => ({
     setQuestsCategories(categories: readonly QuestCategory[]) {

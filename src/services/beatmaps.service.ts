@@ -3,7 +3,7 @@ import rosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { mapMapset } from './private/osu/beatmaps-mapper.service'
 import { AppError } from '@/errors/app-error'
 import { errorTransformers } from '@/errors/error-transformer'
-import comboDifficultyCalculator from '@/services/private/osu/combo-difficulty-calculator'
+import comboDifficultyCalculator from '@/services/private/quests/combo-difficulty-calculator'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'

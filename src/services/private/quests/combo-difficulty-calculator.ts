@@ -1,17 +1,24 @@
-import RosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { BeatmapDecoder } from 'osu-parsers'
 import { StandardRuleset } from 'osu-standard-stable'
-import questCategories, { type Category } from '@/config/seeds/quests-categories-seed'
 import { round, average } from '@/utils/math'
+import RosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { AppError } from '@/errors/app-error'
 
+import type { Category } from '@/config/seeds/quests-categories-seed'
+
 type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects']
+
+const log = false
 
 const comboDifficultyCalculator = () => ({
     async getBMComboPP(beatmapId: number, questCategory: Category) {
         const categoryPP = this.getQuestCategoryAveragePP(questCategory)
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
 
+        // TODO: Optimize the quest generation system by pre-calculating PP for the condition below.
+        //       Currently, it iterates over beatmaps and throws an error when the PP is too low,
+        //       then tries another beatmap. This could be significantly optimized and made more
+        //       API-friendly, reducing unnecessary requests to the osu! API.
         if (!this.isMaxPPEnough(structure, categoryPP)) {
             throw new AppError(`Beatmap max pp is lower than ${categoryPP}`, {
                 code: 'BEATMAP_PP_TOO_LOW',
@@ -22,7 +29,7 @@ const comboDifficultyCalculator = () => ({
             mods: 'CL',
         }).difficulty
 
-        console.log(`Estimated PP for category ${questCategory.code}:`, categoryPP)
+        log && console.log(`Estimated PP for category ${questCategory.code}:`, categoryPP)
 
         const totalObjects =
             (beatmapRosu.nCircles ?? 0) + (beatmapRosu.nSliders ?? 0) + (beatmapRosu.nSpinners ?? 0)
@@ -34,7 +41,7 @@ const comboDifficultyCalculator = () => ({
             beatmapRosu.maxCombo,
         )
 
-        console.log(combo, 'combo corresponds to', comboDifficulty, 'pp')
+        log && console.log(combo, 'combo corresponds to', comboDifficulty, 'pp')
         return combo
     },
 
@@ -62,7 +69,7 @@ const comboDifficultyCalculator = () => ({
             const difference = Math.abs(targetPP - comboDifficulty)
             const comboPass = this.isPPWithinAllowedDeviation(comboDifficulty, targetPP)
 
-            console.log(comboDifficulty, 'pp for', combo, 'combo')
+            log && console.log(comboDifficulty, 'pp for', combo, 'combo')
 
             if (difference < bestDifference) {
                 bestCombo = combo

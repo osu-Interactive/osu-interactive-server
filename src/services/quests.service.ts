@@ -1,23 +1,95 @@
-import questsCategories, { getQuestCategoryByCode, type QuestCategoryCode, Category } from '@/config/seeds/quests-categories-seed'
-import BudgetHelperService from '@/services/private/osu/budget-helper.service'
+import questsCategories, {
+    getQuestCategoryByCode,
+    type QuestCategoryCode,
+    Category,
+} from '@/config/seeds/quests-categories-seed'
+import SkillsetGenerator from '@/services/private/quests/skillset-generator'
 import questConfig from '@/config/quests.config'
 import { average } from '@/utils/math'
+import { AppError } from '@/errors/app-error'
 
-import type { QuestModel } from '@/models/quest.model'
+import type { QuestModel, Beatmaps as NullableBM } from '@/models/quest.model'
 import type { UserSkillsetsPreferences } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
-import type { ForwardOrRerollSkillsetFunc } from '@/services/private/osu/fatigue.service'
+import type { ForwardOrRerollSkillsetFunc } from '@/services/private/quests/fatigue.service'
+
+type Beatmap = NonNullable<NullableBM[number]>
 
 export type QuestsService = ReturnType<typeof createQuestsService>
-export type Beatmap = NonNullable<Awaited<ReturnType<QuestsService['getBeatmaps']>>[number]>
 
-type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
+const createQuestsService = (
+    questsModel: QuestModel,
+) => {
+    const skillsetGenerator = SkillsetGenerator()
 
-const createQuestsService = (questsModel: QuestModel) => {
-    const budgetHelperService = BudgetHelperService()
-
-    //TODO: Make sure that ids won't be duplicated'
     return {
+        async generateUserQuests(
+            beatmaps: { Skillset: Beatmap }[],
+            category: Category,
+            getBMComboDifficulty: (beatmapId: number, category: Category) => Promise<number>,
+        ) {
+            const quests = []
+            const excludedBeatmapIds: number[] = []
+
+            for (const beatmap of beatmaps) {
+                const [skillset, beatmapBody] = Object.entries(beatmap)[0]
+                if (!beatmapBody) {
+                    throw new Error('Beatmap body is undefined')
+                }
+
+                const quest = await this.generateQuest(
+                    beatmapBody,
+                    skillset as Skillset,
+                    excludedBeatmapIds,
+                    category,
+                    getBMComboDifficulty,
+                )
+
+                if (!quest || !quest.id) {
+                    throw new Error('Quest generation failed')
+                }
+
+                quests.push({ [skillset]: quest.id, combo: quest.combo })
+            }
+
+            return quests
+        },
+
+        async generateQuest(
+            beatmap: Beatmap,
+            skillset: Skillset,
+            excludedBeatmapIds: number[],
+            category: NonNullable<ReturnType<typeof getQuestCategoryByCode>>,
+            getBMComboDifficulty: (beatmapId: number, category: Category) => Promise<number>,
+        ) {
+            let currentBeatmapId = beatmap.beatmapId
+
+            while (true) {
+                try {
+                    const combo = await getBMComboDifficulty(currentBeatmapId, category)
+                    excludedBeatmapIds.push(currentBeatmapId)
+
+                    return { id: currentBeatmapId, combo }
+                } catch (error) {
+                    const newBeatmap = await this.findReplacementBeatmap(
+                        error,
+                        skillset,
+                        category,
+                        [...excludedBeatmapIds],
+                    )
+
+                    excludedBeatmapIds.push(currentBeatmapId)
+
+                    if (!newBeatmap) {
+                        console.log(`Didn't find replacement beatmap for skillset: ${skillset}`)
+                        break
+                    }
+
+                    currentBeatmapId = newBeatmap.beatmapId
+                }
+            }
+        },
+
         async getQuestsBeatmaps(
             userId: number,
             userPreferences: UserSkillsetsPreferences,
@@ -34,25 +106,48 @@ const createQuestsService = (questsModel: QuestModel) => {
             const skillsets: Skillset[] = []
 
             for (let i = 0; i < amount; i++) {
-                const skillset = await this.getSkillset(
+                const skillset = await skillsetGenerator.getSkillset(
                     userId,
                     userPreferences,
                     forwardOrRerollSkillset,
                 )
 
                 skillsets.push(skillset)
-                console.log(`Accepted skillset: ${skillset} for quest ${i + 1}\n`)
             }
 
             const beatmaps = await this.getBeatmaps(skillsets, category, [])
             const res = []
 
+            let iteration = 0
             for (const skillset of skillsets) {
-                const beatmap = beatmaps[skillsets.indexOf(skillset)] ?? null
+                iteration++
+                const beatmap = beatmaps[iteration - 1] ?? null
+                if (beatmap && beatmap.dominantSkillset !== skillset) {
+                    throw new Error('Beatmap dominant skillset does not match skillset')
+                }
                 res.push({ [skillset]: beatmap })
             }
 
             return res as { Skillset: Beatmap }[]
+        },
+
+        async findReplacementBeatmap(
+            error: unknown,
+            skillset: Skillset,
+            category: Category,
+            excludedBeatmapIds: number[],
+        ) {
+            if (!(error instanceof AppError) || error.code !== 'BEATMAP_PP_TOO_LOW') {
+                throw error
+            }
+
+            const newBeatmaps = await this.getBeatmaps(
+                [skillset as Skillset],
+                category,
+                excludedBeatmapIds,
+            )
+
+            return newBeatmaps[0]
         },
 
         async getBeatmaps(skillsets: Skillset[], category: Category, excludeBeatmapIds: number[]) {
@@ -68,8 +163,6 @@ const createQuestsService = (questsModel: QuestModel) => {
                 Math.min(100, averageSkillsetDifficulty + 20),
             ] satisfies [number, number]
 
-            console.log('Skillset difficulty range: ', skillsetDifficultyRange)
-
             const minCombo = 100
 
             return await questsModel.getBeatmapsByDominatedSkillsets(
@@ -78,59 +171,6 @@ const createQuestsService = (questsModel: QuestModel) => {
                 minCombo,
                 excludeBeatmapIds,
             )
-        },
-
-        async getSkillset(
-            userId: number,
-            userPreferences: UserSkillsetsPreferences,
-            forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
-        ) {
-            let optionalPreferences: OptionalUserSkillsetsPreferences = userPreferences
-            let skillset = this.weightedRandom(userPreferences)
-            let reroll = await forwardOrRerollSkillset(userId, skillset)
-            let prevPreferencesLength = Object.keys(userPreferences).length
-
-            while (reroll) {
-                console.log(`${skillset} was selected, but will be rerolled due to fatigue`)
-                const { [skillset]: _, ...preferencesWithoutSkillset } = optionalPreferences
-
-                const preferencesWithoutSkillsetLength = Object.keys(
-                    preferencesWithoutSkillset,
-                ).length
-
-                if (preferencesWithoutSkillsetLength !== prevPreferencesLength - 1) {
-                    throw new Error('Error while discarding skillset from preferences')
-                } else if (preferencesWithoutSkillsetLength === 0) {
-                    console.warn(
-                        'No skillsets left in preferences. Continue with fallback with any random skillset',
-                    )
-                    skillset = this.weightedRandom(userPreferences)
-                    reroll = false
-                    continue
-                }
-
-                prevPreferencesLength = preferencesWithoutSkillsetLength
-                optionalPreferences = budgetHelperService.normalizeTo100(preferencesWithoutSkillset)
-                skillset = this.weightedRandom(optionalPreferences)
-                reroll = await forwardOrRerollSkillset(userId, skillset)
-            }
-
-            return skillset
-        },
-
-        weightedRandom<T extends Record<string, number>>(weights: T): keyof T {
-            const random = Math.random() * 100
-            let cumulative = 0
-
-            for (const [item, chance] of Object.entries(weights)) {
-                cumulative += chance
-
-                if (random < cumulative) {
-                    return item as keyof T
-                }
-            }
-
-            throw new Error('Weights must sum to 100')
         },
 
         async initQuestsCategories() {
