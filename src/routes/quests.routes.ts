@@ -10,7 +10,7 @@ export default async function questsRoutes(app: FastifyInstance) {
     app.post<{ Body: { categoryCode: number } }>('/', { preHandler: authMiddleware }, async (req) => {
         const { categoryCode } = req.body
 
-        const questsApplication = QuestsApplication(app)
+        const questsApplication = new QuestsApplication(app)
         await questsApplication.getUserQuests(req.user.id, categoryCode)
     })
 
