@@ -17,6 +17,13 @@ type Beatmap = NonNullable<NullableBM[number]>
 
 export type QuestsService = ReturnType<typeof createQuestsService>
 
+type GetBMComboDifficulty = (
+    beatmapId: number,
+    targetPP: number,
+) => Promise<{
+    combo: number
+}>
+
 const createQuestsService = (
     questsModel: QuestModel,
 ) => {
@@ -26,7 +33,7 @@ const createQuestsService = (
         async generateUserQuests(
             beatmaps: { Skillset: Beatmap }[],
             category: Category,
-            getBMComboDifficulty: (beatmapId: number, category: Category) => Promise<number>,
+            getBMComboDifficulty: GetBMComboDifficulty,
         ) {
             const quests = []
             const excludedBeatmapIds: number[] = []
@@ -60,13 +67,13 @@ const createQuestsService = (
             skillset: Skillset,
             excludedBeatmapIds: number[],
             category: NonNullable<ReturnType<typeof getQuestCategoryByCode>>,
-            getBMComboDifficulty: (beatmapId: number, category: Category) => Promise<number>,
+            getBMComboDifficulty: GetBMComboDifficulty,
         ) {
             let currentBeatmapId = beatmap.beatmapId
 
             while (true) {
                 try {
-                    const combo = await getBMComboDifficulty(currentBeatmapId, category)
+                    const combo = await getBMComboDifficulty(currentBeatmapId, this.getQuestCategoryAveragePP(category))
                     excludedBeatmapIds.push(currentBeatmapId)
 
                     return { id: currentBeatmapId, combo }
@@ -190,6 +197,24 @@ const createQuestsService = (
             const coefficient = 1 + (thousands - 1) * 0.1
 
             return 10 * thousands * coefficient
+        },
+
+        /**
+         * Calculates the approximate amount of PP the player is expected to achieve
+         * on average for the selected quest category.
+         *
+         * Takes the average of the category's PP range and divides it by 20.
+         * This represents the approximate PP value of the player's top scores
+         * required to reach the target amount of PP.
+         *
+         * For example, if the player's top scores average around 300 PP,
+         * the player would have approximately 6,000 total PP.
+         */
+        getQuestCategoryAveragePP(questCategory: Category) {
+            if (questCategory.maxPP === null) {
+                //TODO: Decide what to do with highest quests category
+            }
+            return average(questCategory.minPP / 20, (questCategory.maxPP ?? 20000) / 20)
         },
     }
 }

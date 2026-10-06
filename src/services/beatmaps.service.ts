@@ -66,8 +66,8 @@ const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
         return mappedCalculatedBeatmap
     },
 
-    getBMComboDifficulty(beatmapId: number, category: Category) {
-        return comboDifficultyCalculator().getBMComboPP(beatmapId, category)
+    async getBMComboDifficulty(beatmapId: number, targetPP: number) {
+        return { combo: await comboDifficultyCalculator().getBMComboPP(beatmapId, targetPP) }
     },
 
     hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {

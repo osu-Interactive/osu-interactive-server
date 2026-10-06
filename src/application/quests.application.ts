@@ -2,12 +2,14 @@ import CreateQuestsService from '@/services/quests.service'
 import questConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
 import {
+    type Category,
     getQuestCategoryByCode,
     isQuestCategoryCode,
     type QuestCategoryCode,
 } from '@/config/seeds/quests-categories-seed'
 
 import type { FastifyInstance } from 'fastify'
+import { average } from '@/utils/math'
 
 export default (app: FastifyInstance) => {
     const questService = CreateQuestsService(app.models.quests)
@@ -40,7 +42,11 @@ export default (app: FastifyInstance) => {
                     })
                 }
 
-                const quests = await questService.generateUserQuests(beatmaps, category, app.services.beatmap.getBMComboDifficulty)
+                const quests = await questService.generateUserQuests(
+                    beatmaps,
+                    category,
+                    app.services.beatmap.getBMComboDifficulty,
+                )
 
                 console.log('Result:', quests)
                 const beatmapsIds = beatmaps.map((beatmap) => Object.values(beatmap)[0]!.beatmapId)

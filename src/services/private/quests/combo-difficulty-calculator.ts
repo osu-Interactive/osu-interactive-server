@@ -4,23 +4,20 @@ import { round, average } from '@/utils/math'
 import RosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { AppError } from '@/errors/app-error'
 
-import type { Category } from '@/config/seeds/quests-categories-seed'
-
 type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects']
 
-const log = false
+const log = true
 
 const comboDifficultyCalculator = () => ({
-    async getBMComboPP(beatmapId: number, questCategory: Category) {
-        const categoryPP = this.getQuestCategoryAveragePP(questCategory)
+    async getBMComboPP(beatmapId: number, targetPP: number) {
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
 
         // TODO: Optimize the quest generation system by pre-calculating PP for the condition below.
         //       Currently, it iterates over beatmaps and throws an error when the PP is too low,
         //       then tries another beatmap. This could be significantly optimized and made more
         //       API-friendly, reducing unnecessary requests to the osu! API.
-        if (!this.isMaxPPEnough(structure, categoryPP)) {
-            throw new AppError(`Beatmap max pp is lower than ${categoryPP}`, {
+        if (!this.isMaxPPEnough(structure, targetPP)) {
+            throw new AppError(`Beatmap max pp is lower than ${targetPP}`, {
                 code: 'BEATMAP_PP_TOO_LOW',
             })
         }
@@ -29,14 +26,12 @@ const comboDifficultyCalculator = () => ({
             mods: 'CL',
         }).difficulty
 
-        log && console.log(`Estimated PP for category ${questCategory.code}:`, categoryPP)
-
         const totalObjects =
             (beatmapRosu.nCircles ?? 0) + (beatmapRosu.nSliders ?? 0) + (beatmapRosu.nSpinners ?? 0)
 
         const { combo, comboDifficulty } = this.findClosestComboForPP(
             structure,
-            categoryPP,
+            targetPP,
             totalObjects,
             beatmapRosu.maxCombo,
         )
@@ -209,15 +204,15 @@ const comboDifficultyCalculator = () => ({
 
     /**
      * Checks whether the PP estimated for the requested combo is close enough
-     * to the amount of PP the player is expected to achieve for the selected quest category.
+     * to the amount of PP the player is expected to achieve.
      *
      * The maximum allowed deviation is defined by `allowedDeviationFactor`.
      */
-    isPPWithinAllowedDeviation(ppForCategory: number, targetPP: number) {
+    isPPWithinAllowedDeviation(estimatedPP: number, targetPP: number) {
         const allowedDeviationFactor = 0.1 // 10%
-        const difference = targetPP - ppForCategory
+        const difference = targetPP - estimatedPP
 
-        if (Math.abs(difference) <= ppForCategory * allowedDeviationFactor) {
+        if (Math.abs(difference) <= estimatedPP * allowedDeviationFactor) {
             return {
                 valid: true,
                 direction: null,
@@ -228,24 +223,6 @@ const comboDifficultyCalculator = () => ({
             valid: false,
             direction: difference > 0 ? 'higher' : 'lower',
         }
-    },
-
-    /**
-     * Calculates the approximate amount of PP the player is expected to achieve
-     * on average for the selected quest category.
-     *
-     * Takes the average of the category's PP range and divides it by 20.
-     * This represents the approximate PP value of the player's top scores
-     * required to reach the target amount of PP.
-     *
-     * For example, if the player's top scores average around 300 PP,
-     * the player would have approximately 6,000 total PP.
-     */
-    getQuestCategoryAveragePP(questCategory: Category) {
-        if (questCategory.maxPP === null) {
-            //TODO: Decide what to do with highest quests category
-        }
-        return average(questCategory.minPP / 20, (questCategory.maxPP ?? 20000) / 20)
     },
 
     /**
