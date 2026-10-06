@@ -77,32 +77,35 @@ const allowedDifficultyFields = [
     'maxCombo',
 ] as const
 
-export const mapMapset = (rawMapset: RawMapset): Mapset => {
-    return {
-        ...pickFields(rawMapset, allowedMapsetFields),
-        beatmaps: Array.isArray(rawMapset.beatmaps) ? rawMapset.beatmaps.map(mapMapsetBeatmap) : [],
-    }
-}
-
-export const mapMapsetBeatmap = (rawBeatmap: RawBeatmap): MapsetBeatmap => {
-    const beatmap: MappedBeatmap = {
-        ...pickFields(rawBeatmap, allowedBeatmapFields),
-        mapset_id: rawBeatmap.beatmapset_id,
-        difficulty_rating: round(rawBeatmap.difficulty_rating, 2),
-        max_combo: rawBeatmap.max_combo ?? 0,
+class BeatmapsMapperService {
+    public static mapMapset(rawMapset: RawMapset): Mapset {
+        return {
+            ...pickFields(rawMapset, allowedMapsetFields),
+            beatmaps: Array.isArray(rawMapset.beatmaps)
+                ? rawMapset.beatmaps.map((beatmap) => this.mapMapsetBeatmap(beatmap))
+                : [],
+        }
     }
 
-    return renameBeatmap(beatmap)
-}
+    public static mapMapsetBeatmap(rawBeatmap: RawBeatmap): MapsetBeatmap {
+        const beatmap: MappedBeatmap = {
+            ...pickFields(rawBeatmap, allowedBeatmapFields),
+            mapset_id: rawBeatmap.beatmapset_id,
+            difficulty_rating: this.round(rawBeatmap.difficulty_rating, 2),
+            max_combo: rawBeatmap.max_combo ?? 0,
+        }
 
-const renameBeatmap = (beatmap: MappedBeatmap): MapsetBeatmap => {
-    return renameKeys(beatmap, {
-        difficulty_rating: 'stars',
-        accuracy: 'od',
-        drain: 'hp',
-        max_combo: 'combo',
-    }) as MapsetBeatmap
-}
+        return this.renameBeatmap(beatmap)
+    }
+
+    private static renameBeatmap(beatmap: MappedBeatmap): MapsetBeatmap {
+        return renameKeys(beatmap, {
+            difficulty_rating: 'stars',
+            accuracy: 'od',
+            drain: 'hp',
+            max_combo: 'combo',
+        }) as MapsetBeatmap
+    }
 
 /**
  * Note: The object with type PerformanceAttributes is a WASM-backed object, not a plain JavaScript object.
@@ -112,24 +115,28 @@ const renameBeatmap = (beatmap: MappedBeatmap): MapsetBeatmap => {
  * not behave as expected. Use the provided getters or toJSON() instead.
  */
 
-export const mapCalculatedBeatmap = (
-    rawBeatmap: PerformanceAttributes,
-): OsuPerformanceAttributes => {
-    const beatmap = <OsuPerformanceAttributes>(
-        pickFields(rawBeatmap, allowedCalculatedBeatmapFields, roundFloat)
-    )
+    public static mapCalculatedBeatmap(rawBeatmap: PerformanceAttributes): OsuPerformanceAttributes {
+        const beatmap = <OsuPerformanceAttributes>(
+            pickFields(rawBeatmap, allowedCalculatedBeatmapFields, this.roundFloat)
+        )
 
-    beatmap.difficulty = <OsuPerformanceDifficulty>(
-        pickFields(rawBeatmap.difficulty, allowedDifficultyFields, roundFloat)
-    )
+        beatmap.difficulty = <OsuPerformanceDifficulty>(
+            pickFields(rawBeatmap.difficulty, allowedDifficultyFields, this.roundFloat)
+        )
 
-    return beatmap
+        return beatmap
+    }
+
+    private static roundFloat(value: unknown) {
+        return typeof value === 'number' && !Number.isInteger(value)
+            ? BeatmapsMapperService.round(value, 4)
+            : value
+    }
+
+    private static round(value: number, digits: number) {
+        const factor = 10 ** digits
+        return Math.round(value * factor) / factor
+    }
 }
 
-const roundFloat = (value: unknown) =>
-    typeof value === 'number' && !Number.isInteger(value) ? round(value, 4) : value
-
-const round = (value: number, digits: number) => {
-    const factor = 10 ** digits
-    return Math.round(value * factor) / factor
-}
+export default BeatmapsMapperService

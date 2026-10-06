@@ -5,7 +5,7 @@ import SurveyApplication from '@/application/survey.application'
 import type { SurveyResult } from '@/types/survey.types'
 
 export default async function surveyRoutes(app: FastifyInstance) {
-    const tagsService = TagsService(app.models.tags)
+    const tagsService = new TagsService(app.models.tags)
     const surveyApplication = SurveyApplication(app)
 
     app.get('/', async () => {

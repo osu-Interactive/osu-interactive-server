@@ -1,11 +1,11 @@
-import CreateBeatmapsService, { type BeatmapsService } from '@/services/beatmaps.service'
+import BeatmapsService from '@/services/beatmaps.service'
 import { BeatmapsModel } from '@/models/beatmaps.model'
 
 class MapsetsCollector {
     private beatmapsService: BeatmapsService
 
     constructor(beatmapsModel: BeatmapsModel) {
-        this.beatmapsService = CreateBeatmapsService(beatmapsModel)
+        this.beatmapsService = new BeatmapsService(beatmapsModel)
     }
 
     public async startFetching(

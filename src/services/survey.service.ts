@@ -2,13 +2,16 @@ import { AppError } from '@/errors/app-error'
 import type { SurveyModel, SurveyModelFactory } from '@/models/survey.model'
 import type { SurveyResult } from '@/types/survey.types'
 import type { TagsModel } from '@/models/tags.model'
-import { DB, DBTransaction } from '@/types/drizzle-pg-db.types'
-
-export type SurveyService = ReturnType<typeof createSurveyService>
+import type { DB, DBTransaction } from '@/types/drizzle-pg-db.types'
 
 type SaveConnection = { db: DB; tx?: never } | { tx: DBTransaction; db?: never }
 
-const createSurveyService = (surveyModel: SurveyModel, tagsModel: TagsModel) => ({
+class SurveyService {
+    constructor(
+        private readonly surveyModel: SurveyModel,
+        private readonly tagsModel: TagsModel,
+    ) {}
+
     async save(
         userId: number,
         surveyRes: SurveyResult,
@@ -36,11 +39,11 @@ const createSurveyService = (surveyModel: SurveyModel, tagsModel: TagsModel) => 
                 this.saveInternal(userId, surveyRes, surveyModelFactory(tx)),
             )
         }
-    },
+    }
 
     async saveInternal(userId: number, surveyRes: SurveyResult, surveyModelTx: SurveyModel) {
-        const skillsets = await tagsModel.getSkillsetsByCodes(surveyRes.skillsetsCodes)
-        const mods = await tagsModel.getModsByCodes(surveyRes.modsCodes)
+        const skillsets = await this.tagsModel.getSkillsetsByCodes(surveyRes.skillsetsCodes)
+        const mods = await this.tagsModel.getModsByCodes(surveyRes.modsCodes)
 
         const skillsetIds = skillsets.map((x) => x.id)
         const modIds = mods.map((x) => x.id)
@@ -65,15 +68,15 @@ const createSurveyService = (surveyModel: SurveyModel, tagsModel: TagsModel) => 
 
             await surveyModelTx.insertUserMods(userMods)
         }
-    },
+    }
 
     getUserFavoriteSkillsets(userId: number) {
-        return surveyModel.getUserSkillsets(userId)
-    },
+        return this.surveyModel.getUserSkillsets(userId)
+    }
 
     getUserFavoriteMods(userId: number) {
-        return surveyModel.getUserMods(userId)
-    },
-})
+        return this.surveyModel.getUserMods(userId)
+    }
+}
 
-export default createSurveyService
+export default SurveyService

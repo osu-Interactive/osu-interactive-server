@@ -1,6 +1,6 @@
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
-const budgetHelperService = () => ({
+class BudgetHelperService {
     distributeBudgetByPriority(
         skillsets: Skillset[],
         total: number,
@@ -25,7 +25,7 @@ const budgetHelperService = () => ({
             skillset,
             share: shares[index] / 100,
         }))
-    },
+    }
 
     normalizeTo100(values: Record<string, number>): Record<string, number> {
         const entries = Object.entries(values)
@@ -54,7 +54,7 @@ const budgetHelperService = () => ({
         }
 
         return Object.fromEntries(normalized.map(({ key, value }) => [key, value]))
-    },
-})
+    }
+}
 
-export default budgetHelperService
+export default BudgetHelperService

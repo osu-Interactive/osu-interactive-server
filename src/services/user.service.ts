@@ -7,47 +7,46 @@ import questConfig from '@/config/quests.config'
 import questsConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
 
-export type UserService = ReturnType<typeof createUserService>
-export type CreateUserService = typeof createUserService
+class UserService {
+    private readonly fatigueService: FatigueService
+    private readonly budgetHelperService = new BudgetHelperService()
 
-const createUserService = (userModel: UserModel) => {
-    const fatigueService = FatigueService(userModel)
-    const budgetHelperService = BudgetHelperService()
+    constructor(private readonly userModel: UserModel) {
+        this.fatigueService = new FatigueService(userModel)
+    }
 
-    return {
-        async initializePreferences(userId: number, surveyResult: SurveyResult) {
-            const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
+    async initializePreferences(userId: number, surveyResult: SurveyResult) {
+        const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
 
-            const sharedSkillsets = budgetHelperService.distributeBudgetByPriority(
-                skillsets,
-                questConfig.preferenceBudget,
-                surveyResult.skillsetsCodes,
-            )
+        const sharedSkillsets = this.budgetHelperService.distributeBudgetByPriority(
+            skillsets,
+            questConfig.preferenceBudget,
+            surveyResult.skillsetsCodes,
+        )
 
-            console.log(sharedSkillsets)
-            await userModel.initializePreferences(userId, sharedSkillsets)
-        },
+        console.log(sharedSkillsets)
+        await this.userModel.initializePreferences(userId, sharedSkillsets)
+    }
 
-        async initializeFatigue(userId: number) {
-            await userModel.initializeFatigue(userId, questsConfig.defaultUserFatigue)
-        },
+    async initializeFatigue(userId: number) {
+        await this.userModel.initializeFatigue(userId, questsConfig.defaultUserFatigue)
+    }
 
-        async getUserPreferences(userId: number) {
-            const preferences = (await userModel.getPreferences(userId))[0]
+    async getUserPreferences(userId: number) {
+        const preferences = (await this.userModel.getPreferences(userId))[0]
 
-            if (!preferences) {
-                throw new AppError('Unable to get user preferences', {
-                    code: 'UNDEFINED_USER_PREFERENCES',
-                })
-            }
-
-            return preferences
-        },
-
-        forwardOrRerollSkillset(userId: number, skillset: Skillset) {
-            return fatigueService.rerollSkillset(userId, skillset)
+        if (!preferences) {
+            throw new AppError('Unable to get user preferences', {
+                code: 'UNDEFINED_USER_PREFERENCES',
+            })
         }
+
+        return preferences
+    }
+
+    forwardOrRerollSkillset = (userId: number, skillset: Skillset) => {
+        return this.fatigueService.rerollSkillset(userId, skillset)
     }
 }
 
-export default createUserService
+export default UserService

@@ -1,4 +1,4 @@
-import CreateBeatmapsService, { type BeatmapsService } from '@/services/beatmaps.service'
+import BeatmapsService from '@/services/beatmaps.service'
 
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
@@ -9,7 +9,7 @@ class BeatmapCalculator {
     private beatmapsService: BeatmapsService
 
     constructor(private beatmapsModel: BeatmapsModel) {
-        this.beatmapsService = CreateBeatmapsService(this.beatmapsModel)
+        this.beatmapsService = new BeatmapsService(this.beatmapsModel)
     }
 
     public async runCalculation(

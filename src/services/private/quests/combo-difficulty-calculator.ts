@@ -8,7 +8,7 @@ type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects'
 
 const log = true
 
-const comboDifficultyCalculator = () => ({
+class ComboDifficultyCalculator {
     async getBMComboPP(beatmapId: number, targetPP: number) {
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
 
@@ -38,7 +38,7 @@ const comboDifficultyCalculator = () => ({
 
         log && console.log(combo, 'combo corresponds to', comboDifficulty, 'pp')
         return combo
-    },
+    }
 
     /**
      * Finds the combo required to reach the target PP on the beatmap.
@@ -84,7 +84,7 @@ const comboDifficultyCalculator = () => ({
         }
 
         return { combo: bestCombo, comboDifficulty: bestComboDifficulty }
-    },
+    }
 
     /**
      * Calculates the estimated PP for the required combo across the entire beatmap.
@@ -98,7 +98,7 @@ const comboDifficultyCalculator = () => ({
         }
 
         return this.estimatePPForSections(averagePP)
-    },
+    }
 
     /**
      * Gets sliding beatmap sections for the requested combo range.
@@ -137,7 +137,7 @@ const comboDifficultyCalculator = () => ({
             }
         }
         return ranges
-    },
+    }
 
     /**
      * Gets the object range corresponding to the requested combo range.
@@ -164,7 +164,7 @@ const comboDifficultyCalculator = () => ({
             }
         }
         return [startWith, objects + startWith]
-    },
+    }
 
     /**
      * Calculates PP for a specific part of a beatmap based on an object range.
@@ -178,7 +178,7 @@ const comboDifficultyCalculator = () => ({
         const ppTop = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp)
         const ppBottom = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp)
         return round(average(ppBottom, ppTop))
-    },
+    }
 
     /**
      * Estimates the PP value of the beatmap sections based on their minimum PP.
@@ -200,7 +200,7 @@ const comboDifficultyCalculator = () => ({
         )
 
         return round(minPP * (1 - reductionPercent / 100))
-    },
+    }
 
     /**
      * Checks whether the PP estimated for the requested combo is close enough
@@ -223,7 +223,7 @@ const comboDifficultyCalculator = () => ({
             valid: false,
             direction: difference > 0 ? 'higher' : 'lower',
         }
-    },
+    }
 
     /**
      * Checks whether the beatmap's maximum combo PP, accounting for accuracy,
@@ -234,7 +234,7 @@ const comboDifficultyCalculator = () => ({
         const deviation = this.isPPWithinAllowedDeviation(maxPP, categoryPP)
 
         return deviation.valid || deviation.direction === 'lower'
-    },
+    }
 
     /**
      * Calculates how much combo an object is worth.
@@ -248,7 +248,7 @@ const comboDifficultyCalculator = () => ({
         } else {
             return object.nestedHitObjects.length
         }
-    },
+    }
 
     /**
      * Extracts the [HitObjects] section from the beatmap structure.
@@ -268,7 +268,7 @@ const comboDifficultyCalculator = () => ({
         } else {
             return hitObjects
         }
-    },
+    }
 
     /**
      * Replaces the [HitObjects] section in the beatmap structure
@@ -279,7 +279,7 @@ const comboDifficultyCalculator = () => ({
             /(\[HitObjects]\r?\n)([\s\S]*?)(?=\r?\n\[|$)/,
             (_, header) => `${header}${hitObjects.join('\r\n')}\r\n`,
         )
-    },
-})
+    }
+}
 
-export default comboDifficultyCalculator
+export default ComboDifficultyCalculator

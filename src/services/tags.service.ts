@@ -2,24 +2,24 @@ import { modsSeed } from '@/config/seeds/mods-seed'
 import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
 import type { TagsModel } from '@/models/tags.model'
 
-export type TagsService = ReturnType<typeof createTagsService>
+class TagsService {
+    constructor(private readonly tagsModel: TagsModel) {}
 
-const createTagsService = (tagsModel: TagsModel) => ({
     getMods() {
-        return tagsModel.getMods()
-    },
+        return this.tagsModel.getMods()
+    }
 
     getSkillsets() {
-        return tagsModel.getSkillsets()
-    },
+        return this.tagsModel.getSkillsets()
+    }
 
     async initMods() {
         const modNames = Object.values(modsSeed).map(({ name, code }) => ({
             name,
             code,
         }))
-        await tagsModel.replaceMods(modNames)
-    },
+        await this.tagsModel.replaceMods(modNames)
+    }
 
     async initSkillsets() {
         const skillsetsNames = Object.values(skillsetsSeed).map(
@@ -30,8 +30,8 @@ const createTagsService = (tagsModel: TagsModel) => ({
             }),
         )
 
-        await tagsModel.replaceSkillsets(skillsetsNames)
-    },
-})
+        await this.tagsModel.replaceSkillsets(skillsetsNames)
+    }
+}
 
-export default createTagsService
+export default TagsService

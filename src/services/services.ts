@@ -23,11 +23,11 @@ export const serviceFactories = {
 
 export function buildServices(appModels: AppModels) {
     const services = {
-        user: UserService(appModels.user),
-        quests: QuestsService(appModels.quests),
-        beatmap: BeatmapsService(appModels.beatmap),
-        tags: TagsService(appModels.tags),
-        survey: SurveyService(appModels.survey, appModels.tags),
+        user: new UserService(appModels.user),
+        quests: new QuestsService(appModels.quests),
+        beatmap: new BeatmapsService(appModels.beatmap),
+        tags: new TagsService(appModels.tags),
+        survey: new SurveyService(appModels.survey, appModels.tags),
     }
 
     return {

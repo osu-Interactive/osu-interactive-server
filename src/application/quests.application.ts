@@ -1,18 +1,16 @@
-import CreateQuestsService from '@/services/quests.service'
+import QuestsService from '@/services/quests.service'
 import questConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
 import {
-    type Category,
     getQuestCategoryByCode,
     isQuestCategoryCode,
     type QuestCategoryCode,
 } from '@/config/seeds/quests-categories-seed'
 
 import type { FastifyInstance } from 'fastify'
-import { average } from '@/utils/math'
 
 export default (app: FastifyInstance) => {
-    const questService = CreateQuestsService(app.models.quests)
+    const questService = new QuestsService(app.models.quests)
 
     return {
         async getUserQuests(userId: number, categoryCode: number) {
@@ -79,7 +77,7 @@ export default (app: FastifyInstance) => {
                 const txQuestsModel = app.models.factories.quests(tx)
                 await txQuestsModel.deleteAllUserQuests(userId, categoryId)
 
-                const txQuestsService = CreateQuestsService(txQuestsModel)
+                const txQuestsService = new QuestsService(txQuestsModel)
                 await txQuestsService.saveUserQuests(userId, beatmapsIds, categoryId)
             })
         },

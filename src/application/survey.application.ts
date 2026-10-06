@@ -6,8 +6,11 @@ import type { FastifyInstance } from 'fastify'
 export default (app: FastifyInstance) => ({
     saveSurvey: async (userId: number, surveyResult: SurveyResult) => {
         await app.db.transaction(async (tx) => {
-            const surveyService = SurveyService(app.models.factories.survey(tx), app.models.factories.tags(tx))
-            const userService = UserService(app.models.factories.user(tx))
+            const surveyService = new SurveyService(
+                app.models.factories.survey(tx),
+                app.models.factories.tags(tx),
+            )
+            const userService = new UserService(app.models.factories.user(tx))
 
             await userService.initializePreferences(userId, surveyResult)
             await userService.initializeFatigue(userId)

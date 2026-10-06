@@ -1,14 +1,13 @@
 import client from '@/infrastructure/osu-api/osu-api-app-client'
 import rosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
-import { mapMapset } from './private/osu/beatmaps-mapper.service'
 import { AppError } from '@/errors/app-error'
 import { errorTransformers } from '@/errors/error-transformer'
-import comboDifficultyCalculator from '@/services/private/quests/combo-difficulty-calculator'
+import BeatmapsMapperService from '@/services/private/osu/beatmaps-mapper.service'
+import ComboDifficultyCalculator from '@/services/private/quests/combo-difficulty-calculator'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
 import type { Mapset } from '@/types/osu.types'
-import type { Category } from '@/config/seeds/quests-categories-seed'
 
 const log = false
 
@@ -17,9 +16,11 @@ type FetchMapsetConfig = {
     saveInDB?: boolean
 }
 
-export type BeatmapsService = ReturnType<typeof createBeatmapsService>
+class BeatmapsService {
+    private comboDifficultyCalculator = new ComboDifficultyCalculator()
 
-const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
+    constructor(private readonly mapsetModel: BeatmapsModel) {}
+
     async getMapset(
         mapsetId: number,
         config: FetchMapsetConfig = {},
@@ -31,16 +32,16 @@ const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
             const res = await client.get('/beatmapsets/' + mapsetId)
             const mapset: RawMapset = res.data
 
-            const result = mapMapset(mapset)
+            const result = BeatmapsMapperService.mapMapset(mapset)
 
-            if (saveInDB) await mapsetModel.setMapset(result)
+            if (saveInDB) await this.mapsetModel.setMapset(result)
 
             if (log) console.log(result)
 
             return raw ? mapset : result
         } catch (err: unknown) {
             if (this.hasField(err, 'status') && err.status === 404) {
-                mapsetModel.setNonexistentMapset(mapsetId)
+                this.mapsetModel.setNonexistentMapset(mapsetId)
                 return null
             }
 
@@ -55,24 +56,24 @@ const createBeatmapsService = (mapsetModel: BeatmapsModel) => ({
                 }),
             )
         }
-    },
+    }
 
     async getCalculatedBeatmap(id: number, mapsetId: number) {
         const beatmap = await rosuBeatmapWrapper.create(id)
         const calculatedBeatmap = beatmap.calculate({ mods: 'CL' })
         const mappedCalculatedBeatmap = rosuBeatmapWrapper.map(calculatedBeatmap)
-        await mapsetModel.setCalculatedBeatmap(mappedCalculatedBeatmap, id, mapsetId)
+        await this.mapsetModel.setCalculatedBeatmap(mappedCalculatedBeatmap, id, mapsetId)
 
         return mappedCalculatedBeatmap
-    },
+    }
 
-    async getBMComboDifficulty(beatmapId: number, targetPP: number) {
-        return { combo: await comboDifficultyCalculator().getBMComboPP(beatmapId, targetPP) }
-    },
+    getBMComboDifficulty = async (beatmapId: number, targetPP: number) => {
+        return { combo: await this.comboDifficultyCalculator.getBMComboPP(beatmapId, targetPP) }
+    }
 
     hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {
         return typeof value === 'object' && value !== null && fieldName in value
-    },
-})
+    }
+}
 
-export default createBeatmapsService
+export default BeatmapsService

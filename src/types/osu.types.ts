@@ -1,4 +1,4 @@
-import { mapCalculatedBeatmap } from '@/services/private/osu/beatmaps-mapper.service'
+import type BeatmapsMapperService from '@/services/private/osu/beatmaps-mapper.service'
 import { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type OsuAuthToken = {
@@ -130,7 +130,7 @@ export type OsuPerformanceDifficulty = {
     maxCombo: number
 }
 
-export type MappedPerformanceAttributes = ReturnType<typeof mapCalculatedBeatmap>
+export type MappedPerformanceAttributes = ReturnType<typeof BeatmapsMapperService.mapCalculatedBeatmap>
 
 export type SQLSearchConditions = {
     field: string

@@ -1,10 +1,12 @@
 import { FastifyInstance } from 'fastify'
-import { evaluateQuestsCompletion } from '@/services/quest-completion.service'
+import QuestCompletionService from '@/services/quest-completion.service'
 import { authMiddleware } from '@/middlewares/auth.middleware'
 
 import QuestsApplication from '@/application/quests.application'
 
 export default async function questsRoutes(app: FastifyInstance) {
+    const questCompletionService = new QuestCompletionService()
+
     app.post<{ Body: { categoryCode: number } }>('/', { preHandler: authMiddleware }, async (req) => {
         const { categoryCode } = req.body
 
@@ -17,6 +19,6 @@ export default async function questsRoutes(app: FastifyInstance) {
     })
 
     app.get('/:id/evaluate', async (_, reply) => {
-        await evaluateQuestsCompletion()
+        await questCompletionService.evaluateQuestsCompletion()
     })
 }
