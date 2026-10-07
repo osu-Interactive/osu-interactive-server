@@ -9,6 +9,8 @@ import {
 
 import type { FastifyInstance } from 'fastify'
 
+const ignoreQuestsExpiration = true
+
 class QuestsApplication {
     constructor(private readonly app: FastifyInstance) {
         this.questService = new QuestsService(app.models.quests)
@@ -26,7 +28,7 @@ class QuestsApplication {
         const userQuests = await this.app.models.quests.getUserQuests(userId, categoryId)
         const userQuestsExpired = await this.hasExpiredQuests(userQuests)
 
-        if (!userQuestsExpired) {
+        if (userQuestsExpired || ignoreQuestsExpiration) {
             const category = getQuestCategoryByCode(categoryCode)
 
             if (!category) {
