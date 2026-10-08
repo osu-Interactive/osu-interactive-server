@@ -1,19 +1,21 @@
 import fp from 'fastify-plugin'
-import type { FastifyInstance, FastifyReply } from 'fastify'
-
-import { AppError, findErrorInCauseChain } from '@/errors/app-error'
-import { DEFAULT_ERROR } from '@/errors/error-scenarios'
 import handleError from '../errors/error-resolver'
 import logError from '@/utils/logging/error-logger'
-import type { ResolvedError } from '@/types/errors.types'
+import { DEFAULT_ERROR } from '@/errors/error-scenarios'
+import { AppError, findErrorInCauseChain } from '@/errors/app-error'
 import { clearAuthCookies } from '@/utils/auth-cookies'
+import { transformError } from '@/errors/error-transformer'
+
+import type { FastifyInstance, FastifyReply } from 'fastify'
+import type { ResolvedError } from '@/types/errors.types'
 
 async function errorHandlerPlugin(app: FastifyInstance) {
     app.setErrorHandler((error: unknown, _, reply: FastifyReply) => {
         try {
-            console.error('An error occurred:', error)
+            const transformedError = transformError(error)
+            console.error('\x1b[41m\x1b[37m An error occurred: \x1b[0m', transformedError)
 
-            const appError = findErrorInCauseChain(error, AppError)
+            const appError = findErrorInCauseChain(transformedError, AppError)
             const errorData = appError ? handleError(appError) : null
 
             if (errorData?.isOperational) {
@@ -24,7 +26,7 @@ async function errorHandlerPlugin(app: FastifyInstance) {
                 return sendErrorResponse(reply, errorData)
             }
 
-            handleNonOperationalError(error, reply)
+            handleNonOperationalError(transformedError, reply)
         } catch (handlerError) {
             console.error('Error handling error:', handlerError)
             handleNonOperationalError(error, reply)

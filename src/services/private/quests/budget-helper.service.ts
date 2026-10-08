@@ -1,10 +1,11 @@
 import type { Skillset } from '@/config/seeds/skillsets-seed'
+import type { SurveyClientData } from '@/routes/survey.routes'
 
 class BudgetHelperService {
     distributeBudgetByPriority(
         skillsets: Skillset[],
         total: number,
-        prioritySkillsets: Skillset[] = [],
+        prioritySkillsets: SurveyClientData['skillsetsCodes'] = [],
     ): { skillset: Skillset; share: number }[] {
         const totalCents = Math.round(total * 100)
         const prioritySet = new Set(prioritySkillsets)

@@ -1,18 +1,35 @@
 import { FastifyInstance } from 'fastify'
 import QuestCompletionService from '@/services/quest-completion.service'
 import { authMiddleware } from '@/middlewares/auth.middleware'
-
+import { z } from 'zod'
 import QuestsApplication from '@/application/quests.application'
+
+import { ZodTypeProvider } from 'fastify-type-provider-zod'
+
+const getUserQuestsBodySchema = z.object({
+    categoryCode: z.number().int(),
+})
 
 export default async function questsRoutes(app: FastifyInstance) {
     const questCompletionService = new QuestCompletionService()
 
-    app.post<{ Body: { categoryCode: number } }>('/', { preHandler: authMiddleware }, async (req) => {
-        const { categoryCode } = req.body
+    app.withTypeProvider<ZodTypeProvider>().post(
+        '/',
+        {
+            preHandler: authMiddleware,
 
-        const questsApplication = new QuestsApplication(app)
-        await questsApplication.getUserQuests(req.user.id, categoryCode)
-    })
+            schema: {
+                body: getUserQuestsBodySchema,
+            },
+        },
+        async (req) => {
+            const { categoryCode } = req.body
+
+            const questsApplication = new QuestsApplication(app)
+
+            return questsApplication.getUserQuests(req.user.id, categoryCode)
+        },
+    )
 
     app.get('/categories', { preHandler: authMiddleware }, async () => {
         return app.models.quests.getQuestsCategories()

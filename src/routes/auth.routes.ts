@@ -1,7 +1,9 @@
 import crypto from 'crypto'
+import { z } from 'zod'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { AppError } from '@/errors/app-error'
 import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
+import { ZodTypeProvider } from 'fastify-type-provider-zod'
 
 /**
  * In production, HTTPS is expected.
@@ -17,6 +19,13 @@ const cookieOptions = {
     path: '/auth',
 }
 
+const loginSchema = z.object({
+    osuApiCode: z.string().min(10).max(150),
+    osuApiState: z.string().max(200).optional(),
+})
+
+type LoginBody = z.infer<typeof loginSchema>
+
 export default async function authRoutes(app: FastifyInstance) {
     const authService = new app.services.factories.auth(app.models.user, app.jwt)
 
@@ -31,31 +40,39 @@ export default async function authRoutes(app: FastifyInstance) {
         return { authLink: authService.getOsuApiAuthLink(state) }
     })
 
-    app.post<{
-        Body: { osuApiCode: string; osuApiState?: string }
-    }>('/login', async (req, reply) => {
-        if (!checkOAuthState(req, reply)) {
-            console.log('Invalid CSRF Credentials from client')
-            return
-        }
+    app.withTypeProvider<ZodTypeProvider>().post(
+        '/login',
+        {
+            schema: { body: loginSchema },
+        },
+        async (req, reply) => {
+            if (!checkOAuthState(req, reply)) {
+                console.log('Invalid CSRF Credentials from client')
+                return
+            }
 
-        const { osuApiCode } = req.body
-        const loginResult = await authService.loginWithOsu(app.db, app.models.factories.user, osuApiCode)
+            const { osuApiCode } = req.body
+            const loginResult = await authService.loginWithOsu(
+                app.db,
+                app.models.factories.user,
+                osuApiCode,
+            )
 
-        const { accessToken, refreshToken } = await authService.getJwtAndRefreshToken(
-            loginResult.id,
-            loginResult.osuId,
-        )
+            const { accessToken, refreshToken } = await authService.getJwtAndRefreshToken(
+                loginResult.id,
+                loginResult.osuId,
+            )
 
-        setAuthCookie(reply, 'auth', accessToken, authService.accessTokenTtlSeconds)
-        setAuthCookie(reply, 'refresh', refreshToken, authService.refreshTokenTtlSeconds)
+            setAuthCookie(reply, 'auth', accessToken, authService.accessTokenTtlSeconds)
+            setAuthCookie(reply, 'refresh', refreshToken, authService.refreshTokenTtlSeconds)
 
-        return {
-            user: loginResult,
-            authTokenExpiresIn: authService.accessTokenTtlSeconds,
-            refreshTokenExpiresIn: authService.refreshTokenTtlSeconds,
-        }
-    })
+            return {
+                user: loginResult,
+                authTokenExpiresIn: authService.accessTokenTtlSeconds,
+                refreshTokenExpiresIn: authService.refreshTokenTtlSeconds,
+            }
+        },
+    )
 
     app.post('/logout', async (_, reply) => {
         clearAuthCookies(reply)
@@ -90,10 +107,7 @@ export default async function authRoutes(app: FastifyInstance) {
     })
 }
 
-function checkOAuthState(
-    req: FastifyRequest<{ Body: { osuApiState?: string } }>,
-    reply: FastifyReply,
-): boolean {
+function checkOAuthState(req: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply): boolean {
     const { osuApiState } = req.body
     const cookieState = req.cookies.oauth_state
 

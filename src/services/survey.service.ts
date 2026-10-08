@@ -1,8 +1,8 @@
 import { AppError } from '@/errors/app-error'
 import type { SurveyModel, SurveyModelFactory } from '@/models/survey.model'
-import type { SurveyResult } from '@/types/survey.types'
 import type { TagsModel } from '@/models/tags.model'
 import type { DB, DBTransaction } from '@/types/drizzle-pg-db.types'
+import type { SurveyClientData } from '@/routes/survey.routes'
 
 type SaveConnection = { db: DB; tx?: never } | { tx: DBTransaction; db?: never }
 
@@ -14,17 +14,17 @@ class SurveyService {
 
     async save(
         userId: number,
-        surveyRes: SurveyResult,
+        surveyRes: SurveyClientData,
         surveyModelFactory: SurveyModelFactory,
         connection: SaveConnection,
     ) {
         const errors: Record<string, string> = {}
 
-        if (!Array.isArray(surveyRes?.skillsetsCodes)) {
+        if (!Array.isArray(surveyRes.skillsetsCodes)) {
             errors.skillsets = 'skillsetsCodes must be an array'
         }
 
-        if (!Array.isArray(surveyRes?.modsCodes)) {
+        if (!Array.isArray(surveyRes.modsCodes)) {
             errors.mods = 'modsCodes must be an array'
         }
 
@@ -41,7 +41,7 @@ class SurveyService {
         }
     }
 
-    async saveInternal(userId: number, surveyRes: SurveyResult, surveyModelTx: SurveyModel) {
+    async saveInternal(userId: number, surveyRes: SurveyClientData, surveyModelTx: SurveyModel) {
         const skillsets = await this.tagsModel.getSkillsetsByCodes(surveyRes.skillsetsCodes)
         const mods = await this.tagsModel.getModsByCodes(surveyRes.modsCodes)
 

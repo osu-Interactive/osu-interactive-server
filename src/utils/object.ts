@@ -32,3 +32,7 @@ export function renameKeys<T extends Record<string, any>, R extends Record<strin
 
     return result
 }
+
+export function hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {
+    return typeof value === 'object' && value !== null && fieldName in value
+}

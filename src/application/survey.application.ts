@@ -1,12 +1,12 @@
 import SurveyService from '@/services/survey.service'
 import UserService from '@/services/user.service'
-import type { SurveyResult } from '@/types/survey.types'
 import type { FastifyInstance } from 'fastify'
+import type { SurveyClientData } from '@/routes/survey.routes'
 
 class SurveyApplication {
     constructor(private readonly app: FastifyInstance) {}
 
-    async saveSurvey(userId: number, surveyResult: SurveyResult) {
+    async saveSurvey(userId: number, surveyResult: SurveyClientData) {
         await this.app.db.transaction(async (tx) => {
             const surveyService = new SurveyService(
                 this.app.models.factories.survey(tx),

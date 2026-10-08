@@ -1,11 +1,11 @@
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
-import type { UserModel } from '@/models/user.model'
-import { SurveyResult } from '@/types/survey.types'
 import FatigueService from '@/services/private/quests/fatigue.service'
 import BudgetHelperService from '@/services/private/quests/budget-helper.service'
 import questConfig from '@/config/quests.config'
 import questsConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
+import type { UserModel } from '@/models/user.model'
+import type { SurveyClientData } from '@/routes/survey.routes'
 
 class UserService {
     private readonly fatigueService: FatigueService
@@ -15,7 +15,7 @@ class UserService {
         this.fatigueService = new FatigueService(userModel)
     }
 
-    async initializePreferences(userId: number, surveyResult: SurveyResult) {
+    async initializePreferences(userId: number, surveyResult: SurveyClientData) {
         const skillsets: Skillset[] = skillsetsSeed.map(({ code }) => code)
 
         const sharedSkillsets = this.budgetHelperService.distributeBudgetByPriority(

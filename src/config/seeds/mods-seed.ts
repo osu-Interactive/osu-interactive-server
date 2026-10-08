@@ -19,3 +19,5 @@ export const modsSeed = [
         code: 'ez',
     },
 ] as const
+
+export const codes = modsSeed.map(({ code }) => code)

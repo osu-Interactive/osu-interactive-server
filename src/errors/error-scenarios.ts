@@ -46,7 +46,13 @@ const ERROR_SCENARIOS = defineErrorScenarios({
         message: 'Complete the survey before requesting quests',
         code: 'SURVEY_REQUIRED',
         statusCode: 429,
-        isOperational: true
+        isOperational: true,
+    }),
+
+    INVALID_CLIENT_DATA: (error) => ({
+        statusCode: 400,
+        details: error?.details,
+        isOperational: true,
     }),
 })
 

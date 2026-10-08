@@ -1,39 +1,24 @@
 import { AppError } from '@/errors/app-error'
 import Bottleneck from 'bottleneck'
 
-type ErrorTransformer = (err: unknown, fallbackError?: Error | null, isStream?: boolean) => Error | null
-
 export function transformError(err: unknown, fallbackError: Error | null = null): Error {
     for (const wrapper of Object.values(errorTransformers)) {
-        const wrapped = wrapper(err, fallbackError, true)
+        const wrapped = wrapper(err)
 
         if (wrapped) {
             return wrapped
         }
     }
 
+    if (fallbackError) {
+        return fallbackError
+    }
+
     return toError(err)
 }
 
-function toError(err: unknown): Error {
-    return err instanceof Error ? err : new Error(String(err))
-}
-
-function resolveMappedError(
-    error: Error | null,
-    originalError: unknown,
-    isStream: boolean = false,
-    fallbackError: Error | null = null
-): Error | null {
-    if (fallbackError) {
-        return fallbackError
-    } else {
-        return isStream ? error : (error ?? toError(originalError))
-    }
-}
-
-const errorTransformers: Record<string, ErrorTransformer> = {
-    bottleneckOverflow: (err: unknown, fallbackError: Error | null = null, isStream: boolean = false) => {
+const errorTransformers = {
+    bottleneckOverflow: (err: unknown) => {
         let error: AppError | null = null
 
         if (err instanceof Bottleneck.BottleneckError) {
@@ -43,8 +28,32 @@ const errorTransformers: Record<string, ErrorTransformer> = {
             })
         }
 
-        return resolveMappedError(error, err, isStream, error ? null : fallbackError)
+        return error
     },
+
+    fastifyValidation: (err: unknown) => {
+        let error: AppError | null = null
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'FST_ERR_VALIDATION') {
+            //TODO: Extract and format validation errors
+            const errorMessage = err instanceof Error ? err.message : String(err)
+
+            error = new AppError('Client validation error', {
+                code: 'INVALID_CLIENT_DATA',
+                details: { validations: errorMessage },
+                cause: err,
+            })
+        }
+
+        return error
+    },
+}
+
+export function isError(error: unknown, check: keyof typeof errorTransformers) {
+    return Boolean(errorTransformers[check](error))
+}
+
+function toError(err: unknown): Error {
+    return err instanceof Error ? err : new Error(String(err))
 }
 
 export { errorTransformers }

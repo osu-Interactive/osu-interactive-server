@@ -1,9 +1,10 @@
 import client from '@/infrastructure/osu-api/osu-api-app-client'
 import rosuBeatmapWrapper from '@/services/private/osu/rosu-beatmap-wrapper'
 import { AppError } from '@/errors/app-error'
-import { errorTransformers } from '@/errors/error-transformer'
+import { isError } from '@/errors/error-transformer'
 import BeatmapsMapperService from '@/services/private/osu/beatmaps-mapper.service'
 import ComboDifficultyCalculator from '@/services/private/quests/combo-difficulty-calculator'
+import { hasField } from '@/utils/object'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
 import type { BeatmapsModel } from '@/models/beatmaps.model'
@@ -40,21 +41,20 @@ class BeatmapsService {
 
             return raw ? mapset : result
         } catch (err: unknown) {
-            if (this.hasField(err, 'status') && err.status === 404) {
+            if (hasField(err, 'status') && err.status === 404) {
                 this.mapsetModel.setNonexistentMapset(mapsetId)
                 return null
             }
-
-            throw errorTransformers.bottleneckOverflow(
-                err,
-                new AppError(`Failed to fetch mapset ${mapsetId}`, {
+            //TODO: Test if this work properly
+            if (!isError(err, 'bottleneckOverflow')) {
+                throw new AppError(`Failed to fetch mapset ${mapsetId}`, {
                     code: 'FETCH_MAPSET_FAILED',
                     details: {
-                        statusCode: `${this.hasField(err, 'status') ? err.status : ''}`,
+                        statusCode: `${hasField(err, 'status') ? err.status : ''}`,
                     },
                     cause: err,
-                }),
-            )
+                })
+            } else throw err
         }
     }
 
@@ -69,10 +69,6 @@ class BeatmapsService {
 
     getBMComboDifficulty = async (beatmapId: number, targetPP: number) => {
         return { combo: await this.comboDifficultyCalculator.getBMComboPP(beatmapId, targetPP) }
-    }
-
-    hasField<K extends PropertyKey>(value: unknown, fieldName: K): value is Record<K, unknown> {
-        return typeof value === 'object' && value !== null && fieldName in value
     }
 }
 

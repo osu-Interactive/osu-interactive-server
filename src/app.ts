@@ -13,6 +13,8 @@ import authPlugin from './plugins/auth.plugin'
 import errorPlugin from './plugins/error.plugin'
 import successResponsePlugin from '@/plugins/success-response.plugin'
 
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
+
 import { initCommands } from '@/commands/command-handler'
 
 export async function buildApp() {
@@ -24,6 +26,9 @@ export async function buildApp() {
         origin: true,
         credentials: true,
     })
+
+    app.setValidatorCompiler(validatorCompiler)
+    app.setSerializerCompiler(serializerCompiler)
 
     await app.register(cookie)
 
