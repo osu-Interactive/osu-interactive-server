@@ -13,7 +13,7 @@ import authPlugin from './plugins/auth.plugin'
 import errorPlugin from './plugins/error.plugin'
 import successResponsePlugin from '@/plugins/success-response.plugin'
 
-import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
+import { serializerCompiler, validatorCompiler } from '@fastify/type-provider-zod'
 
 import { initCommands } from '@/commands/command-handler'
 

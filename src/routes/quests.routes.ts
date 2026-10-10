@@ -4,7 +4,7 @@ import { authMiddleware } from '@/middlewares/auth.middleware'
 import { z } from 'zod'
 import QuestsApplication from '@/application/quests.application'
 
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { ZodTypeProvider } from '@fastify/type-provider-zod'
 
 const getUserQuestsBodySchema = z.object({
     categoryCode: z.number().int(),

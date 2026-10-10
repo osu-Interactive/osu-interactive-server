@@ -5,7 +5,7 @@ import TagsService from '@/services/tags.service'
 import SurveyApplication from '@/application/survey.application'
 import { codes as SkillsetCodes } from '@/config/seeds/skillsets-seed'
 import { codes as ModsCodes } from '@/config/seeds/mods-seed'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { ZodTypeProvider } from '@fastify/type-provider-zod'
 
 const surveySchema = z.object({
     skillsetsCodes: z

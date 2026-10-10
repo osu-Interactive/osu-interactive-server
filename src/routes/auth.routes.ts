@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { AppError } from '@/errors/app-error'
 import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { ZodTypeProvider } from '@fastify/type-provider-zod'
 
 /**
  * In production, HTTPS is expected.
