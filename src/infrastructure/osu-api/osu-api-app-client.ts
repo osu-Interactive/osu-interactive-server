@@ -87,7 +87,7 @@ class OsuApiAppClient extends BaseOsuApiClient {
         expiresIn: number
     }> {
         const params = new URLSearchParams({
-            client_id: this.clientId,
+            client_id: String(this.clientId),
             client_secret: this.clientSecret,
             grant_type: 'client_credentials',
             scope: 'public',

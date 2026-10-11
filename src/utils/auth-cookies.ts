@@ -1,6 +1,7 @@
 import type { FastifyReply } from 'fastify'
+import { env } from '@/config/env'
 
-const isProduction = process.env.NODE_ENV === 'production'
+const isProduction = env.NODE_ENV === 'production'
 
 const authCookieOptions = {
     httpOnly: true,

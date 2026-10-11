@@ -22,7 +22,7 @@ class OsuApiUserClient extends BaseOsuApiClient {
     //TODO: Response with dynamic redirect url
     public async fetchAccessTokenCodeGrant(userOsuApiCode: string): Promise<OsuAuthToken> {
         const params = new URLSearchParams({
-            client_id: this.clientId,
+            client_id: String(this.clientId),
             client_secret: this.clientSecret,
             code: userOsuApiCode,
             grant_type: 'authorization_code',

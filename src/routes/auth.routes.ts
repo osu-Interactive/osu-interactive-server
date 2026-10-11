@@ -4,13 +4,14 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { AppError } from '@/errors/app-error'
 import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
 import { ZodTypeProvider } from '@fastify/type-provider-zod'
+import { env } from '@/config/env'
 
 /**
  * In production, HTTPS is expected.
  * Cookies should use `secure: true`.
  * If you run production without HTTPS, explicitly set `secure` to false.
  */
-const isProduction: boolean = process.env.NODE_ENV === 'production'
+const isProduction = env.NODE_ENV === 'production'
 
 const cookieOptions = {
     httpOnly: true,

@@ -1,5 +1,7 @@
 import { LoginWithOsu } from '@/services/private/auth/login-with-osu.service'
 import AuthTokensService from '@/services/private/auth/auth-tokens.service'
+import { env } from '@/config/env'
+
 import type { UserModel, UserModelFactory } from '@/models/user.model'
 import type { DB } from '@/types/drizzle-pg-db.types'
 import type { JWT } from '@fastify/jwt'
@@ -13,11 +15,9 @@ class AuthService extends AuthTokensService {
     }
 
     getOsuApiAuthLink(state: string) {
-        const osuApiClientId: string = String(process.env.CLIENT_ID)
-
         return (
             'https://osu.ppy.sh/oauth/authorize' +
-            `?client_id=${osuApiClientId}` +
+            `?client_id=${env.CLIENT_ID}` +
             '&redirect_uri=http://localhost:5173/login' +
             '&response_type=code' +
             '&scope=public+identify' +

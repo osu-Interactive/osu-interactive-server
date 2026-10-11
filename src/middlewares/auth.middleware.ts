@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
+import { env } from '@/config/env'
 
 const DEV_AUTH_BYPASS_HEADER = 'x-dev-auth-bypass'
 const DEV_AUTH_USER_ID_HEADER = 'x-dev-user-id'
@@ -22,7 +23,7 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
 }
 
 function canBypassAuthInDevelopment(request: FastifyRequest): boolean {
-    if (process.env.NODE_ENV !== 'development') {
+    if (env.NODE_ENV !== 'development') {
         return false
     }
 

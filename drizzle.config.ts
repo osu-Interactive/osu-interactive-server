@@ -1,14 +1,13 @@
 import type { Config } from 'drizzle-kit'
-import dotenv from 'dotenv'
-dotenv.config()
+import { env } from './src/config/env'
 
 const dbUrl =
     'postgres://' +
-    `${process.env.DB_USER}:` +
-    `${process.env.DB_PASSWORD}@` +
-    `${process.env.DB_HOST}:` +
-    `${process.env.DB_PORT}/` +
-    `${process.env.DB_NAME}`
+    `${env.DB_USER}:` +
+    `${env.DB_PASSWORD}@` +
+    `${env.DB_HOST}:` +
+    `${env.DB_PORT}/` +
+    `${env.DB_NAME}`
 
 export default {
     schema: './src/db/schemas/schema.ts',
