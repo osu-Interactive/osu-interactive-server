@@ -11,27 +11,9 @@ import { codes, Skillset } from '@/config/seeds/skillsets-seed'
 import { OsuAuthToken, OsuUserExtracted, DBUser, SharedSkillsets } from '@/types/osu.types'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 
-export type UserModelFactory = typeof userModel
-export type UserRepository = ReturnType<UserModelFactory>
+class UserRepository {
+    constructor(private readonly db: DBExecutor) {}
 
-const getUserDBValues = (user: OsuUserExtracted) => ({
-    name: user.username,
-    avatarUrl: user.avatar_url,
-    pp: Math.floor(user.pp),
-    country: user.country,
-})
-
-const getUserTokensDBValues = (data: OsuAuthToken) => {
-    const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
-
-    return {
-        accessToken: data.token,
-        refreshToken: data.refreshToken,
-        expiresAt: expiresAt,
-    }
-}
-
-export const userModel = (db: DBExecutor) => ({
     async requireById(id: number): Promise<DBUser> {
         const res = await this.getById(id)
 
@@ -39,67 +21,67 @@ export const userModel = (db: DBExecutor) => ({
             throw new AppError(`User ${id} not found`, { code: 'USER_NOT_FOUND' })
 
         return res
-    },
+    }
 
     getById(id: number): Promise<DBUser | undefined> {
-        return db.query.users.findFirst({
+        return this.db.query.users.findFirst({
             where: (users, { eq }) => eq(users.id, id),
         })
-    },
+    }
 
     getByOsuId(osuId: number): Promise<DBUser | undefined> {
-        return db.query.users.findFirst({
+        return this.db.query.users.findFirst({
             where: (users, { eq }) => eq(users.osuId, osuId),
         })
-    },
+    }
 
     //Note: osu! usernames are case-insensitive, but this search isn't.
     getByUserName(name: string): Promise<DBUser | undefined> {
-        return db.query.users.findFirst({
+        return this.db.query.users.findFirst({
             where: (users, { eq }) => eq(users.name, name),
         })
-    },
+    }
 
     async upsertFromOsu(data: OsuUserExtracted) {
-        const result = await db
+        const result = await this.db
             .insert(users)
             .values({
                 osuId: data.id,
-                ...getUserDBValues(data),
+                ...this.getUserDBValues(data),
             })
             .onConflictDoUpdate({
                 target: users.osuId,
-                set: getUserDBValues(data),
+                set: this.getUserDBValues(data),
             })
             .returning()
 
         return result[0]
-    },
+    }
 
     saveToken(userId: number, authResult: OsuAuthToken) {
-        return db
+        return this.db
             .insert(usersOauthTokens)
             .values({
                 userId: userId,
-                ...getUserTokensDBValues(authResult),
+                ...this.getUserTokensDBValues(authResult),
             })
             .onConflictDoUpdate({
                 target: usersOauthTokens.userId,
-                set: getUserTokensDBValues(authResult),
+                set: this.getUserTokensDBValues(authResult),
             })
-    },
+    }
 
     setRefreshToken(userId: number, tokenId: string, tokenHash: string, expiresAt: Date) {
-        return db.insert(usersRefreshTokens).values({
+        return this.db.insert(usersRefreshTokens).values({
             userId: userId,
             tokenId: tokenId,
             tokenHash: tokenHash,
             expiresAt: expiresAt,
         })
-    },
+    }
 
     getValidRefreshToken(userId: number, tokenId: string) {
-        return db.query.usersRefreshTokens.findFirst({
+        return this.db.query.usersRefreshTokens.findFirst({
             where: (tokens, { and, eq, isNull, gt }) =>
                 and(
                     eq(tokens.userId, userId),
@@ -108,14 +90,14 @@ export const userModel = (db: DBExecutor) => ({
                     gt(tokens.expiresAt, new Date()),
                 ),
         })
-    },
+    }
 
     updateRefreshToken(id: number) {
-        return db
+        return this.db
             .update(usersRefreshTokens)
             .set({ revokedAt: new Date() })
             .where(eq(usersRefreshTokens.id, id))
-    },
+    }
 
     initializePreferences(userId: number, skillsetsShares: SharedSkillsets) {
         const preferences = Object.fromEntries(codes.map((key) => [key, 0])) as Record<
@@ -127,7 +109,7 @@ export const userModel = (db: DBExecutor) => ({
             preferences[skillset] = share
         }
 
-        return db
+        return this.db
             .insert(userPreferences)
             .values({ userId: userId, ...preferences })
             .onConflictDoUpdate({
@@ -136,7 +118,7 @@ export const userModel = (db: DBExecutor) => ({
                     ...preferences,
                 },
             })
-    },
+    }
 
     initializeFatigue(userId: number, defaultValue: number) {
         const preferences = Object.fromEntries(codes.map((key) => [key, defaultValue])) as Record<
@@ -144,7 +126,7 @@ export const userModel = (db: DBExecutor) => ({
             number
         >
 
-        return db
+        return this.db
             .insert(userFatigue)
             .values({ userId: userId, ...preferences })
             .onConflictDoUpdate({
@@ -153,10 +135,10 @@ export const userModel = (db: DBExecutor) => ({
                     ...preferences,
                 },
             })
-    },
+    }
 
     getPreferences(userId: number) {
-        return db
+        return this.db
             .select({
                 jumps: userPreferences.jumps,
                 streams: userPreferences.streams,
@@ -167,10 +149,10 @@ export const userModel = (db: DBExecutor) => ({
             })
             .from(userPreferences)
             .where(eq(userPreferences.userId, userId))
-    },
+    }
 
     getFatigue(userId: number) {
-        return db
+        return this.db
             .select({
                 jumps: userFatigue.jumps,
                 streams: userFatigue.streams,
@@ -182,4 +164,25 @@ export const userModel = (db: DBExecutor) => ({
             .from(userFatigue)
             .where(eq(userFatigue.userId, userId))
     }
-})
+
+    private getUserDBValues(user: OsuUserExtracted) {
+        return {
+            name: user.username,
+            avatarUrl: user.avatar_url,
+            pp: Math.floor(user.pp),
+            country: user.country,
+        }
+    }
+
+    private getUserTokensDBValues (data: OsuAuthToken) {
+        const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
+
+        return {
+            accessToken: data.token,
+            refreshToken: data.refreshToken,
+            expiresAt: expiresAt,
+        }
+    }
+}
+
+export default UserRepository

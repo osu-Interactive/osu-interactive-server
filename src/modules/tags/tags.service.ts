@@ -1,16 +1,16 @@
 import { modsSeed } from '@/config/seeds/mods-seed'
 import { skillsetsSeed } from '@/config/seeds/skillsets-seed'
-import type { TagsRepository } from '@/modules/tags/tags.repository'
+import type TagsRepository from '@/modules/tags/tags.repository'
 
 class TagsService {
-    constructor(private readonly tagsModel: TagsRepository) {}
+    constructor(private readonly tagsRepository: TagsRepository) {}
 
     getMods() {
-        return this.tagsModel.getMods()
+        return this.tagsRepository.getMods()
     }
 
     getSkillsets() {
-        return this.tagsModel.getSkillsets()
+        return this.tagsRepository.getSkillsets()
     }
 
     async initMods() {
@@ -18,7 +18,7 @@ class TagsService {
             name,
             code,
         }))
-        await this.tagsModel.replaceMods(modNames)
+        await this.tagsRepository.replaceMods(modNames)
     }
 
     async initSkillsets() {
@@ -30,7 +30,7 @@ class TagsService {
             }),
         )
 
-        await this.tagsModel.replaceSkillsets(skillsetsNames)
+        await this.tagsRepository.replaceSkillsets(skillsetsNames)
     }
 }
 

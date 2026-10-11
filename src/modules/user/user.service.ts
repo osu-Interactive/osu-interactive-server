@@ -4,15 +4,15 @@ import BudgetHelperService from '@/modules/quests/private/quests-generation/budg
 import questConfig from '@/config/quests.config'
 import questsConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
-import type { UserRepository } from '@/modules/user/user.repository'
+import type UserRepository from '@/modules/user/user.repository'
 import type { SurveyClientData } from '@/modules/survey/survey.routes'
 
 class UserService {
     private readonly fatigueService: FatigueService
     private readonly budgetHelperService = new BudgetHelperService()
 
-    constructor(private readonly userModel: UserRepository) {
-        this.fatigueService = new FatigueService(userModel)
+    constructor(private readonly userRepository: UserRepository) {
+        this.fatigueService = new FatigueService(userRepository)
     }
 
     async initializePreferences(userId: number, surveyResult: SurveyClientData) {
@@ -25,15 +25,15 @@ class UserService {
         )
 
         console.log(sharedSkillsets)
-        await this.userModel.initializePreferences(userId, sharedSkillsets)
+        await this.userRepository.initializePreferences(userId, sharedSkillsets)
     }
 
     async initializeFatigue(userId: number) {
-        await this.userModel.initializeFatigue(userId, questsConfig.defaultUserFatigue)
+        await this.userRepository.initializeFatigue(userId, questsConfig.defaultUserFatigue)
     }
 
     async getUserPreferences(userId: number) {
-        const preferences = (await this.userModel.getPreferences(userId))[0]
+        const preferences = (await this.userRepository.getPreferences(userId))[0]
 
         if (!preferences) {
             throw new AppError('Unable to get user preferences', {

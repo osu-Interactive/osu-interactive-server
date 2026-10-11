@@ -18,17 +18,13 @@ import {
     MappedPerformanceAttributes,
 } from '@/types/osu.types'
 
-export type BeatmapsRepository = ReturnType<typeof beatmapsModel>
+class BeatmapsRepository {
+    constructor(private readonly db: DBExecutor) {}
 
-const toDate = (value: string | null): Date | null => {
-    return value ? new Date(value) : null
-}
-
-export const beatmapsModel = (db: DBExecutor) => ({
     async setMapset(data: Mapset) {
         const values = {
             status: data.status,
-            rankedDate: toDate(data.ranked_date),
+            rankedDate: this.toDate(data.ranked_date),
             submittedDate: new Date(data.submitted_date),
             bpm: Math.round(data.bpm),
             title: data.title,
@@ -36,7 +32,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             creator: data.creator,
         }
 
-        return db.transaction(async (tx) => {
+        return this.db.transaction(async (tx) => {
             const [mapset] = await tx
                 .insert(mapsets)
                 .values({
@@ -55,7 +51,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
 
             return mapset
         })
-    },
+    }
 
     // prettier-ignore
     setMapsetsBeatmaps(db: DBExecutor, beatmaps: MapsetBeatmap[], mapsetId: number, status: string) {
@@ -82,15 +78,15 @@ export const beatmapsModel = (db: DBExecutor) => ({
                     ),
                 },
             })
-    },
+    }
 
     setNonexistentMapset(id: number) {
-        return db
+        return this.db
             .insert(nonexistentMapsets)
             .values({ osu_id: id })
             .onConflictDoNothing()
             .returning()
-    },
+    }
 
     getBeatmaps(
         limit: number | null = null,
@@ -101,7 +97,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
 
         conditions.push(gte(mapsetsBeatmaps.id, startId))
 
-        const query = db
+        const query = this.db
             .select({
                 id: mapsetsBeatmaps.id,
                 stars: mapsetsBeatmaps.stars,
@@ -111,7 +107,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .orderBy(asc(mapsetsBeatmaps.id))
 
         return limit !== null ? query.limit(limit) : query
-    },
+    }
 
     getBeatmapsByCalculationStatus(
         isCalculated: boolean,
@@ -127,7 +123,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             gte(mapsetsBeatmaps.id, startId),
         )
 
-        const query = db
+        const query = this.db
             .select({
                 beatmap_id: mapsetsBeatmaps.id,
                 mapset_id: mapsetsBeatmaps.mapsetId,
@@ -139,7 +135,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .orderBy(asc(mapsetsBeatmaps.id))
 
         return limit !== null ? query.limit(limit) : query
-    },
+    }
 
     buildFieldsConditions(tableName: string, fieldsConditions: SQLSearchConditions | null = null) {
         const fieldsWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
@@ -168,7 +164,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
         }
 
         return conditions
-    },
+    }
 
     setBeatmapSkillsets(beatmapId: number, skillsets: BeatmapSkillsets) {
         const entries = Object.entries(skillsets) as [keyof BeatmapSkillsets, number][]
@@ -181,13 +177,13 @@ export const beatmapsModel = (db: DBExecutor) => ({
             .filter(([, value]) => value >= max * 0.9)
             .map(([key]) => key)
 
-        return db.insert(beatmapSkillsets).values({
+        return this.db.insert(beatmapSkillsets).values({
             beatmapId,
             ...skillsets,
             dominantSkillset,
             subDominantSkillsets,
         })
-    },
+    }
 
     setCalculatedBeatmap(bm: MappedPerformanceAttributes, beatmapId: number, mapsetId: number) {
         const difficulty = bm.difficulty
@@ -240,7 +236,7 @@ export const beatmapsModel = (db: DBExecutor) => ({
             speedDeviation: bm.speedDeviation,
         }
 
-        return db
+        return this.db
             .insert(calculatedBeatmaps)
             .values({
                 beatmapId,
@@ -253,5 +249,11 @@ export const beatmapsModel = (db: DBExecutor) => ({
                 set: values,
             })
             .returning()
-    },
-})
+    }
+
+    toDate (value: string | null) {
+        return value ? new Date(value) : null
+    }
+}
+
+export default BeatmapsRepository

@@ -7,7 +7,7 @@ import {
 import { AppError } from '@/errors/app-error'
 
 import type { FastifyInstance } from 'fastify'
-import type { Beatmap } from './quests.service'
+import type { Beatmap } from './types'
 
 const ignoreQuestsExpiration = true
 
@@ -77,10 +77,10 @@ class QuestsApplication {
 
     async replaceUserQuests(userId: number, categoryId: number, beatmapsIds: number[]) {
         return await this.app.db.transaction(async (tx) => {
-            const txQuestsModel = this.app.modules.quests.createRepository(tx)
-            await txQuestsModel.deleteAllUserQuests(userId, categoryId)
+            const txQuestRepository = new this.app.modules.quests.createRepository(tx)
+            await txQuestRepository.deleteAllUserQuests(userId, categoryId)
 
-            const txQuestsService = new this.app.modules.quests.createService(txQuestsModel)
+            const txQuestsService = new this.app.modules.quests.createService(txQuestRepository)
             await txQuestsService.saveUserQuests(userId, beatmapsIds, categoryId)
         })
     }

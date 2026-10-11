@@ -4,13 +4,11 @@ import { questCategories, beatmapSkillsets, userQuests, mapsetsBeatmaps } from '
 import type { QuestCategory } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
-export type QuestModelFactory = typeof questsModel
-export type QuestsRepository = ReturnType<QuestModelFactory>
-export type Beatmaps = Awaited<ReturnType<ReturnType<typeof questsModel>['getBeatmapsByDominatedSkillsets']>>
+class QuestsRepository {
+    constructor(private readonly db: DBExecutor) {}
 
-export const questsModel = (db: DBExecutor) => ({
     setQuestsCategories(categories: readonly QuestCategory[]) {
-        return db
+        return this.db
             .insert(questCategories)
             .values([...categories])
             .onConflictDoUpdate({
@@ -21,15 +19,15 @@ export const questsModel = (db: DBExecutor) => ({
                     maxPP: sql.raw(`excluded.max_pp`),
                 },
             })
-    },
+    }
 
     getQuestsCategories() {
-        return db.select().from(questCategories)
-    },
+        return this.db.select().from(questCategories)
+    }
 
     getRandomBeatmapSkillsets(limit: number) {
-        return db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
-    },
+        return this.db.select().from(beatmapSkillsets).orderBy(sql.raw(`random()`)).limit(limit)
+    }
 
     async getBeatmapsByDominatedSkillsets(
         skillsets: Skillset[],
@@ -52,7 +50,7 @@ export const questsModel = (db: DBExecutor) => ({
         const results = []
 
         for (const skillset of skillsets) {
-            const [result] = await db
+            const [result] = await this.db
                 .select({
                     skillset: sql<Skillset>`${skillset}`,
                     beatmapSkillsets,
@@ -80,7 +78,7 @@ export const questsModel = (db: DBExecutor) => ({
         }
 
         return results
-    },
+    }
 
     setUserQuests(userId: number, beatmapsIds: number[], categoryId: number, expiresAt: Date) {
         let values = []
@@ -95,17 +93,17 @@ export const questsModel = (db: DBExecutor) => ({
             })
         }
 
-        return db.insert(userQuests).values(values)
-    },
+        return this.db.insert(userQuests).values(values)
+    }
 
     deleteAllUserQuests(userId: number, categoryId: number) {
-        return db
+        return this.db
             .delete(userQuests)
             .where(and(eq(userQuests.userId, userId), eq(userQuests.categoryId, categoryId)))
-    },
+    }
 
     async getQuestCategoryByCode(code: number) {
-        const category = await db.query.questCategories.findFirst({
+        const category = await this.db.query.questCategories.findFirst({
             where: eq(questCategories.code, code),
         })
 
@@ -114,12 +112,14 @@ export const questsModel = (db: DBExecutor) => ({
         }
 
         return category
-    },
+    }
 
     getUserQuests(userId: number, categoryId: number) {
-        return db
+        return this.db
             .select()
             .from(userQuests)
             .where(and(eq(userQuests.userId, userId), eq(userQuests.categoryId, categoryId)))
-    },
-})
+    }
+}
+
+export default QuestsRepository

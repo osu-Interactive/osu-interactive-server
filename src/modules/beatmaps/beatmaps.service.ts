@@ -7,7 +7,7 @@ import ComboDifficultyCalculator from '@/modules/quests/private/quests-generatio
 import { hasField } from '@/utils/object'
 
 import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
-import type { BeatmapsRepository } from '@/modules/beatmaps/beatmaps.repository'
+import type BeatmapsRepository from '@/modules/beatmaps/beatmaps.repository'
 import type { Mapset } from '@/types/osu.types'
 
 const log = false
@@ -20,7 +20,7 @@ type FetchMapsetConfig = {
 class BeatmapsService {
     private comboDifficultyCalculator = new ComboDifficultyCalculator()
 
-    constructor(private readonly mapsetModel: BeatmapsRepository) {}
+    constructor(private readonly beatmapsRepository: BeatmapsRepository) {}
 
     async getMapset(
         mapsetId: number,
@@ -35,14 +35,14 @@ class BeatmapsService {
 
             const result = BeatmapsMapperService.mapMapset(mapset)
 
-            if (saveInDB) await this.mapsetModel.setMapset(result)
+            if (saveInDB) await this.beatmapsRepository.setMapset(result)
 
             if (log) console.log(result)
 
             return raw ? mapset : result
         } catch (err: unknown) {
             if (hasField(err, 'status') && err.status === 404) {
-                this.mapsetModel.setNonexistentMapset(mapsetId)
+                this.beatmapsRepository.setNonexistentMapset(mapsetId)
                 return null
             }
             //TODO: Test if this work properly
@@ -62,7 +62,7 @@ class BeatmapsService {
         const beatmap = await rosuBeatmapWrapper.create(id)
         const calculatedBeatmap = beatmap.calculate({ mods: 'CL' })
         const mappedCalculatedBeatmap = rosuBeatmapWrapper.map(calculatedBeatmap)
-        await this.mapsetModel.setCalculatedBeatmap(mappedCalculatedBeatmap, id, mapsetId)
+        await this.beatmapsRepository.setCalculatedBeatmap(mappedCalculatedBeatmap, id, mapsetId)
 
         return mappedCalculatedBeatmap
     }

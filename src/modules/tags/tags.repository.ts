@@ -1,30 +1,30 @@
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { mods, skillsets } from '@/db/schemas/schema'
 import { sql, inArray, eq } from 'drizzle-orm'
+import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
-export type TagsRepository = ReturnType<typeof tagsModel>
-export type TagsModelFactory = typeof tagsModel
 
-export const tagsModel = (db: DBExecutor) => ({
+class TagsRepository {
+    constructor(private readonly db: DBExecutor) {}
+
     getMods() {
-        return db.select().from(mods)
-    },
+        return this.db.select().from(mods)
+    }
 
     getSkillsets() {
-        return db.select().from(skillsets)
-    },
+        return this.db.select().from(skillsets)
+    }
 
     getSkillsetsByCodes(codes: Skillset[]) {
-        return db.select().from(skillsets).where(inArray(skillsets.code, codes))
-    },
+        return this.db.select().from(skillsets).where(inArray(skillsets.code, codes))
+    }
 
     getModsByCodes(codes: string[]) {
-        return db.select().from(mods).where(inArray(mods.code, codes))
-    },
+        return this.db.select().from(mods).where(inArray(mods.code, codes))
+    }
 
     replaceMods(values: { name: string; code: string }[]) {
-        return db
+        return this.db
             .insert(mods)
             .values(values)
             .onConflictDoUpdate({
@@ -33,10 +33,10 @@ export const tagsModel = (db: DBExecutor) => ({
                     name: sql.raw(`excluded.name`),
                 },
             })
-    },
+    }
 
     replaceSkillsets(values: { name: string; code: string; surveyDescription: string }[]) {
-        return db
+        return this.db
             .insert(skillsets)
             .values(values)
             .onConflictDoUpdate({
@@ -46,5 +46,7 @@ export const tagsModel = (db: DBExecutor) => ({
                     surveyDescription: sql.raw(`excluded.survey_description`),
                 },
             })
-    },
-})
+    }
+}
+
+export default TagsRepository

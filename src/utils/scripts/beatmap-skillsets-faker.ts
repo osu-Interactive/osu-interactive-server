@@ -1,6 +1,6 @@
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
 import { randomInt, clamp } from '@/utils/math'
-import type { BeatmapsRepository } from '@/modules/beatmaps/beatmaps.repository'
+import type BeatmapsRepository from '@/modules/beatmaps/beatmaps.repository'
 import type { BeatmapSkillsets } from '@/types/osu.types'
 
 const SKILLSET_CODES = [
@@ -13,17 +13,17 @@ const SKILLSET_CODES = [
 ] as const satisfies (keyof BeatmapSkillsets)[]
 
 export async function fakeSkillsets(
-    model: BeatmapsRepository,
+    beatmapsRepository: BeatmapsRepository,
     amount: number,
     startId: number,
     extraConditions: string | null = null,
 ) {
     const parsedExtraCondition = extraConditions ? parseExtraConditions(extraConditions) : null
 
-    const beatmaps = await model.getBeatmaps(amount, startId, parsedExtraCondition)
+    const beatmaps = await beatmapsRepository.getBeatmaps(amount, startId, parsedExtraCondition)
 
     for (const beatmap of beatmaps) {
-        await model.setBeatmapSkillsets(beatmap.id, getFakeSkillsets(beatmap.stars))
+        await beatmapsRepository.setBeatmapSkillsets(beatmap.id, getFakeSkillsets(beatmap.stars))
         console.log(`Faked skillsets for beatmap ${beatmap.id}`)
     }
 }

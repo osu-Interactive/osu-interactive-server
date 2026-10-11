@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import { AppError } from '@/errors/app-error'
 import type { JWT } from '@fastify/jwt'
-import type { UserRepository } from '@/modules/user/user.repository'
+import type UserRepository from '@/modules/user/user.repository'
 
 type RefreshTokenPayload = {
     id: number
@@ -14,7 +14,7 @@ class AuthTokensService {
     public accessTokenTtlSeconds = 60 * 15
     public refreshTokenTtlSeconds = 60 * 60 * 24 * 14
 
-    constructor(protected userModel: UserRepository, protected jwt: JWT) {}
+    constructor(protected userRepository: UserRepository, protected jwt: JWT) {}
 
     async getJwtAndRefreshToken(userId: number, userOsuId: number) {
         const accessToken = this.signAccessToken(userId, userOsuId)
@@ -52,13 +52,13 @@ class AuthTokensService {
     async saveRefreshToken(userId: number, tokenId: string, tokenHash: string): Promise<void> {
         const expiresAt = new Date(Date.now() + this.refreshTokenTtlSeconds * 1000)
 
-        await this.userModel.setRefreshToken(userId, tokenId, tokenHash, expiresAt)
+        await this.userRepository.setRefreshToken(userId, tokenId, tokenHash, expiresAt)
     }
 
     async refreshTokens(currentRefreshToken: string) {
         const payload = this.jwt.verify<RefreshTokenPayload>(currentRefreshToken)
 
-        const refreshToken = await this.userModel.getValidRefreshToken(
+        const refreshToken = await this.userRepository.getValidRefreshToken(
             payload.id,
             payload.tokenId,
         )
@@ -73,7 +73,7 @@ class AuthTokensService {
             throw new AppError('Invalid refresh token', { code: 'INVALID_REFRESH_TOKEN' })
         }
 
-        await this.userModel.updateRefreshToken(refreshToken.id)
+        await this.userRepository.updateRefreshToken(refreshToken.id)
 
         return this.getJwtAndRefreshToken(payload.id, payload.osuId)
     }

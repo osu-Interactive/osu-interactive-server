@@ -2,16 +2,16 @@ import { LoginWithOsu } from '@/modules/auth/private/login-with-osu.service'
 import AuthTokensService from '@/modules/auth/private/auth-tokens.service'
 import { env } from '@/config/env'
 
-import type { UserRepository, UserModelFactory } from '@/modules/user/user.repository'
+import type UserRepository from '@/modules/user/user.repository'
 import type { DB } from '@/types/drizzle-pg-db.types'
 import type { JWT } from '@fastify/jwt'
 
 class AuthService extends AuthTokensService {
     constructor(
-        userModel: UserRepository,
+        userRepository: UserRepository,
         jwt: JWT,
     ) {
-        super(userModel, jwt)
+        super(userRepository, jwt)
     }
 
     getOsuApiAuthLink(state: string) {
@@ -25,8 +25,8 @@ class AuthService extends AuthTokensService {
         )
     }
 
-    async loginWithOsu(db: DB, userModelFactory: UserModelFactory, osuApiCode: string) {
-        const loginWithOsu = new LoginWithOsu(db, userModelFactory)
+    async loginWithOsu(db: DB, createUserRepository: typeof UserRepository, osuApiCode: string) {
+        const loginWithOsu = new LoginWithOsu(db, createUserRepository)
         return await loginWithOsu.auth(osuApiCode)
     }
 }

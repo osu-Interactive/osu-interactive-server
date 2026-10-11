@@ -1,21 +1,21 @@
 import { AppError } from '@/errors/app-error'
-import type { SurveyRepository, SurveyModelFactory } from '@/modules/survey/survey.repository'
-import type { TagsRepository } from '@/modules/tags/tags.repository'
+import type SurveyRepository from './survey.repository'
+import type TagsRepository from '@/modules/tags/tags.repository'
 import type { DB, DBTransaction } from '@/types/drizzle-pg-db.types'
-import type { SurveyClientData } from '@/modules/survey/survey.routes'
+import type { SurveyClientData } from './survey.routes'
 
 type SaveConnection = { db: DB; tx?: never } | { tx: DBTransaction; db?: never }
 
 class SurveyService {
     constructor(
-        private readonly surveyModel: SurveyRepository,
-        private readonly tagsModel: TagsRepository,
+        private readonly surveyRepository: SurveyRepository,
+        private readonly tagsRepository: TagsRepository,
     ) {}
 
     async save(
         userId: number,
         surveyRes: SurveyClientData,
-        surveyModelFactory: SurveyModelFactory,
+        surveyRepository: typeof SurveyRepository,
         connection: SaveConnection,
     ) {
         const errors: Record<string, string> = {}
@@ -33,23 +33,27 @@ class SurveyService {
         }
 
         if (connection.tx) {
-            await this.saveInternal(userId, surveyRes, surveyModelFactory(connection.tx))
+            await this.saveInternal(userId, surveyRes, new surveyRepository(connection.tx))
         } else {
             await connection.db.transaction((tx) =>
-                this.saveInternal(userId, surveyRes, surveyModelFactory(tx)),
+                this.saveInternal(userId, surveyRes, new surveyRepository(tx)),
             )
         }
     }
 
-    async saveInternal(userId: number, surveyRes: SurveyClientData, surveyModelTx: SurveyRepository) {
-        const skillsets = await this.tagsModel.getSkillsetsByCodes(surveyRes.skillsetsCodes)
-        const mods = await this.tagsModel.getModsByCodes(surveyRes.modsCodes)
+    async saveInternal(
+        userId: number,
+        surveyRes: SurveyClientData,
+        surveyRepository: SurveyRepository,
+    ) {
+        const skillsets = await this.tagsRepository.getSkillsetsByCodes(surveyRes.skillsetsCodes)
+        const mods = await this.tagsRepository.getModsByCodes(surveyRes.modsCodes)
 
         const skillsetIds = skillsets.map((x) => x.id)
         const modIds = mods.map((x) => x.id)
 
-        await surveyModelTx.deleteAllUserSkillsets(userId)
-        await surveyModelTx.deleteAllUserMods(userId)
+        await surveyRepository.deleteAllUserSkillsets(userId)
+        await surveyRepository.deleteAllUserMods(userId)
 
         if (skillsetIds.length > 0) {
             const userSkillsets = skillsetIds.map((skillsetId) => ({
@@ -57,7 +61,7 @@ class SurveyService {
                 skillsetId,
             }))
 
-            await surveyModelTx.insertUserSkillsets(userSkillsets)
+            await surveyRepository.insertUserSkillsets(userSkillsets)
         }
 
         if (modIds.length > 0) {
@@ -66,16 +70,16 @@ class SurveyService {
                 modId,
             }))
 
-            await surveyModelTx.insertUserMods(userMods)
+            await surveyRepository.insertUserMods(userMods)
         }
     }
 
     getUserFavoriteSkillsets(userId: number) {
-        return this.surveyModel.getUserSkillsets(userId)
+        return this.surveyRepository.getUserSkillsets(userId)
     }
 
     getUserFavoriteMods(userId: number) {
-        return this.surveyModel.getUserMods(userId)
+        return this.surveyRepository.getUserMods(userId)
     }
 }
 

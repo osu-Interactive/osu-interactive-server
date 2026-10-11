@@ -1,26 +1,25 @@
 import BeatmapsService from '@/modules/beatmaps/beatmaps.service'
-
-import type { BeatmapsRepository } from '@/modules/beatmaps/beatmaps.repository'
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
+import type BeatmapsRepository from '@/modules/beatmaps/beatmaps.repository'
 
 type CalculatedBeatmaps = Awaited<ReturnType<BeatmapsRepository['getBeatmapsByCalculationStatus']>>
 
 class BeatmapCalculator {
     private beatmapsService: BeatmapsService
 
-    constructor(private beatmapsModel: BeatmapsRepository) {
-        this.beatmapsService = new BeatmapsService(this.beatmapsModel)
+    constructor(private beatmapsRepository: BeatmapsRepository) {
+        this.beatmapsService = new BeatmapsService(this.beatmapsRepository)
     }
 
     public async runCalculation(
-        beatmapsModel: BeatmapsRepository,
+        beatmapsRepository: BeatmapsRepository,
         amount: number,
         startId: number,
         extraCondition: string | null = null,
     ) {
         const parsedExtraCondition = extraCondition ? parseExtraConditions(extraCondition) : null
 
-        const uncalculatedBeatmaps = await beatmapsModel.getBeatmapsByCalculationStatus(
+        const uncalculatedBeatmaps = await beatmapsRepository.getBeatmapsByCalculationStatus(
             false,
             amount,
             startId,

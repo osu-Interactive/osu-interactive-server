@@ -1,11 +1,11 @@
 import { Skillset } from '@/config/seeds/skillsets-seed'
-import { UserRepository } from '@/modules/user/user.repository'
+import type UserRepository from '@/modules/user/user.repository'
 
 class FatigueService {
-    constructor(private readonly userModel: UserRepository) {}
+    constructor(private readonly userRepository: UserRepository) {}
 
     async rerollSkillset(userId: number, skillset: Skillset) {
-        const userFatigue = (await this.userModel.getFatigue(userId))[0]
+        const userFatigue = (await this.userRepository.getFatigue(userId))[0]
         return userFatigue[skillset] > 0 && this.rollSkillset(userFatigue[skillset])
     }
 

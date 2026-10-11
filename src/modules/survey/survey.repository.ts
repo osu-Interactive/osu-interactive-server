@@ -3,12 +3,13 @@ import { usersMods, usersSkillsets, mods, skillsets } from '@/db/schemas/schema'
 import type { DBExecutor } from '@/types/drizzle-pg-db.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
-export type SurveyModelFactory = typeof surveyModel
-export type SurveyRepository = ReturnType<SurveyModelFactory>
+export type meow = typeof SurveyRepository
 
-export const surveyModel = (db: DBExecutor) => ({
+class SurveyRepository {
+    constructor(private readonly db: DBExecutor) {}
+
     getUserMods(userId: number) {
-        return db
+        return this.db
             .select({
                 id: usersMods.id,
                 userId: usersMods.userId,
@@ -18,10 +19,10 @@ export const surveyModel = (db: DBExecutor) => ({
             .from(usersMods)
             .innerJoin(mods, eq(usersMods.modId, mods.id))
             .where(eq(usersMods.userId, userId))
-    },
+    }
 
     async getUserSkillsets(userId: number) {
-        const result = await db
+        const result = await this.db
             .select({
                 id: usersSkillsets.id,
                 userId: usersSkillsets.userId,
@@ -36,21 +37,23 @@ export const surveyModel = (db: DBExecutor) => ({
             ...skillset,
             skillsetCode: skillset.skillsetCode as Skillset,
         }))
-    },
+    }
 
     insertUserSkillsets(values: { userId: number; skillsetId: number }[]) {
-        return db.insert(usersSkillsets).values(values)
-    },
+        return this.db.insert(usersSkillsets).values(values)
+    }
 
     insertUserMods(values: { userId: number; modId: number }[]) {
-        return db.insert(usersMods).values(values)
-    },
+        return this.db.insert(usersMods).values(values)
+    }
 
     deleteAllUserMods(userId: number) {
-        return db.delete(usersMods).where(eq(usersMods.userId, userId))
-    },
+        return this.db.delete(usersMods).where(eq(usersMods.userId, userId))
+    }
 
     deleteAllUserSkillsets(userId: number) {
-        return db.delete(usersSkillsets).where(eq(usersSkillsets.userId, userId))
-    },
-})
+        return this.db.delete(usersSkillsets).where(eq(usersSkillsets.userId, userId))
+    }
+}
+
+export default SurveyRepository
