@@ -3,6 +3,7 @@ import 'dotenv/config'
 import routes from './routes/routes'
 import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
+import playground from './playground'
 
 import osuApiPlugin from './plugins/osu-api.plugin'
 import dbPlugin from './plugins/db.plugin'
@@ -14,8 +15,8 @@ import errorPlugin from './plugins/error.plugin'
 import successResponsePlugin from '@/plugins/success-response.plugin'
 
 import { serializerCompiler, validatorCompiler } from '@fastify/type-provider-zod'
-
 import { initCommands } from '@/commands/command-handler'
+import { env } from '@/config/env.js'
 
 export async function buildApp() {
     const app = Fastify({
@@ -46,6 +47,10 @@ export async function buildApp() {
     initCommands(app)
 
     console.log('Application is ready')
+
+    if (env.NODE_ENV === 'development') {
+        await playground(app)
+    }
 
     return app
 }
