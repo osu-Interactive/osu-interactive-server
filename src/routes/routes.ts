@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify'
-import authRoutes from './auth.routes'
-import userRoutes from './user.routes'
-import surveyRoutes from './survey.routes'
-import questsRoutes from './quests.routes'
+import authRoutes from '../modules/auth/auth.routes'
+import userRoutes from '../modules/user/user.routes'
+import surveyRoutes from '../modules/survey/survey.routes'
+import questsRoutes from '../modules/quests/quests.routes'
 
 export default async function routes(app: FastifyInstance) {
     app.get('/', async () => {

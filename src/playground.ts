@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 
 export default (async (app: FastifyInstance) => {
-    await app.services.quests.generateUserQuests(
+    await app.modules.quests.service.generateUserQuests(
         //@ts-ignore
         [{ jumps: 930249 }],
         {
@@ -10,6 +10,6 @@ export default (async (app: FastifyInstance) => {
             minPP: 5000,
             maxPP: 7000,
         },
-        app.services.beatmap.getBMComboDifficulty,
+        app.modules.beatmaps.service.getBMComboDifficulty,
     )
 })

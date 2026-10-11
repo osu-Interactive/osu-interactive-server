@@ -1,15 +1,15 @@
-import BeatmapsService from '@/services/beatmaps.service'
-import { BeatmapsModel } from '@/models/beatmaps.model'
+import BeatmapsService from '@/modules/beatmaps/beatmaps.service'
+import { BeatmapsRepository } from '@/modules/beatmaps/beatmaps.repository'
 
 class MapsetsCollector {
     private beatmapsService: BeatmapsService
 
-    constructor(beatmapsModel: BeatmapsModel) {
+    constructor(beatmapsModel: BeatmapsRepository) {
         this.beatmapsService = new BeatmapsService(beatmapsModel)
     }
 
     public async startFetching(
-        mapsetModel: BeatmapsModel,
+        mapsetModel: BeatmapsRepository,
         amountToFetch: number,
         startId: number,
     ): Promise<void> {
@@ -25,7 +25,7 @@ class MapsetsCollector {
         console.log(`✅ Fetched ${fetchedCount} beatmapsets, fetching complete.`)
     }
 
-    private async fetchBeatmapset(mapsetModel: BeatmapsModel, id: number): Promise<void> {
+    private async fetchBeatmapset(mapsetModel: BeatmapsRepository, id: number): Promise<void> {
         const res = await this.beatmapsService.getMapset(id, { raw: true })
 
         console.log(

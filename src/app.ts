@@ -7,8 +7,7 @@ import playground from './playground'
 
 import osuApiPlugin from './plugins/osu-api.plugin'
 import dbPlugin from './plugins/db.plugin'
-import modelsPlugin from './plugins/models.plugin'
-import servicesPlugin from './plugins/services.plugin'
+import modulesPlugin from './plugins/modules.plugin'
 import initTagsPlugin from '@/plugins/init-db-tables.plugin'
 import authPlugin from './plugins/auth.plugin'
 import errorPlugin from './plugins/error.plugin'
@@ -36,9 +35,8 @@ export async function buildApp() {
     await app.register(errorPlugin)
     await app.register(authPlugin)
     await app.register(dbPlugin)
+    await app.register(modulesPlugin)
     await app.register(osuApiPlugin)
-    await app.register(modelsPlugin)
-    await app.register(servicesPlugin)
     await app.register(initTagsPlugin)
     await app.register(successResponsePlugin)
 

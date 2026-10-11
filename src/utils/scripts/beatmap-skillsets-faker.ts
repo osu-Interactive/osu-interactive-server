@@ -1,6 +1,6 @@
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
 import { randomInt, clamp } from '@/utils/math'
-import type { BeatmapsModel } from '@/models/beatmaps.model'
+import type { BeatmapsRepository } from '@/modules/beatmaps/beatmaps.repository'
 import type { BeatmapSkillsets } from '@/types/osu.types'
 
 const SKILLSET_CODES = [
@@ -13,7 +13,7 @@ const SKILLSET_CODES = [
 ] as const satisfies (keyof BeatmapSkillsets)[]
 
 export async function fakeSkillsets(
-    model: BeatmapsModel,
+    model: BeatmapsRepository,
     amount: number,
     startId: number,
     extraConditions: string | null = null,

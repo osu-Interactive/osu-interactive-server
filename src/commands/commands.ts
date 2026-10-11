@@ -6,8 +6,8 @@ import { fakeSkillsets } from '@/utils/scripts/beatmap-skillsets-faker'
 import type { FastifyInstance } from 'fastify'
 
 const commands = (app: FastifyInstance) => {
-    const mapsetsCollector = new MapsetsCollector(app.models.beatmap)
-    const beatmapsCalculator = new BeatmapCalculator(app.models.beatmap)
+    const mapsetsCollector = new MapsetsCollector(app.modules.beatmaps.repository)
+    const beatmapsCalculator = new BeatmapCalculator(app.modules.beatmaps.repository)
 
     return {
         /**
@@ -41,7 +41,7 @@ const commands = (app: FastifyInstance) => {
          * the ID sequentially and attempts to retrieve every beatmapset.
          */
         async 'fetch-mapsets'(amount: number, startId: number) {
-            await mapsetsCollector.startFetching(app.models.beatmap, amount, startId)
+            await mapsetsCollector.startFetching(app.modules.beatmaps.repository, amount, startId)
         },
 
         /**
@@ -68,13 +68,9 @@ const commands = (app: FastifyInstance) => {
          * @param startId Beatmap ID to start processing from.
          * @param extraCondition Optional SQL condition used to filter beatmaps.
          */
-        async 'calc-bms'(
-            amount: number,
-            startId: number,
-            extraCondition: string | null = null,
-        ) {
+        async 'calc-bms'(amount: number, startId: number, extraCondition: string | null = null) {
             await beatmapsCalculator.runCalculation(
-                app.models.beatmap,
+                app.modules.beatmaps.repository,
                 amount,
                 startId,
                 extraCondition,
@@ -86,7 +82,7 @@ const commands = (app: FastifyInstance) => {
             startId: number,
             extraCondition: string | null = null,
         ) {
-            await fakeSkillsets(app.models.beatmap, amount, startId, extraCondition)
+            await fakeSkillsets(app.modules.beatmaps.repository, amount, startId, extraCondition)
         },
     }
 }
