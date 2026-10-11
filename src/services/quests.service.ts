@@ -13,7 +13,8 @@ import type { UserSkillsetsPreferences } from '@/types/osu.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 import type { ForwardOrRerollSkillsetFunc } from '@/services/private/quests/fatigue.service'
 
-type Beatmap = NonNullable<NullableBM[number]>
+export type Beatmap = NonNullable<NullableBM[number]>
+type BeatmapId = Beatmap['beatmapId']
 
 type GetBMComboDifficulty = (
     beatmapId: number,
@@ -28,7 +29,7 @@ class QuestsService {
     constructor(private readonly questsModel: QuestModel) {}
 
     async generateUserQuests(
-        beatmaps: { Skillset: Beatmap }[],
+        beatmaps: { Skillset: BeatmapId }[],
         category: Category,
         getBMComboDifficulty: GetBMComboDifficulty,
     ) {
@@ -36,17 +37,17 @@ class QuestsService {
         const excludedBeatmapIds: number[] = []
 
         for (const beatmap of beatmaps) {
-            const [skillset, beatmapBody] = Object.entries(beatmap)[0]
-            if (!beatmapBody) {
-                throw new Error('Beatmap body is undefined')
+            const [skillset, beatmapId] = Object.entries(beatmap)[0]
+            if (!beatmapId) {
+                throw new Error('Beatmap id is undefined')
             }
 
             const quest = await this.generateQuest(
-                beatmapBody,
+                beatmapId,
                 skillset as Skillset,
-                excludedBeatmapIds,
                 category,
                 getBMComboDifficulty,
+                excludedBeatmapIds,
             )
 
             if (!quest || !quest.id) {
@@ -60,13 +61,13 @@ class QuestsService {
     }
 
     async generateQuest(
-        beatmap: Beatmap,
+        beatmapId: BeatmapId,
         skillset: Skillset,
-        excludedBeatmapIds: number[],
         category: NonNullable<ReturnType<typeof getQuestCategoryByCode>>,
         getBMComboDifficulty: GetBMComboDifficulty,
+        excludedBeatmapIds: number[] = [],
     ) {
-        let currentBeatmapId = beatmap.beatmapId
+        let currentBeatmapId = beatmapId
 
         while (true) {
             try {
@@ -78,12 +79,9 @@ class QuestsService {
 
                 return { id: currentBeatmapId, combo }
             } catch (error) {
-                const newBeatmap = await this.findReplacementBeatmap(
-                    error,
-                    skillset,
-                    category,
-                    [...excludedBeatmapIds],
-                )
+                const newBeatmap = await this.findReplacementBeatmap(error, skillset, category, [
+                    ...excludedBeatmapIds,
+                ])
 
                 excludedBeatmapIds.push(currentBeatmapId)
 
@@ -204,6 +202,7 @@ class QuestsService {
      * on average for the selected quest category.
      *
      * Takes the average of the category's PP range and divides it by 20.
+     * and reduces the result by the configured PP reduction percentage.
      * This represents the approximate PP value of the player's top scores
      * required to reach the target amount of PP.
      *
@@ -211,10 +210,19 @@ class QuestsService {
      * the player would have approximately 6,000 total PP.
      */
     getQuestCategoryAveragePP(questCategory: Category) {
+        const ppReduction = questConfig.targetPpReductionPercent
+
         if (questCategory.maxPP === null) {
-            //TODO: Decide what to do with highest quests category
+            // TODO: Decide what to do with the highest quest category
         }
-        return average(questCategory.minPP / 20, (questCategory.maxPP ?? 20000) / 20)
+
+        const averagePP = average(questCategory.minPP / 20, (questCategory.maxPP ?? 20000) / 20)
+
+        const res = averagePP * (1 - ppReduction / 100)
+        console.log(questCategory)
+        console.log(averagePP)
+        console.log(res)
+        return res
     }
 }
 

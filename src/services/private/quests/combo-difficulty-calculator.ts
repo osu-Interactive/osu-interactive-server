@@ -176,7 +176,7 @@ class ComboDifficultyCalculator {
         const beatmapPart = this.replaceBeatmapStructureHitObjects(structure, objects)
         const rosuBeatmap = RosuBeatmapWrapper.createWithStructure(beatmapPart)
         const ppTop = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 100 }).pp)
-        const ppBottom = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 90 }).pp)
+        const ppBottom = round(rosuBeatmap.calculate({ mods: 'CL', accuracy: 95 }).pp)
         return round(average(ppBottom, ppTop))
     }
 

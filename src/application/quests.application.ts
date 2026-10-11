@@ -1,4 +1,4 @@
-import QuestsService from '@/services/quests.service'
+import QuestsService, { Beatmap } from '@/services/quests.service'
 import questConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
 import {
@@ -45,8 +45,10 @@ class QuestsApplication {
                 })
             }
 
+            const beatmapIds = this.getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps)
+
             const quests = await this.questService.generateUserQuests(
-                beatmaps,
+                beatmapIds,
                 category,
                 this.app.services.beatmap.getBMComboDifficulty,
             )
@@ -89,6 +91,16 @@ class QuestsApplication {
 
     async hasExpiredQuests(quests: { expiresAt: Date }[]) {
         return quests.some((quest) => quest.expiresAt.getTime() < Date.now())
+    }
+
+    getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps: { Skillset: Beatmap }[]) {
+        return beatmaps.map((beatmap) => {
+            const [skillset, beatmapBody] = Object.entries(beatmap)[0]
+
+            return {
+                [skillset]: beatmapBody.beatmapId,
+            }
+        }) as { Skillset: number }[]
     }
 }
 
