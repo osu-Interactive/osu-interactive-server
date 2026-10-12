@@ -1,5 +1,4 @@
 import type BeatmapsMapper from '@/modules/beatmaps/private/beatmaps-mapper'
-import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type Mapset = {
     id: number
@@ -13,7 +12,7 @@ export type Mapset = {
     bpm: number
 }
 
-export type MappedBeatmap = {
+export type ExtractedBeatmap = {
     id: number
     mapset_id: number
     mode: 'osu' | 'taiko' | 'fruits' | 'mania'
@@ -27,7 +26,7 @@ export type MappedBeatmap = {
 }
 
 export type MapsetBeatmap = Omit<
-    MappedBeatmap,
+    ExtractedBeatmap,
     'accuracy' | 'difficulty_rating' | 'max_combo' | 'drain'
 > & {
     stars: number
@@ -36,7 +35,17 @@ export type MapsetBeatmap = Omit<
     combo: number
 }
 
-export type OsuPerformanceDifficulty = {
+export type RosuPerformanceAttributes = {
+    difficulty: RosuPerformanceDifficulty
+    pp: number
+    ppAim: number
+    ppSpeed: number
+    ppAccuracy: number
+
+    speedDeviation: number
+}
+
+export type RosuPerformanceDifficulty = {
     stars: number
     isConvert: boolean
 
@@ -67,15 +76,11 @@ export type OsuPerformanceDifficulty = {
     maxCombo: number
 }
 
-export type OsuPerformanceAttributes = {
-    difficulty: OsuPerformanceDifficulty
-    pp: number
-    ppAim: number
-    ppSpeed: number
-    ppAccuracy: number
-
-    speedDeviation: number
-}
+export type BeatmapSearchConditions = {
+    field: string
+    condition: string
+    value: string | number
+}[]
 
 export type BeatmapSkillsets = {
     jumps: number
@@ -86,12 +91,4 @@ export type BeatmapSkillsets = {
     gimmick: number
 }
 
-export type SQLSearchConditions = {
-    field: string
-    condition: string
-    value: string | number
-}[]
-
-export type MappedPerformanceAttributes = ReturnType<
-    typeof BeatmapsMapper.mapCalculatedBeatmap
->
+export type ExtractedRosuPerformanceAttributes = ReturnType<typeof BeatmapsMapper.mapCalculatedBeatmap>

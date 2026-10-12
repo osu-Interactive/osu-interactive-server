@@ -5,11 +5,11 @@ import {
     usersRefreshTokens,
     userPreferences,
     userFatigue,
-} from '../../db/schemas/schema'
+} from '@/db/schemas/schema'
 import { AppError } from '@/errors/app-error'
 import { codes, type Skillset } from '@/config/seeds/skillsets-seed'
 
-import type { OsuUserExtracted, SharedSkillsets } from './user.types'
+import type { OsuUserExtracted, SkillsetsShares } from './user.types'
 import type { DBUser } from '@/shared/types/db.types'
 import type { OsuAuthToken } from '@/modules/auth/auth.types'
 import type { DBExecutor } from '@/shared/types/db.types'
@@ -102,7 +102,7 @@ class UserRepository {
             .where(eq(usersRefreshTokens.id, id))
     }
 
-    initializePreferences(userId: number, skillsetsShares: SharedSkillsets) {
+    initializePreferences(userId: number, skillsetsShares: SkillsetsShares) {
         const preferences = Object.fromEntries(codes.map((key) => [key, 0])) as Record<
             Skillset,
             number

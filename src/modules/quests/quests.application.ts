@@ -7,7 +7,7 @@ import {
 import { AppError } from '@/errors/app-error'
 
 import type { FastifyInstance } from 'fastify'
-import type { Beatmap } from './quests.types'
+import type { QuestBeatmap } from './quests.types'
 
 const ignoreQuestsExpiration = true
 
@@ -89,7 +89,7 @@ class QuestsApplication {
         return quests.some((quest) => quest.expiresAt.getTime() < Date.now())
     }
 
-    getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps: { Skillset: Beatmap }[]) {
+    getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps: { Skillset: QuestBeatmap }[]) {
         return beatmaps.map((beatmap) => {
             const [skillset, beatmapBody] = Object.entries(beatmap)[0]
 

@@ -1,7 +1,8 @@
+//TODO: Move RosuBeatmapWrapper out of private services
+import RosuBeatmapWrapper from '@/modules/beatmaps/private/rosu-beatmap-wrapper'
 import { BeatmapDecoder } from 'osu-parsers'
 import { StandardRuleset } from 'osu-standard-stable'
 import { round, average } from '@/utils/math'
-import RosuBeatmapWrapper from '@/modules/beatmaps/private/rosu-beatmap-wrapper'
 import { AppError } from '@/errors/app-error'
 
 type BeatmapObjects = ReturnType<StandardRuleset['applyToBeatmap']>['hitObjects']

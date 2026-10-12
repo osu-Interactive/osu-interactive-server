@@ -11,11 +11,11 @@ import { AppError } from '@/errors/app-error'
 import type { DBExecutor } from '@/shared/types/db.types'
 
 import {
-    SQLSearchConditions,
+    BeatmapSearchConditions,
     Mapset,
     MapsetBeatmap,
     BeatmapSkillsets,
-    MappedPerformanceAttributes,
+    ExtractedRosuPerformanceAttributes,
 } from './beatmaps.types'
 
 class BeatmapsRepository {
@@ -91,7 +91,7 @@ class BeatmapsRepository {
     getBeatmaps(
         limit: number | null = null,
         startId: number = 1,
-        extraConditions: SQLSearchConditions | null = null,
+        extraConditions: BeatmapSearchConditions | null = null,
     ) {
         const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
@@ -113,7 +113,7 @@ class BeatmapsRepository {
         isCalculated: boolean,
         limit: number | null = null,
         startId: number = 1,
-        extraConditions: SQLSearchConditions | null = null,
+        extraConditions: BeatmapSearchConditions | null = null,
     ) {
         const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
@@ -137,7 +137,7 @@ class BeatmapsRepository {
         return limit !== null ? query.limit(limit) : query
     }
 
-    buildFieldsConditions(tableName: string, fieldsConditions: SQLSearchConditions | null = null) {
+    buildFieldsConditions(tableName: string, fieldsConditions: BeatmapSearchConditions | null = null) {
         const fieldsWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
         const conditionWhitelist = ['>', '>=', '=', '<=', '<', '!=']
 
@@ -185,7 +185,7 @@ class BeatmapsRepository {
         })
     }
 
-    setCalculatedBeatmap(bm: MappedPerformanceAttributes, beatmapId: number, mapsetId: number) {
+    setCalculatedBeatmap(bm: ExtractedRosuPerformanceAttributes, beatmapId: number, mapsetId: number) {
         const difficulty = bm.difficulty
 
         const values = {

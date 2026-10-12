@@ -4,6 +4,7 @@ import * as schema from '../../db/schemas/schema'
 export type DB = NodePgDatabase<typeof schema>
 export type DBTransaction = Parameters<Parameters<DB['transaction']>[0]>[0]
 export type DBExecutor = DB | DBTransaction
+export type SaveConnection = { db: DB; tx?: never } | { tx: DBTransaction; db?: never }
 
 import type { UserCountry } from './api-responses/user.types'
 

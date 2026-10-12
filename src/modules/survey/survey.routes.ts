@@ -44,13 +44,4 @@ export default async function surveyRoutes(app: FastifyInstance) {
             await surveyApplication.saveSurvey(userId, surveyData)
         },
     )
-
-    // app.post('/save', { preHandler: authMiddleware }, async (request, _) => {
-    //     //TODO: Validate client data
-    //     const surveyData = request.body as SurveyResult
-    //
-    //     const userId = request.user.id
-    //
-    //     await surveyApplication.saveSurvey(userId, surveyData)
-    // })
 }

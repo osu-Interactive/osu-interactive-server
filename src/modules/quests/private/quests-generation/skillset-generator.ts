@@ -1,6 +1,5 @@
 import BudgetHelper from '@/modules/quests/private/quests-generation/budget-helper'
-import type { UserSkillsetsPreferences } from '../../quests.types'
-import type { ForwardOrRerollSkillsetFunc } from '@/modules/quests/private/quests-generation/fatigue'
+import type { UserSkillsetsPreferences, ForwardOrRerollSkillsetFunc } from '../../quests.types'
 
 type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
 

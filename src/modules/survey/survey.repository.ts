@@ -3,8 +3,6 @@ import { usersMods, usersSkillsets, mods, skillsets } from '@/db/schemas/schema'
 import type { DBExecutor } from '@/shared/types/db.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
-export type meow = typeof SurveyRepository
-
 class SurveyRepository {
     constructor(private readonly db: DBExecutor) {}
 

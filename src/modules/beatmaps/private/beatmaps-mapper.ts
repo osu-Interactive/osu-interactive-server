@@ -1,16 +1,14 @@
 import { pickFields, renameKeys } from '@/utils/object'
 
+import type { PerformanceAttributes } from 'rosu-pp-js'
 import type {
-    MappedBeatmap,
+    ExtractedBeatmap,
     Mapset,
     MapsetBeatmap,
-    OsuPerformanceAttributes,
-    OsuPerformanceDifficulty,
+    RosuPerformanceAttributes,
+    RosuPerformanceDifficulty,
 } from '../beatmaps.types'
-
 import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/shared/types/api-responses/mapset.types'
-
-import type { PerformanceAttributes } from 'rosu-pp-js'
 
 const allowedMapsetFields = [
     'id',
@@ -88,7 +86,7 @@ class BeatmapsMapper {
     }
 
     public static mapMapsetBeatmap(rawBeatmap: RawBeatmap): MapsetBeatmap {
-        const beatmap: MappedBeatmap = {
+        const beatmap: ExtractedBeatmap = {
             ...pickFields(rawBeatmap, allowedBeatmapFields),
             mapset_id: rawBeatmap.beatmapset_id,
             difficulty_rating: this.round(rawBeatmap.difficulty_rating, 2),
@@ -98,7 +96,7 @@ class BeatmapsMapper {
         return this.renameBeatmap(beatmap)
     }
 
-    private static renameBeatmap(beatmap: MappedBeatmap): MapsetBeatmap {
+    private static renameBeatmap(beatmap: ExtractedBeatmap): MapsetBeatmap {
         return renameKeys(beatmap, {
             difficulty_rating: 'stars',
             accuracy: 'od',
@@ -115,12 +113,12 @@ class BeatmapsMapper {
  * not behave as expected. Use the provided getters or toJSON() instead.
  */
 
-    public static mapCalculatedBeatmap(rawBeatmap: PerformanceAttributes): OsuPerformanceAttributes {
-        const beatmap = <OsuPerformanceAttributes>(
+    public static mapCalculatedBeatmap(rawBeatmap: PerformanceAttributes): RosuPerformanceAttributes {
+        const beatmap = <RosuPerformanceAttributes>(
             pickFields(rawBeatmap, allowedCalculatedBeatmapFields, this.roundFloat)
         )
 
-        beatmap.difficulty = <OsuPerformanceDifficulty>(
+        beatmap.difficulty = <RosuPerformanceDifficulty>(
             pickFields(rawBeatmap.difficulty, allowedDifficultyFields, this.roundFloat)
         )
 

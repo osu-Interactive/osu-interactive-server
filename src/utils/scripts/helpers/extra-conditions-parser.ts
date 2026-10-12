@@ -1,9 +1,9 @@
-import type { SQLSearchConditions } from '@/modules/beatmaps/beatmaps.types'
+import type { BeatmapSearchConditions } from '@/modules/beatmaps/beatmaps.types'
 
-export function parseExtraConditions(extraConditionsRaw: string): SQLSearchConditions {
+export function parseExtraConditions(extraConditionsRaw: string): BeatmapSearchConditions {
     const conditions = extraConditionsRaw.split('and')
 
-    const res: SQLSearchConditions = []
+    const res: BeatmapSearchConditions = []
 
     conditions.forEach((condition) => {
         const tokens = condition.trim().split(' ')

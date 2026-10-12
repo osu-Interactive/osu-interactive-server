@@ -1,7 +1,8 @@
 import { sql, eq, and, notInArray } from 'drizzle-orm'
 import { questCategories, beatmapSkillsets, userQuests, mapsetsBeatmaps } from '@/db/schemas/schema'
+
 import type { DBExecutor } from '@/shared/types/db.types'
-import type { QuestCategory } from './quests.types'
+import type { QuestCategory } from '@/config/seeds/quests-categories-seed'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 class QuestsRepository {

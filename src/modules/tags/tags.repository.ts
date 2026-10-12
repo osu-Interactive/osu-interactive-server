@@ -1,8 +1,7 @@
 import { mods, skillsets } from '@/db/schemas/schema'
-import { sql, inArray, eq } from 'drizzle-orm'
+import { sql, inArray } from 'drizzle-orm'
 import type { DBExecutor } from '@/shared/types/db.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
-
 
 class TagsRepository {
     constructor(private readonly db: DBExecutor) {}

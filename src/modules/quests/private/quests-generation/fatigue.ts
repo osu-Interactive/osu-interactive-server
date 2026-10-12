@@ -15,6 +15,4 @@ class Fatigue {
     }
 }
 
-export type ForwardOrRerollSkillsetFunc = Fatigue['rerollSkillset']
-
 export default Fatigue

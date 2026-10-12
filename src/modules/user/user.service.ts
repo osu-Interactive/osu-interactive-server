@@ -4,6 +4,7 @@ import BudgetHelper from '@/modules/quests/private/quests-generation/budget-help
 import questConfig from '@/config/quests.config'
 import questsConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
+
 import type UserRepository from '@/modules/user/user.repository'
 import type { SurveyClientData } from '@/modules/survey/survey.routes'
 

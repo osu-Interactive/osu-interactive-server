@@ -9,7 +9,7 @@ export type OsuUserExtracted = {
     pp: number
 }
 
-export type SharedSkillsets = {
+export type SkillsetsShares = {
     skillset: Skillset
     share: number
 }[]

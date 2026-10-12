@@ -1,10 +1,8 @@
 import { AppError } from '@/errors/app-error'
 import type SurveyRepository from './survey.repository'
 import type TagsRepository from '@/modules/tags/tags.repository'
-import type { DB, DBTransaction } from '@/shared/types/db.types'
+import type { SaveConnection } from '@/shared/types/db.types'
 import type { SurveyClientData } from './survey.routes'
-
-type SaveConnection = { db: DB; tx?: never } | { tx: DBTransaction; db?: never }
 
 class SurveyService {
     constructor(

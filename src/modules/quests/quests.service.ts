@@ -9,11 +9,14 @@ import { average } from '@/utils/math'
 import { AppError } from '@/errors/app-error'
 
 import type QuestsRepository from '@/modules/quests/quests.repository'
-import type { Beatmap, UserSkillsetsPreferences } from './quests.types'
+import type {
+    QuestBeatmap,
+    UserSkillsetsPreferences,
+    ForwardOrRerollSkillsetFunc,
+} from './quests.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
-import type { ForwardOrRerollSkillsetFunc } from './private/quests-generation/fatigue'
 
-type BeatmapId = Beatmap['beatmapId']
+type BeatmapId = QuestBeatmap['beatmapId']
 
 type GetBMComboDifficulty = (
     beatmapId: number,
@@ -132,7 +135,7 @@ class QuestsService {
             res.push({ [skillset]: beatmap })
         }
 
-        return res as { Skillset: Beatmap }[]
+        return res as { Skillset: QuestBeatmap }[]
     }
 
     async findReplacementBeatmap(
