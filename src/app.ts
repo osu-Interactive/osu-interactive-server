@@ -1,6 +1,6 @@
 import Fastify from 'fastify'
 import 'dotenv/config'
-import routes from './routes/routes'
+import routes from './plugins/routes.plugin'
 import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import playground from './playground'
