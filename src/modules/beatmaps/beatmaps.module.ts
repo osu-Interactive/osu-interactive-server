@@ -9,7 +9,7 @@ export default (db: DB) => {
     return {
         repository: repository,
         service: new BeatmapsService(repository),
-        createRepository: BeatmapsRepository,
-        createService: BeatmapsService,
+        RepositoryClass: BeatmapsRepository,
+        ServiceClass: BeatmapsService,
     }
 }

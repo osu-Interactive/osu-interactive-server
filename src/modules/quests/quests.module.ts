@@ -9,7 +9,7 @@ export default (db: DB) => {
     return {
         repository: repository,
         service: new QuestsService(repository),
-        createRepository: QuestsRepository,
-        createService: QuestsService,
+        RepositoryClass: QuestsRepository,
+        ServiceClass: QuestsService,
     }
 }

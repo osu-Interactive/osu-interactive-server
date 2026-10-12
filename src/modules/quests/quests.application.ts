@@ -77,10 +77,10 @@ class QuestsApplication {
 
     async replaceUserQuests(userId: number, categoryId: number, beatmapsIds: number[]) {
         return await this.app.db.transaction(async (tx) => {
-            const txQuestRepository = new this.app.modules.quests.createRepository(tx)
+            const txQuestRepository = new this.app.modules.quests.RepositoryClass(tx)
             await txQuestRepository.deleteAllUserQuests(userId, categoryId)
 
-            const txQuestsService = new this.app.modules.quests.createService(txQuestRepository)
+            const txQuestsService = new this.app.modules.quests.ServiceClass(txQuestRepository)
             await txQuestsService.saveUserQuests(userId, beatmapsIds, categoryId)
         })
     }

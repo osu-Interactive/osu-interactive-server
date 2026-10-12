@@ -9,7 +9,7 @@ export default (db: DB) => {
     return {
         repository: repository,
         service: new TagsService(repository),
-        createRepository: TagsRepository,
-        createService: TagsService,
+        RepositoryClass: TagsRepository,
+        ServiceClass: TagsService,
     }
 }

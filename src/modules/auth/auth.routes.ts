@@ -57,7 +57,7 @@ export default async function authRoutes(app: FastifyInstance) {
             const { osuApiCode } = req.body
             const loginResult = await authService.loginWithOsu(
                 app.db,
-                app.modules.user.createRepository,
+                app.modules.user.RepositoryClass,
                 osuApiCode,
             )
 

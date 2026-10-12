@@ -11,7 +11,7 @@ export default (db: DB) => {
     return {
         repository: repository,
         service: new SurveyService(repository, tagsRepository),
-        createRepository: SurveyRepository,
-        createService: SurveyService,
+        RepositoryClass: SurveyRepository,
+        ServiceClass: SurveyService,
     }
 }

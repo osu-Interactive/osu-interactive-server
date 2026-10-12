@@ -9,10 +9,10 @@ class SurveyApplication {
     async saveSurvey(userId: number, surveyResult: SurveyClientData) {
         await this.app.db.transaction(async (tx) => {
             const surveyService = new SurveyService(
-                new this.app.modules.survey.createRepository(tx),
-                new this.app.modules.tags.createRepository(tx),
+                new this.app.modules.survey.RepositoryClass(tx),
+                new this.app.modules.tags.RepositoryClass(tx),
             )
-            const userRepository = new this.app.modules.user.createRepository(tx)
+            const userRepository = new this.app.modules.user.RepositoryClass(tx)
             const userService = new UserService(userRepository)
 
             await userService.initializePreferences(userId, surveyResult)
@@ -21,7 +21,7 @@ class SurveyApplication {
             await surveyService.save(
                 userId,
                 surveyResult,
-                this.app.modules.survey.createRepository,
+                this.app.modules.survey.RepositoryClass,
                 { tx },
             )
         })

@@ -9,7 +9,7 @@ export default (db: DB) => {
     return {
         repository: repository,
         service: new UserService(repository),
-        createRepository: UserRepository,
-        createService: UserService,
+        RepositoryClass: UserRepository,
+        ServiceClass: UserService,
     }
 }
