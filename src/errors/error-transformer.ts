@@ -1,5 +1,6 @@
-import { AppError } from '@/errors/app-error'
 import Bottleneck from 'bottleneck'
+import { AppError } from './app-error'
+import { parseFastifyZodErrors } from './error.utils'
 
 export function transformError(err: unknown, fallbackError: Error | null = null): Error {
     for (const wrapper of Object.values(errorTransformers)) {
@@ -34,14 +35,10 @@ const errorTransformers = {
     fastifyValidation: (err: unknown) => {
         let error: AppError | null = null
         if (err && typeof err === 'object' && 'code' in err && err.code === 'FST_ERR_VALIDATION') {
-            //TODO: Extract and format validation errors
             const errorMessage = err instanceof Error ? err.message : String(err)
+            const parsedErrors = parseFastifyZodErrors(errorMessage)
 
-            error = new AppError('Client validation error', {
-                code: 'INVALID_CLIENT_DATA',
-                details: { validations: errorMessage },
-                cause: err,
-            })
+            error = AppError.validationError(parsedErrors)
         }
 
         return error

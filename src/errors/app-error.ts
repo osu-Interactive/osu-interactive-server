@@ -1,22 +1,25 @@
-type AppErrorDetails = Record<string, string | string[]> | null
+import { findErrorInCauseChain } from './error.utils'
 
-interface AppErrorOptions {
+type AppErrorDetails = Record<string, string | string[]> | null
+type AppErrorDetailsValidation = { field: string; message: string }[] | null
+
+type AppErrorOptions = {
     code?: string
-    details?: AppErrorDetails
+    details?: AppErrorDetails | AppErrorDetailsValidation
     cause?: unknown
 }
 
 class AppError extends Error {
     public code: string
-    public details: AppErrorDetails
+    public details: AppErrorDetails | AppErrorDetailsValidation
 
     constructor(message: string, { code, details = null, cause = null }: AppErrorOptions = {}) {
         super(message, { cause })
 
         this.name = this.constructor.name
 
-        this.code = resolveFromCause(code, cause, 'code', 'UNKNOWN_ERROR')
-        this.details = resolveFromCause(details, cause, 'details', null)
+        this.code = this.resolveFromCause(code, cause, 'code', 'UNKNOWN_ERROR')
+        this.details = this.resolveFromCause(details, cause, 'details', null)
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, this.constructor)
@@ -34,10 +37,36 @@ class AppError extends Error {
         const message = 'Validation failed'
         const code = 'VALIDATION_ERROR'
 
+        const details = Object.entries(fields).flatMap(([field, messages]) =>
+            (Array.isArray(messages) ? messages : [messages]).map((message) => ({
+                field,
+                message,
+            })),
+        )
+
         return new AppError(message, {
             code,
-            details: fields,
+            details,
         })
+    }
+
+    private resolveFromCause = <T, K extends keyof AppError>(
+        value: T | undefined | null,
+        cause: unknown,
+        field: K,
+        fallback: T,
+    ): T => {
+        if (value != null) {
+            return value
+        }
+
+        if (cause instanceof Error) {
+            const parent = findErrorInCauseChain(cause, AppError)
+
+            return (parent?.[field] as T | undefined) ?? fallback
+        }
+
+        return fallback
     }
 }
 
@@ -80,40 +109,4 @@ class AppErrorMatcher {
     }
 }
 
-const findErrorInCauseChain = <T extends Error = AppError>(
-    err: unknown,
-    TargetError: new (...args: any[]) => T = AppError as any,
-): T | null => {
-    let current: unknown = err
-
-    while (current instanceof Error) {
-        if (current instanceof TargetError) {
-            return current
-        }
-
-        current = current.cause instanceof Error ? current.cause : null
-    }
-
-    return null
-}
-
-const resolveFromCause = <T, K extends keyof AppError>(
-    value: T | undefined | null,
-    cause: unknown,
-    field: K,
-    fallback: T,
-): T => {
-    if (value != null) {
-        return value
-    }
-
-    if (cause instanceof Error) {
-        const parent = findErrorInCauseChain(cause, AppError)
-
-        return (parent?.[field] as T | undefined) ?? fallback
-    }
-
-    return fallback
-}
-
-export { AppError, AppErrorMatcher, findErrorInCauseChain }
+export { AppError, AppErrorMatcher }
