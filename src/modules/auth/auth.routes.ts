@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import { z } from 'zod'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { AppError } from '@/errors/app-error'
-import { clearAuthCookies, setAuthCookie } from '@/utils/auth-cookies'
+import { clearAuthCookies, setAuthCookie } from './auth.utils'
 import { ZodTypeProvider } from '@fastify/type-provider-zod'
 import { env } from '@/config/env'
 

@@ -3,7 +3,7 @@ import handleError from '../errors/error-resolver'
 import logError from '@/utils/logging/error-logger'
 import { DEFAULT_ERROR } from '@/errors/error-scenarios'
 import { AppError, findErrorInCauseChain } from '@/errors/app-error'
-import { clearAuthCookies } from '@/utils/auth-cookies'
+import { clearAuthCookies } from '@/modules/auth/auth.utils'
 import { transformError } from '@/errors/error-transformer'
 
 import type { FastifyInstance, FastifyReply } from 'fastify'

@@ -1,16 +1,13 @@
-import { LoginWithOsu } from '@/modules/auth/private/login-with-osu.service'
-import AuthTokensService from '@/modules/auth/private/auth-tokens.service'
+import { LoginWithOsu } from './private/login-with-osu.service'
+import AuthTokensService from './private/auth-tokens.service'
 import { env } from '@/config/env'
 
 import type UserRepository from '@/modules/user/user.repository'
-import type { DB } from '@/shared/types/db.types'
 import type { JWT } from '@fastify/jwt'
+import type { DB } from '@/shared/types/db.types'
 
 class AuthService extends AuthTokensService {
-    constructor(
-        userRepository: UserRepository,
-        jwt: JWT,
-    ) {
+    constructor(userRepository: UserRepository, jwt: JWT) {
         super(userRepository, jwt)
     }
 
