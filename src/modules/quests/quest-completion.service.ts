@@ -1,5 +1,5 @@
 import client from '@/infrastructure/osu-api/osu-api-app-client'
-import { mapScores } from '@/modules/quests/private/quests-generation/user-scores-mapper.service'
+import { mapScores } from '@/modules/quests/private/quests-generation/user-scores-mapper'
 import type { OsuRecentScores } from '@/shared/types/api-responses/user-recent-scores.types'
 
 class QuestCompletionService {

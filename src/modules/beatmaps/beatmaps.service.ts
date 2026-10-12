@@ -1,8 +1,8 @@
 import client from '@/infrastructure/osu-api/osu-api-app-client'
-import rosuBeatmapWrapper from '@/shared/rosu-beatmap-wrapper'
+import rosuBeatmapWrapper from '@/modules/beatmaps/private/rosu-beatmap-wrapper'
 import { AppError } from '@/errors/app-error'
 import { isError } from '@/errors/error-transformer'
-import BeatmapsMapperService from '@/modules/beatmaps/private/beatmaps-mapper.service'
+import BeatmapsMapper from '@/modules/beatmaps/private/beatmaps-mapper'
 import ComboDifficultyCalculator from '@/modules/quests/private/quests-generation/combo-difficulty-calculator'
 import { hasField } from '@/utils/object'
 
@@ -33,7 +33,7 @@ class BeatmapsService {
             const res = await client.get('/beatmapsets/' + mapsetId)
             const mapset: RawMapset = res.data
 
-            const result = BeatmapsMapperService.mapMapset(mapset)
+            const result = BeatmapsMapper.mapMapset(mapset)
 
             if (saveInDB) await this.beatmapsRepository.setMapset(result)
 

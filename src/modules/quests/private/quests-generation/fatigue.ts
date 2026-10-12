@@ -1,7 +1,7 @@
 import { Skillset } from '@/config/seeds/skillsets-seed'
 import type UserRepository from '@/modules/user/user.repository'
 
-class FatigueService {
+class Fatigue {
     constructor(private readonly userRepository: UserRepository) {}
 
     async rerollSkillset(userId: number, skillset: Skillset) {
@@ -15,6 +15,6 @@ class FatigueService {
     }
 }
 
-export type ForwardOrRerollSkillsetFunc = FatigueService['rerollSkillset']
+export type ForwardOrRerollSkillsetFunc = Fatigue['rerollSkillset']
 
-export default FatigueService
+export default Fatigue

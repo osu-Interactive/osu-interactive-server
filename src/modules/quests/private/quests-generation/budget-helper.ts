@@ -1,7 +1,7 @@
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 import type { SurveyClientData } from '@/modules/survey/survey.routes'
 
-class BudgetHelperService {
+class BudgetHelper {
     distributeBudgetByPriority(
         skillsets: Skillset[],
         total: number,
@@ -58,4 +58,4 @@ class BudgetHelperService {
     }
 }
 
-export default BudgetHelperService
+export default BudgetHelper

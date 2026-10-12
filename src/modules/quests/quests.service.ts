@@ -11,7 +11,7 @@ import { AppError } from '@/errors/app-error'
 import type QuestsRepository from '@/modules/quests/quests.repository'
 import type { Beatmap, UserSkillsetsPreferences } from './quests.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
-import type { ForwardOrRerollSkillsetFunc } from './private/quests-generation/fatigue.service'
+import type { ForwardOrRerollSkillsetFunc } from './private/quests-generation/fatigue'
 
 type BeatmapId = Beatmap['beatmapId']
 

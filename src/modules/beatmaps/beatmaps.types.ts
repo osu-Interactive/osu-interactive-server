@@ -1,4 +1,4 @@
-import type BeatmapsMapperService from '@/modules/beatmaps/private/beatmaps-mapper.service'
+import type BeatmapsMapper from '@/modules/beatmaps/private/beatmaps-mapper'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 export type Mapset = {
@@ -93,5 +93,5 @@ export type SQLSearchConditions = {
 }[]
 
 export type MappedPerformanceAttributes = ReturnType<
-    typeof BeatmapsMapperService.mapCalculatedBeatmap
+    typeof BeatmapsMapper.mapCalculatedBeatmap
 >

@@ -77,7 +77,7 @@ const allowedDifficultyFields = [
     'maxCombo',
 ] as const
 
-class BeatmapsMapperService {
+class BeatmapsMapper {
     public static mapMapset(rawMapset: RawMapset): Mapset {
         return {
             ...pickFields(rawMapset, allowedMapsetFields),
@@ -129,7 +129,7 @@ class BeatmapsMapperService {
 
     private static roundFloat(value: unknown) {
         return typeof value === 'number' && !Number.isInteger(value)
-            ? BeatmapsMapperService.round(value, 4)
+            ? BeatmapsMapper.round(value, 4)
             : value
     }
 
@@ -139,4 +139,4 @@ class BeatmapsMapperService {
     }
 }
 
-export default BeatmapsMapperService
+export default BeatmapsMapper

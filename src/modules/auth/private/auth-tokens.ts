@@ -10,7 +10,7 @@ type RefreshTokenPayload = {
     tokenId: string
 }
 
-class AuthTokensService {
+class AuthTokens {
     public accessTokenTtlSeconds = 60 * 15
     public refreshTokenTtlSeconds = 60 * 60 * 24 * 14
 
@@ -79,4 +79,4 @@ class AuthTokensService {
     }
 }
 
-export default AuthTokensService
+export default AuthTokens

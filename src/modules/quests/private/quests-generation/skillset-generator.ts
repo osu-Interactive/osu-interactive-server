@@ -1,13 +1,13 @@
-import BudgetHelperService from '@/modules/quests/private/quests-generation/budget-helper.service'
+import BudgetHelper from '@/modules/quests/private/quests-generation/budget-helper'
 import type { UserSkillsetsPreferences } from '../../quests.types'
-import type { ForwardOrRerollSkillsetFunc } from '@/modules/quests/private/quests-generation/fatigue.service'
+import type { ForwardOrRerollSkillsetFunc } from '@/modules/quests/private/quests-generation/fatigue'
 
 type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
 
 const log = false
 
 class SkillsetGenerator {
-    private readonly budgetHelperService = new BudgetHelperService()
+    private readonly budgetHelperService = new BudgetHelper()
 
     async getSkillset(
         userId: number,

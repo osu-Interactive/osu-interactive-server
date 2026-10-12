@@ -1,6 +1,6 @@
 import { skillsetsSeed, type Skillset } from '@/config/seeds/skillsets-seed'
-import FatigueService from '@/modules/quests/private/quests-generation/fatigue.service'
-import BudgetHelperService from '@/modules/quests/private/quests-generation/budget-helper.service'
+import Fatigue from '@/modules/quests/private/quests-generation/fatigue'
+import BudgetHelper from '@/modules/quests/private/quests-generation/budget-helper'
 import questConfig from '@/config/quests.config'
 import questsConfig from '@/config/quests.config'
 import { AppError } from '@/errors/app-error'
@@ -8,11 +8,11 @@ import type UserRepository from '@/modules/user/user.repository'
 import type { SurveyClientData } from '@/modules/survey/survey.routes'
 
 class UserService {
-    private readonly fatigueService: FatigueService
-    private readonly budgetHelperService = new BudgetHelperService()
+    private readonly fatigueService: Fatigue
+    private readonly budgetHelperService = new BudgetHelper()
 
     constructor(private readonly userRepository: UserRepository) {
-        this.fatigueService = new FatigueService(userRepository)
+        this.fatigueService = new Fatigue(userRepository)
     }
 
     async initializePreferences(userId: number, surveyResult: SurveyClientData) {

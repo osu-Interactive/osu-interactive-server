@@ -1,4 +1,4 @@
-import BeatmapsMapperService from '@/modules/beatmaps/private/beatmaps-mapper.service'
+import BeatmapsMapper from '@/modules/beatmaps/private/beatmaps-mapper'
 import { osuApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
 import axios from 'axios'
 import { AppError } from '@/errors/app-error'
@@ -30,7 +30,7 @@ class RosuBeatmapWrapper {
     }
 
     public static map(beatmap: CalculatedBeatmap) {
-        return BeatmapsMapperService.mapCalculatedBeatmap(beatmap)
+        return BeatmapsMapper.mapCalculatedBeatmap(beatmap)
     }
 
     public static async getBeatmapStructure(id: number): Promise<string> {
