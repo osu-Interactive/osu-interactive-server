@@ -3,7 +3,7 @@ import AuthTokensService from '@/modules/auth/private/auth-tokens.service'
 import { env } from '@/config/env'
 
 import type UserRepository from '@/modules/user/user.repository'
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DB } from '@/shared/types/db.types'
 import type { JWT } from '@fastify/jwt'
 
 class AuthService extends AuthTokensService {

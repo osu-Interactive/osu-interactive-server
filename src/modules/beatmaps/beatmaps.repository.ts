@@ -8,7 +8,7 @@ import {
 } from '../../db/schemas/schema'
 
 import { AppError } from '@/errors/app-error'
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+import type { DBExecutor } from '@/shared/types/db.types'
 
 import {
     SQLSearchConditions,
@@ -16,7 +16,7 @@ import {
     MapsetBeatmap,
     BeatmapSkillsets,
     MappedPerformanceAttributes,
-} from '@/types/osu.types'
+} from './beatmaps.types'
 
 class BeatmapsRepository {
     constructor(private readonly db: DBExecutor) {}

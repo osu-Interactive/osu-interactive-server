@@ -2,7 +2,7 @@ import SurveyService from './survey.service'
 import SurveyRepository from './survey.repository'
 import TagsRepository from '@/modules/tags/tags.repository'
 
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DB } from '@/shared/types/db.types'
 
 export default (db: DB) => {
     const repository = new SurveyRepository(db)

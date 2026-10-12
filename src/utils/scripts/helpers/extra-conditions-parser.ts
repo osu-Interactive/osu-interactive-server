@@ -1,4 +1,4 @@
-import type { SQLSearchConditions } from '@/types/osu.types'
+import type { SQLSearchConditions } from '@/modules/beatmaps/beatmaps.types'
 
 export function parseExtraConditions(extraConditionsRaw: string): SQLSearchConditions {
     const conditions = extraConditionsRaw.split('and')

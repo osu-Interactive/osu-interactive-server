@@ -1,5 +1,5 @@
 import BudgetHelperService from '@/modules/quests/private/quests-generation/budget-helper.service'
-import type { UserSkillsetsPreferences } from '@/types/osu.types'
+import type { UserSkillsetsPreferences } from '../../quests.types'
 import type { ForwardOrRerollSkillsetFunc } from '@/modules/quests/private/quests-generation/fatigue.service'
 
 type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>

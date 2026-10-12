@@ -1,7 +1,7 @@
 import { sql, eq, and, notInArray } from 'drizzle-orm'
-import { DBExecutor } from '@/types/drizzle-pg-db.types'
 import { questCategories, beatmapSkillsets, userQuests, mapsetsBeatmaps } from '@/db/schemas/schema'
-import type { QuestCategory } from '@/types/osu.types'
+import type { DBExecutor } from '@/shared/types/db.types'
+import type { QuestCategory } from './quests.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 class QuestsRepository {

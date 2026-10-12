@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
 import BaseOsuApiClient from './base-osu-api-client'
-import type { OsuCredentialTokenResponse } from '@/types/osu.types'
+import type { OsuCredentialTokenResponse } from '@/modules/auth/auth.types'
 
 class OsuApiAppClient extends BaseOsuApiClient {
     private token: string | null = null

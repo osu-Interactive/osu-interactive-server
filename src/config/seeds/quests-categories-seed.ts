@@ -1,4 +1,4 @@
-import type { QuestCategory } from '@/types/osu.types'
+import type { QuestCategory } from '@/modules/quests/quests.types'
 export type QuestCategoryCode = (typeof categories)[number]['code']
 export type Category = (typeof categories)[number]
 

@@ -1,6 +1,6 @@
 import { pickFields } from '@/utils/object'
 
-import type { OsuRecentScores } from '@/types/api-responses/user-recent-scores.types'
+import type { OsuRecentScores } from '@/shared/types/api-responses/user-recent-scores.types'
 
 const availableScoreFields = [
     'accuracy',

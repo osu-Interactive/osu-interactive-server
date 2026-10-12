@@ -7,9 +7,12 @@ import {
     userFatigue,
 } from '../../db/schemas/schema'
 import { AppError } from '@/errors/app-error'
-import { codes, Skillset } from '@/config/seeds/skillsets-seed'
-import { OsuAuthToken, OsuUserExtracted, DBUser, SharedSkillsets } from '@/types/osu.types'
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+import { codes, type Skillset } from '@/config/seeds/skillsets-seed'
+
+import type { OsuUserExtracted, SharedSkillsets } from './user.types'
+import type { DBUser } from '@/shared/types/db.types'
+import type { OsuAuthToken } from '@/modules/auth/auth.types'
+import type { DBExecutor } from '@/shared/types/db.types'
 
 class UserRepository {
     constructor(private readonly db: DBExecutor) {}
@@ -174,7 +177,7 @@ class UserRepository {
         }
     }
 
-    private getUserTokensDBValues (data: OsuAuthToken) {
+    private getUserTokensDBValues(data: OsuAuthToken) {
         const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
 
         return {

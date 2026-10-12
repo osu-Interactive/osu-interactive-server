@@ -1,6 +1,6 @@
 import { ERROR_SCENARIOS, DEFAULT_ERROR } from './error-scenarios'
 import type { AppError } from './app-error'
-import type { ResolvedError, ErrorScenario, ErrorScenarioResult } from '@/types/errors.types'
+import type { ResolvedError, ErrorScenario, ErrorScenarioResult } from './error.types'
 
 const handleError = (error: AppError) => {
     const errorCode = typeof error?.code === 'string' ? error.code : undefined

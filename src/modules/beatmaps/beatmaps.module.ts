@@ -1,7 +1,7 @@
 import BeatmapsService from './beatmaps.service'
 import BeatmapsRepository from './beatmaps.repository'
 
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DB } from '@/shared/types/db.types'
 
 export default (db: DB) => {
     const repository = new BeatmapsRepository(db)

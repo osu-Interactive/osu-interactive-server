@@ -7,7 +7,7 @@ import {
 import { AppError } from '@/errors/app-error'
 
 import type { FastifyInstance } from 'fastify'
-import type { Beatmap } from './types'
+import type { Beatmap } from './quests.types'
 
 const ignoreQuestsExpiration = true
 

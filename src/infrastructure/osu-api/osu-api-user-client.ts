@@ -1,6 +1,7 @@
 import axios from 'axios'
 import BaseOsuApiClient from './base-osu-api-client'
-import type { OsuAuthToken, OsuCodeGrantTokenResponse, OsuApiUser } from '@/types/osu.types'
+import type { OsuAuthToken, OsuCodeGrantTokenResponse } from '@/modules/auth/auth.types'
+import type { OsuApiUser } from '@/shared/types/api-responses/user.types'
 
 class OsuApiUserClient extends BaseOsuApiClient {
     public constructor() {

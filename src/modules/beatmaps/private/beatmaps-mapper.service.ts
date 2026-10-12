@@ -6,9 +6,9 @@ import type {
     MapsetBeatmap,
     OsuPerformanceAttributes,
     OsuPerformanceDifficulty,
-} from '@/types/osu.types'
+} from '../beatmaps.types'
 
-import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/types/api-responses/mapset.types'
+import type { Beatmap as RawBeatmap, Mapset as RawMapset } from '@/shared/types/api-responses/mapset.types'
 
 import type { PerformanceAttributes } from 'rosu-pp-js'
 

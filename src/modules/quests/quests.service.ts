@@ -9,8 +9,7 @@ import { average } from '@/utils/math'
 import { AppError } from '@/errors/app-error'
 
 import type QuestsRepository from '@/modules/quests/quests.repository'
-import type { Beatmap } from './types'
-import type { UserSkillsetsPreferences } from '@/types/osu.types'
+import type { Beatmap, UserSkillsetsPreferences } from './quests.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 import type { ForwardOrRerollSkillsetFunc } from './private/quests-generation/fatigue.service'
 

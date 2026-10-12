@@ -1,6 +1,6 @@
 import { mods, skillsets } from '@/db/schemas/schema'
 import { sql, inArray, eq } from 'drizzle-orm'
-import type { DBExecutor } from '@/types/drizzle-pg-db.types'
+import type { DBExecutor } from '@/shared/types/db.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
 
 

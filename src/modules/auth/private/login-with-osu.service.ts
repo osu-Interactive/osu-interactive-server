@@ -1,7 +1,8 @@
 import OsuApiUserClient from '@/infrastructure/osu-api/osu-api-user-client'
 import type UserRepository from '@/modules/user/user.repository'
-import type { DB } from '@/types/drizzle-pg-db.types'
-import type { DBUser, OsuApiUser, OsuUserExtracted } from '@/types/osu.types'
+import type { DB, DBUser } from '@/shared/types/db.types'
+import type { OsuApiUser } from '@/shared/types/api-responses/user.types'
+import type { OsuUserExtracted } from '@/modules/user/user.types'
 
 export class LoginWithOsu {
     constructor(

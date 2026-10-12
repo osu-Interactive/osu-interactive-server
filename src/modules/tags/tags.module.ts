@@ -1,7 +1,7 @@
 import TagsService from './tags.service'
 import TagsRepository from './tags.repository'
 
-import type { DB } from '@/types/drizzle-pg-db.types'
+import type { DB } from '@/shared/types/db.types'
 
 export default (db: DB) => {
     const repository = new TagsRepository(db)

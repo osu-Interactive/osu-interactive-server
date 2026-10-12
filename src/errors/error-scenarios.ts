@@ -1,4 +1,4 @@
-import type { ResolvedError, ErrorScenario } from '@/types/errors.types'
+import type { ResolvedError, ErrorScenario } from './error.types'
 
 const DEFAULT_ERROR: ResolvedError = {
     message: 'Internal server error',

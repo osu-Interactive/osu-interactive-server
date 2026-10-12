@@ -7,7 +7,7 @@ import { clearAuthCookies } from '@/utils/auth-cookies'
 import { transformError } from '@/errors/error-transformer'
 
 import type { FastifyInstance, FastifyReply } from 'fastify'
-import type { ResolvedError } from '@/types/errors.types'
+import type { ResolvedError } from '@/errors/error.types'
 
 async function errorHandlerPlugin(app: FastifyInstance) {
     app.setErrorHandler((error: unknown, _, reply: FastifyReply) => {

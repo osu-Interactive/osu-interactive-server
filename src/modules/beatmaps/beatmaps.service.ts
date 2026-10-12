@@ -6,9 +6,9 @@ import BeatmapsMapperService from '@/modules/beatmaps/private/beatmaps-mapper.se
 import ComboDifficultyCalculator from '@/modules/quests/private/quests-generation/combo-difficulty-calculator'
 import { hasField } from '@/utils/object'
 
-import type { Mapset as RawMapset } from '@/types/api-responses/mapset.types'
+import type { Mapset as RawMapset } from '@/shared/types/api-responses/mapset.types'
 import type BeatmapsRepository from '@/modules/beatmaps/beatmaps.repository'
-import type { Mapset } from '@/types/osu.types'
+import type { Mapset } from './beatmaps.types'
 
 const log = false
 

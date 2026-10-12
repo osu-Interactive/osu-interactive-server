@@ -1,7 +1,7 @@
 import { parseExtraConditions } from '@/utils/scripts/helpers/extra-conditions-parser'
 import { randomInt, clamp } from '@/utils/math'
 import type BeatmapsRepository from '@/modules/beatmaps/beatmaps.repository'
-import type { BeatmapSkillsets } from '@/types/osu.types'
+import type { BeatmapSkillsets } from '@/modules/beatmaps/beatmaps.types'
 
 const SKILLSET_CODES = [
     'jumps',
