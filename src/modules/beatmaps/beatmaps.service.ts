@@ -45,7 +45,6 @@ class BeatmapsService {
                 this.beatmapsRepository.setNonexistentMapset(mapsetId)
                 return null
             }
-            //TODO: Test if this work properly
             if (!isError(err, 'bottleneckOverflow')) {
                 throw new AppError(`Failed to fetch mapset ${mapsetId}`, {
                     code: 'FETCH_MAPSET_FAILED',

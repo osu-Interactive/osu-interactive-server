@@ -1,6 +1,7 @@
 import readline from 'node:readline'
 import type { FastifyInstance } from 'fastify'
 import Commands from './commands'
+import { handleErrorInternal } from '@/errors/error-handler'
 
 const COMMAND_PREFIX = '/'
 
@@ -43,7 +44,7 @@ export function initCommands(app: FastifyInstance) {
         try {
             await (handler as (...args: (string | number)[]) => Promise<void>)(...commandArgs)
         } catch (error) {
-            console.error(`Command "${command}" failed:`, error)
+            handleErrorInternal(error)
         }
     })
 

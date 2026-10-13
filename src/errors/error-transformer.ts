@@ -18,6 +18,8 @@ export function transformError(err: unknown, fallbackError: Error | null = null)
     return toError(err)
 }
 
+//TODO: Transform zod error
+
 const errorTransformers = {
     bottleneckOverflow: (err: unknown) => {
         let error: AppError | null = null
