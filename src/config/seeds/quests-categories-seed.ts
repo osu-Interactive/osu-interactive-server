@@ -49,6 +49,12 @@ const categories = [
         name: 'Legend',
         code: 7,
         minPP: 10000,
+        maxPP: 15000,
+    },
+    {
+        name: 'The God',
+        code: 8,
+        minPP: 15000,
         maxPP: null,
     },
 ] as const satisfies readonly QuestCategory[]
