@@ -1,8 +1,8 @@
+import axios from 'axios'
+import rosu from 'rosu-pp-js'
 import BeatmapsMapper from '@/modules/beatmaps/private/beatmaps-mapper'
 import { osuApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
-import axios from 'axios'
 import { AppError } from '@/errors/app-error'
-import rosu from 'rosu-pp-js'
 
 type Beatmap = InstanceType<typeof rosu.Beatmap>
 type PerformanceOptions = ConstructorParameters<typeof rosu.Performance>[0]
