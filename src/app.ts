@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import 'dotenv/config'
 import routes from './plugins/routes.plugin'
+import skillsetAnalyzerFakeRoute from './plugins/skillsets-analyzer-faker.plugin'
 import playground from './playground'
 
 import osuApiPlugin from './plugins/osu-api.plugin'
@@ -42,13 +43,14 @@ export async function buildApp() {
 
     await app.register(routes)
 
+    if (env.NODE_ENV === 'development') {
+        await playground(app)
+        await app.register(skillsetAnalyzerFakeRoute)
+    }
+
     initCommands(app)
 
     console.log('Application is ready')
-
-    if (env.NODE_ENV === 'development') {
-        await playground(app)
-    }
 
     return app
 }

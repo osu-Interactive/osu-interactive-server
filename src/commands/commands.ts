@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import MapsetsCollector from '@/utils/scripts/mapsets-collector'
 import BeatmapCalculator from '@/utils/scripts/beatmap-calculator'
-import { fakeSkillsets } from '@/utils/scripts/beatmap-skillsets-faker'
+import { skillsetsFetcher } from '@/utils/scripts/beatmap-skillsets-fetcher'
 
 import type { FastifyInstance } from 'fastify'
 
@@ -77,12 +77,12 @@ const commands = (app: FastifyInstance) => {
             )
         },
 
-        async 'fake-bms-skillsets'(
+        async 'fetch-bms-skillsets'(
             amount: number,
             startId: number,
             extraCondition: string | null = null,
         ) {
-            await fakeSkillsets(app.modules.beatmaps.repository, amount, startId, extraCondition)
+            await skillsetsFetcher(app.modules.beatmaps.repository, amount, startId, extraCondition)
         },
     }
 }

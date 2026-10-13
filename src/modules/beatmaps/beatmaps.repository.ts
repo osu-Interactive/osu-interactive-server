@@ -191,41 +191,25 @@ class BeatmapsRepository {
         const values = {
             stars: difficulty.stars,
             isConvert: difficulty.isConvert,
-
             aim: difficulty.aim,
             aimDifficultSliderCount: difficulty.aimDifficultSliderCount,
-
             speed: difficulty.speed,
-
             sliderFactor: difficulty.sliderFactor,
-
             aimTopWeightedSliderFactor: difficulty.aimTopWeightedSliderFactor,
-
             speedTopWeightedSliderFactor: difficulty.speedTopWeightedSliderFactor,
-
             speedNoteCount: difficulty.speedNoteCount,
-
             aimDifficultStrainCount: difficulty.aimDifficultStrainCount,
-
             speedDifficultStrainCount: difficulty.speedDifficultStrainCount,
-
             nestedScorePerObject: difficulty.nestedScorePerObject,
-
             legacyScoreBaseMultiplier: difficulty.legacyScoreBaseMultiplier,
-
             maximumLegacyComboScore: difficulty.maximumLegacyComboScore,
-
             hp: difficulty.hp,
-
             nCircles: difficulty.nCircles,
             nSliders: difficulty.nSliders,
             nLarge_ticks: difficulty.nLargeTicks,
             nSpinners: difficulty.nSpinners,
-
             ar: difficulty.ar,
-
             greatHitWindow: difficulty.greatHitWindow,
-
             maxCombo: difficulty.maxCombo,
 
             pp: bm.pp,
