@@ -23,6 +23,7 @@ const envSchema = z
             .transform((value) => value === 'true'),
 
         OSU_API_REQUESTS_IN_MINUTE: z.coerce.number().int().positive().default(60),
+        OSU_API_HEAVY_REQUESTS_IN_MINUTE: z.coerce.number().int().positive().default(10),
         OSU_API_REQUESTS_HIGH_WATER: z.coerce.number().int().positive().default(120),
 
         DB_HOST: z.string().min(1, 'DB_HOST is required'),

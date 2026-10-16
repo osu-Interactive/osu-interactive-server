@@ -1,6 +1,6 @@
 import RosuBeatmapWrapper from '@/modules/beatmaps/rosu-beatmap-wrapper'
-import type { BeatmapSkillsets } from '@/modules/beatmaps/beatmaps.types'
 import { clamp, randomInt } from '@/utils/math'
+import type { BeatmapSkillsets } from '@/modules/beatmaps/beatmaps.types'
 
 const SKILLSET_CODES = [
     'jumps',

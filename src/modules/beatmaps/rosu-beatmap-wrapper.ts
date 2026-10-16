@@ -1,7 +1,7 @@
 import axios from 'axios'
 import rosu from 'rosu-pp-js'
 import BeatmapsMapper from '@/modules/beatmaps/private/beatmaps-mapper'
-import { osuApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
+import { osuHeavyApiLimiter } from '@/infrastructure/osu-api/request-limiter-config'
 import { AppError } from '@/errors/app-error'
 
 type Beatmap = InstanceType<typeof rosu.Beatmap>
@@ -34,7 +34,7 @@ class RosuBeatmapWrapper {
     }
 
     public static async getBeatmapStructure(id: number): Promise<string> {
-        const response = await osuApiLimiter.schedule(
+        const response = await osuHeavyApiLimiter.schedule(
             {
                 id: `[BM_STRUCTURE_FETCH: GET /osu/${id}]`,
             },
