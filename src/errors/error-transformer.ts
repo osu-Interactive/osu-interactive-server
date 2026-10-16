@@ -36,11 +36,47 @@ const errorTransformers = {
 
     fastifyValidation: (err: unknown) => {
         let error: AppError | null = null
+
         if (err && typeof err === 'object' && 'code' in err && err.code === 'FST_ERR_VALIDATION') {
             const errorMessage = err instanceof Error ? err.message : String(err)
             const parsedErrors = parseFastifyZodErrors(errorMessage)
 
             error = AppError.validationError(parsedErrors)
+        }
+
+        return error
+    },
+
+    axiosError: (err: unknown) => {
+        let error: AppError | null = null
+
+        if (err && typeof err === 'object' && 'isAxiosError' in err && err.isAxiosError) {
+            const axiosError = err as {
+                message?: string
+                code?: string
+                config?: {
+                    method?: string
+                    url?: string
+                }
+                response?: {
+                    status?: number
+                    data?: unknown
+                }
+            }
+
+            error = new AppError('Axios Error', {
+                code: 'AXIOS_ERROR',
+                details: {
+                    message: axiosError.message,
+                    code: axiosError.code,
+                    method: axiosError.config?.method?.toUpperCase(),
+                    url: axiosError.config?.url,
+                    status: axiosError.response?.status,
+                    response: axiosError.response?.data,
+                },
+                cause: err,
+                logCause: false,
+            })
         }
 
         return error

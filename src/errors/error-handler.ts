@@ -8,11 +8,14 @@ import resolveError from './error-resolver'
 
 import type { FastifyReply } from 'fastify'
 import type { ResolvedError } from '@/errors/error.types'
+import { hasField, removeFields } from '@/utils/object'
+
+const simplifyErrorLog = true
 
 export default function handleError(error: unknown, reply: FastifyReply) {
     try {
         const transformedError = transformError(error)
-        console.error('\x1b[41m\x1b[37m An error occurred: \x1b[0m', transformedError)
+        logErrorConsole(transformedError)
 
         const appError = findErrorInCauseChain(transformedError, AppError)
         const errorData = appError ? resolveError(appError) : null
@@ -35,13 +38,26 @@ export default function handleError(error: unknown, reply: FastifyReply) {
 export function handleErrorInternal(error: unknown) {
     try {
         const transformedError = transformError(error)
-        console.error('\x1b[41m\x1b[37m An internal error occurred: \x1b[0m', transformedError)
+        logErrorConsole(transformedError)
 
         handleNonOperationalError(transformedError)
     } catch (handlerError) {
         console.error('Error handling error:', handlerError)
         handleNonOperationalError(error)
     }
+}
+
+function logErrorConsole(error: Error) {
+    if (!simplifyErrorLog)
+        return console.error('\x1b[41m\x1b[37m An error occurred: \x1b[0m', error)
+
+    const errorWithoutFields = removeFields(error, ['resolveFromCause', 'cause', 'name'])
+    const causeOrNull = hasField(error, 'logCause') && !error.logCause ? null : error.cause
+
+    console.error('\x1b[41m\x1b[37m An error occurred: \x1b[0m', error.stack, {
+        ...errorWithoutFields,
+        cause: causeOrNull,
+    })
 }
 
 function handleNonOperationalError(error: unknown, reply: FastifyReply | null = null) {

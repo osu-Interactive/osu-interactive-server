@@ -44,8 +44,8 @@ export async function buildApp() {
     await app.register(routes)
 
     if (env.NODE_ENV === 'development') {
-        await playground(app)
         await app.register(skillsetAnalyzerFakeRoute)
+        await playground(app)
     }
 
     initCommands(app)

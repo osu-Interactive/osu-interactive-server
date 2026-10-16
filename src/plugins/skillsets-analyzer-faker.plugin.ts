@@ -11,7 +11,7 @@ const skillsetAnalyzerFakeRoute: FastifyPluginAsync = async (app) => {
             return reply.code(400).send({ error: 'beatmapId must be an integer' })
         }
 
-        return new BeatmapSkillsetAnalyzerFaker().getSkillset(beatmapId)
+        return new BeatmapSkillsetAnalyzerFaker().getSkillsets(beatmapId)
     })
 }
 

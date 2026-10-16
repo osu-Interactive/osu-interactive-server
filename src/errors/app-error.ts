@@ -1,25 +1,28 @@
 import { findErrorInCauseChain } from './error.utils'
 
-type AppErrorDetails = Record<string, string | string[]> | null
+type AppErrorDetails = Record<string, unknown | unknown[]> | null
 type AppErrorDetailsValidation = { field: string; message: string }[] | null
 
 type AppErrorOptions = {
     code?: string
     details?: AppErrorDetails | AppErrorDetailsValidation
     cause?: unknown
+    logCause?: boolean
 }
 
 class AppError extends Error {
     public code: string
     public details: AppErrorDetails | AppErrorDetailsValidation
+    public logCause: boolean
 
-    constructor(message: string, { code, details = null, cause = null }: AppErrorOptions = {}) {
+    constructor(message: string, { code, details = null, cause = null, logCause = true }: AppErrorOptions = {}) {
         super(message, { cause })
 
         this.name = this.constructor.name
 
         this.code = this.resolveFromCause(code, cause, 'code', 'UNKNOWN_ERROR')
         this.details = this.resolveFromCause(details, cause, 'details', null)
+        this.logCause = this.resolveFromCause(logCause, cause, 'logCause', true)
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, this.constructor)

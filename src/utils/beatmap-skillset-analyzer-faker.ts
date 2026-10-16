@@ -12,14 +12,15 @@ const SKILLSET_CODES = [
 ] as const satisfies (keyof BeatmapSkillsets)[]
 
 class BeatmapSkillsetAnalyzerFaker {
-    public async getSkillset(beatmapId: number) {
-        const beatmap = await RosuBeatmapWrapper.create(beatmapId)
+    public async getSkillsets(beatmapId: number) {
+        const beatmapStructure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
+        const beatmap = RosuBeatmapWrapper.createWithStructure(beatmapStructure)
         const calculatedBeatmap = beatmap.calculate()
         const fakedSkillsets = this.getFakeSkillsets(calculatedBeatmap.difficulty.stars)
 
         return {
-            beatmap: calculatedBeatmap,
             skillsets: fakedSkillsets,
+            beatmapStructure: beatmapStructure,
         }
     }
 
