@@ -12,10 +12,6 @@ class ComboDifficultyCalculator {
     async getBMComboPP(beatmapId: number, targetPP: number) {
         const structure = await RosuBeatmapWrapper.getBeatmapStructure(beatmapId)
 
-        // TODO: Optimize the quest generation system by pre-calculating PP for the condition below.
-        //       Currently, it iterates over beatmaps and throws an error when the PP is too low,
-        //       then tries another beatmap. This could be significantly optimized and made more
-        //       API-friendly, reducing unnecessary requests to the osu! API.
         if (!this.isMaxPPEnough(structure, targetPP)) {
             throw new AppError(`Beatmap max pp is lower than ${targetPP}`, {
                 code: 'BEATMAP_PP_TOO_LOW',

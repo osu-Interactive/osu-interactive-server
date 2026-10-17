@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, text, real } from 'drizzle-orm/pg-core'
 import { mapsetsBeatmaps } from './schema'
 
 export const beatmapSkillsets = pgTable('beatmap_skillsets', {
@@ -12,6 +12,7 @@ export const beatmapSkillsets = pgTable('beatmap_skillsets', {
 
     dominantSkillset: text('dominant_skillset').notNull(),
     subDominantSkillsets: text('sub_dominant_skillsets').array().notNull(),
+    maxQuestPP: real('max_quest_pp').notNull(),
 
     jumps: integer('jumps').notNull(),
     streams: integer('streams').notNull(),

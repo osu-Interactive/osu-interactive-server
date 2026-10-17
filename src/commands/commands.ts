@@ -82,7 +82,13 @@ const commands = (app: FastifyInstance) => {
             startId: number,
             extraCondition: string | null = null,
         ) {
-            await skillsetsFetcher(app.modules.beatmaps.repository, amount, startId, extraCondition)
+            await skillsetsFetcher(
+                app.modules.beatmaps.service,
+                app.modules.beatmaps.repository,
+                amount,
+                startId,
+                extraCondition,
+            )
         },
     }
 }

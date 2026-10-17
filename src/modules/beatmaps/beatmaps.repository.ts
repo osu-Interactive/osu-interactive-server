@@ -137,7 +137,10 @@ class BeatmapsRepository {
         return limit !== null ? query.limit(limit) : query
     }
 
-    buildFieldsConditions(tableName: string, fieldsConditions: BeatmapSearchConditions | null = null) {
+    buildFieldsConditions(
+        tableName: string,
+        fieldsConditions: BeatmapSearchConditions | null = null,
+    ) {
         const fieldsWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
         const conditionWhitelist = ['>', '>=', '=', '<=', '<', '!=']
 
@@ -166,7 +169,7 @@ class BeatmapsRepository {
         return conditions
     }
 
-    setBeatmapSkillsets(beatmapId: number, skillsets: BeatmapSkillsets) {
+    setBeatmapSkillsets(beatmapId: number, skillsets: BeatmapSkillsets, maxQuestPP: number) {
         const entries = Object.entries(skillsets) as [keyof BeatmapSkillsets, number][]
 
         const max = Math.max(...entries.map(([, value]) => value))
@@ -179,13 +182,18 @@ class BeatmapsRepository {
 
         return this.db.insert(beatmapSkillsets).values({
             beatmapId,
-            ...skillsets,
+            maxQuestPP,
             dominantSkillset,
             subDominantSkillsets,
+            ...skillsets,
         })
     }
 
-    setCalculatedBeatmap(bm: ExtractedRosuPerformanceAttributes, beatmapId: number, mapsetId: number) {
+    setCalculatedBeatmap(
+        bm: ExtractedRosuPerformanceAttributes,
+        beatmapId: number,
+        mapsetId: number,
+    ) {
         const difficulty = bm.difficulty
 
         const values = {
@@ -235,7 +243,7 @@ class BeatmapsRepository {
             .returning()
     }
 
-    toDate (value: string | null) {
+    toDate(value: string | null) {
         return value ? new Date(value) : null
     }
 }

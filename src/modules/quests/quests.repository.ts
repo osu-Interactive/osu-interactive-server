@@ -1,4 +1,4 @@
-import { sql, eq, and, notInArray } from 'drizzle-orm'
+import { sql, eq, and, gte, notInArray } from 'drizzle-orm'
 import { questCategories, beatmapSkillsets, userQuests, mapsetsBeatmaps } from '@/db/schemas/schema'
 
 import type { DBExecutor } from '@/shared/types/db.types'
@@ -32,6 +32,7 @@ class QuestsRepository {
 
     async getBeatmapsByDominatedSkillsets(
         skillsets: Skillset[],
+        maxQuestsPP: number,
         skillsetDifficultyRange: [min: number, max: number],
         minCombo: number,
         excludeBeatmapsIds: number[],
@@ -62,6 +63,7 @@ class QuestsRepository {
                     and(
                         eq(beatmapSkillsets.dominantSkillset, skillset),
                         sql`${beatmapSkillsets[skillset]} BETWEEN ${min} AND ${max}`,
+                        gte(beatmapSkillsets.maxQuestPP, maxQuestsPP),
                         sql`${mapsetsBeatmaps.combo} >= ${minCombo}`,
                         eq(mapsetsBeatmaps.mode, 'osu'),
                         notInArray(mapsetsBeatmaps.id, [...excludedIds]),

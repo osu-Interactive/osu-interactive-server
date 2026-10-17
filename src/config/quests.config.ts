@@ -6,5 +6,5 @@ export default {
 
     lifetime: 12 * 60 * 60,
 
-    targetPpReductionPercent: 20, // Percentage by which the target PP is reduced during quest generation
+    targetPPReductionPercent: 30, // Percentage by which the target PP is reduced during quest generation
 }

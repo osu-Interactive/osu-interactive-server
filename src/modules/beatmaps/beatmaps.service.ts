@@ -69,6 +69,10 @@ class BeatmapsService {
     getBMComboDifficulty = async (beatmapId: number, targetPP: number) => {
         return { combo: await this.comboDifficultyCalculator.getBMComboPP(beatmapId, targetPP) }
     }
+
+    getMaxPPForBeatmapAccountedAccuracy(structure: string) {
+        return this.comboDifficultyCalculator.getPPForBeatmapRange(structure, null)
+    }
 }
 
 export default BeatmapsService

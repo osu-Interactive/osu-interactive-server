@@ -1,12 +1,7 @@
-import questsCategories, {
-    getQuestCategoryByCode,
-    type QuestCategoryCode,
-    Category,
-} from '@/config/seeds/quests-categories-seed'
+import questsCategories, { type Category } from '@/config/seeds/quests-categories-seed'
 import questConfig from '@/config/quests.config'
 import SkillsetGenerator from '@/modules/quests/private/quests-generation/skillset-generator'
 import { average } from '@/utils/math'
-import { AppError } from '@/errors/app-error'
 
 import type QuestsRepository from '@/modules/quests/quests.repository'
 import type {
@@ -46,7 +41,6 @@ class QuestsService {
 
             const quest = await this.generateQuest(
                 beatmapId,
-                skillset as Skillset,
                 category,
                 getBMComboDifficulty,
                 excludedBeatmapIds,
@@ -64,52 +58,28 @@ class QuestsService {
 
     async generateQuest(
         beatmapId: BeatmapId,
-        skillset: Skillset,
-        category: NonNullable<ReturnType<typeof getQuestCategoryByCode>>,
+        category: Category,
         getBMComboDifficulty: GetBMComboDifficulty,
         excludedBeatmapIds: number[] = [],
     ) {
-        let currentBeatmapId = beatmapId
+        const combo = await getBMComboDifficulty(
+            beatmapId,
+            this.getQuestCategoryAveragePP(category),
+        )
 
-        while (true) {
-            try {
-                const combo = await getBMComboDifficulty(
-                    currentBeatmapId,
-                    this.getQuestCategoryAveragePP(category),
-                )
-                excludedBeatmapIds.push(currentBeatmapId)
+        excludedBeatmapIds.push(beatmapId)
 
-                return { id: currentBeatmapId, combo }
-            } catch (error) {
-                const newBeatmap = await this.findReplacementBeatmap(error, skillset, category, [
-                    ...excludedBeatmapIds,
-                ])
-
-                excludedBeatmapIds.push(currentBeatmapId)
-
-                if (!newBeatmap) {
-                    console.log(`Didn't find replacement beatmap for skillset: ${skillset}`)
-                    break
-                }
-
-                currentBeatmapId = newBeatmap.beatmapId
-            }
-        }
+        return { id: beatmapId, combo }
     }
 
     async getQuestsBeatmaps(
         userId: number,
         userPreferences: UserSkillsetsPreferences,
         amount: number,
+        maxQuestsPP: number,
         forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
-        categoryCode: QuestCategoryCode,
+        category: Category,
     ) {
-        const category = getQuestCategoryByCode(categoryCode)
-
-        if (!category) {
-            throw new Error(`Category with code ${categoryCode} not found`)
-        }
-
         const skillsets: Skillset[] = []
 
         for (let i = 0; i < amount; i++) {
@@ -122,7 +92,7 @@ class QuestsService {
             skillsets.push(skillset)
         }
 
-        const beatmaps = await this.getBeatmaps(skillsets, category, [])
+        const beatmaps = await this.getBeatmaps(skillsets, maxQuestsPP, category, [])
         const res = []
 
         let iteration = 0
@@ -138,26 +108,12 @@ class QuestsService {
         return res as { Skillset: QuestBeatmap }[]
     }
 
-    async findReplacementBeatmap(
-        error: unknown,
-        skillset: Skillset,
+    async getBeatmaps(
+        skillsets: Skillset[],
+        maxQuestsPP: number,
         category: Category,
-        excludedBeatmapIds: number[],
+        excludeBeatmapIds: number[],
     ) {
-        if (!(error instanceof AppError) || error.code !== 'BEATMAP_PP_TOO_LOW') {
-            throw error
-        }
-
-        const newBeatmaps = await this.getBeatmaps(
-            [skillset as Skillset],
-            category,
-            excludedBeatmapIds,
-        )
-
-        return newBeatmaps[0]
-    }
-
-    async getBeatmaps(skillsets: Skillset[], category: Category, excludeBeatmapIds: number[]) {
         //TODO: Decide what to do with highest quests category
 
         const averageSkillsetDifficulty = this.getDominativeSkillsetRangeDifficulty(
@@ -174,6 +130,7 @@ class QuestsService {
 
         return await this.questsRepository.getBeatmapsByDominatedSkillsets(
             skillsets,
+            maxQuestsPP,
             skillsetDifficultyRange,
             minCombo,
             excludeBeatmapIds,
@@ -212,7 +169,7 @@ class QuestsService {
      * the player would have approximately 6,000 total PP.
      */
     getQuestCategoryAveragePP(questCategory: Category) {
-        const ppReduction = questConfig.targetPpReductionPercent
+        const ppReduction = questConfig.targetPPReductionPercent
 
         if (questCategory.maxPP === null) {
             // TODO: Decide what to do with the highest quest category
