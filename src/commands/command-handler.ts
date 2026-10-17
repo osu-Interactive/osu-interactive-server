@@ -27,12 +27,18 @@ export function initCommands(app: FastifyInstance) {
         const rawCommand = args[0]
         if (!rawCommand) return
 
-        if (!rawCommand.startsWith(COMMAND_PREFIX)) return
+        // Allow "help" without the command prefix
+        const command =
+            rawCommand === 'help'
+                ? rawCommand
+                : rawCommand.startsWith(COMMAND_PREFIX)
+                  ? rawCommand.slice(COMMAND_PREFIX.length)
+                  : ''
 
-        const command = rawCommand.slice(COMMAND_PREFIX.length)
         if (!command) return
 
-        const commandArgs: (string | number)[] = args.slice(1).map(parseCommandArgValue)
+
+        const commandArgs = args.slice(1).map(parseCommandArgValue)
 
         if (!isCommand(command, commands)) {
             console.log(`Unknown command: ${command}`)
@@ -42,7 +48,9 @@ export function initCommands(app: FastifyInstance) {
         const handler = commands[command]
 
         try {
-            await (handler as (...args: (string | number)[]) => Promise<void>)(...commandArgs)
+            const body = handler.body as (...args: (string | number)[]) => Promise<void> | void
+
+            await body(...commandArgs)
         } catch (error) {
             handleErrorInternal(error)
         }

@@ -2,93 +2,159 @@ import { sql } from 'drizzle-orm'
 import MapsetsCollector from '@/utils/scripts/mapsets-collector'
 import BeatmapCalculator from '@/utils/scripts/beatmap-calculator'
 import { skillsetsFetcher } from '@/utils/scripts/beatmap-skillsets-fetcher'
+import helpCommand from './help-command'
 
 import type { FastifyInstance } from 'fastify'
+
+export type Commands = ReturnType<typeof commands>
 
 const commands = (app: FastifyInstance) => {
     const mapsetsCollector = new MapsetsCollector(app.modules.beatmaps.repository)
     const beatmapsCalculator = new BeatmapCalculator(app.modules.beatmaps.repository)
 
     return {
-        /**
-         * Simply prints the names of all available commands in the console.
-         */
-        help() {
-            console.log(Object.keys(commands(app)).filter((cmd) => cmd !== 'help'))
+        help: {
+            body: () => {
+                const commandsList = commands(app)
+                helpCommand(commandsList)
+            },
         },
 
-        /**
-         * Executes a raw SQL query and prints the result to the console.
-         *
-         * Intended for debugging and administrative tasks.
-         * Use with caution: the query is executed as-is without
-         * parameterization or additional validation.
-         *
-         * @param operation The SQL query to execute.
-         */
-        async 'execute-sql'(operation: string) {
-            const result = await app.db.execute(sql.raw(operation))
-            result.rows ? console.log(result.rows) : console.log(result)
+        clear: {
+            description: 'Clears the console output.',
+            example: '/clear',
+
+            body: () => {
+                process.stdout.write('\x1Bc')
+            },
         },
 
-        /**
-         * Fetches a specified number of beatmapsets from the osu! API,
-         * stores them in the database, and logs the result.
-         * It saves nonexistent beatmaps as null in db.
-         *
-         * @param amount Number of beatmapsets to fetch.
-         * @param startId ID to start fetching from. The collector increments
-         * the ID sequentially and attempts to retrieve every beatmapset.
-         */
-        async 'fetch-mapsets'(amount: number, startId: number) {
-            await mapsetsCollector.startFetching(app.modules.beatmaps.repository, amount, startId)
+        'execute-sql': {
+            description:
+                'Executes raw SQL queries and prints results to the console. ' +
+                'For debugging and administrative use only.' +
+                ' Use with caution: unrestricted queries are allowed, including UPDATE and DELETE',
+            arguments: [
+                {
+                    name: 'operation',
+                    type: 'string',
+                    required: true,
+                    description: 'The SQL query to execute.',
+                },
+            ],
+            example: '/execute-sql "SELECT * FROM beatmap_skillsets LIMIT 10"',
+
+            body: async (operation: string) => {
+                const result = await app.db.execute(sql.raw(operation))
+                result.rows ? console.log(result.rows) : console.log(result)
+            },
         },
 
-        /**
-         * Calculates beatmaps stored in the `mapsetsBeatmaps` table by
-         * iterating through beatmap IDs sequentially, starting from `startId`.
-         *
-         * Similar to `fetch-mapsets`, but operates entirely on local database data.
-         * An optional `extraCondition` parameter can be used to filter beatmaps
-         * using SQL conditions.
-         *
-         * Example:
-         * `ar >= 8 and max_combo > 400`
-         *
-         * Multiple conditions can be combined using `and`.
-         *
-         * Currently uses the same calculation logic as `calc-bm`, but
-         * retrieves the correct mapset ID from the database instead of using
-         * a mock value.
-         *
-         * This behavior is temporary and will change once the beatmap
-         * calculation system is removed from the project.
-         *
-         * @param amount Number of beatmaps to process.
-         * @param startId Beatmap ID to start processing from.
-         * @param extraCondition Optional SQL condition used to filter beatmaps.
-         */
-        async 'calc-bms'(amount: number, startId: number, extraCondition: string | null = null) {
-            await beatmapsCalculator.runCalculation(
-                app.modules.beatmaps.repository,
-                amount,
-                startId,
-                extraCondition,
-            )
+        'fetch-mapsets': {
+            description:
+                'Fetches beatmapsets from the osu! API sequentially by ID and stores the results in the database.' +
+                ' Beatmapsets that do not exist are stored as null.',
+            arguments: [
+                {
+                    name: 'amount',
+                    type: 'number',
+                    required: true,
+                    description: 'The number of consecutive beatmapset IDs to process.',
+                },
+                {
+                    name: 'startId',
+                    type: 'number',
+                    required: true,
+                    description: 'The ID of the first beatmapset to fetch.',
+                },
+            ],
+            example: '/fetch-mapsets 50 50000',
+
+            body: async (amount: number, startId: number) => {
+                await mapsetsCollector.startFetching(
+                    app.modules.beatmaps.repository,
+                    amount,
+                    startId,
+                )
+            },
         },
 
-        async 'fetch-bms-skillsets'(
-            amount: number,
-            startId: number,
-            extraCondition: string | null = null,
-        ) {
-            await skillsetsFetcher(
-                app.modules.beatmaps.service,
-                app.modules.beatmaps.repository,
-                amount,
-                startId,
-                extraCondition,
-            )
+        'calc-bms': {
+            description:
+                'Calculates beatmap statistics for records stored in the mapsetsBeatmaps table. ' +
+                'Supports filtering beatmaps using an optional SQL condition.',
+            arguments: [
+                {
+                    name: 'amount',
+                    type: 'number',
+                    required: true,
+                    description: 'The maximum number of beatmaps to process.',
+                },
+                {
+                    name: 'startId',
+                    type: 'number',
+                    required: true,
+                    description: 'The beatmap ID from which processing begins.',
+                },
+                {
+                    name: 'extraCondition',
+                    type: 'string | null',
+                    required: false,
+                    default: null,
+                    description:
+                        'An optional SQL condition used to filter beatmaps, without the WHERE keyword.',
+                },
+            ],
+            example: '/calc-bms 10 10000 "combo <= 500 AND mode = osu"',
+
+            body: async (amount: number, startId: number, extraCondition: string | null = null) => {
+                await beatmapsCalculator.runCalculation(
+                    app.modules.beatmaps.repository,
+                    amount,
+                    startId,
+                    extraCondition,
+                )
+            },
+        },
+
+        'fetch-bms-skillsets': {
+            description:
+                'Fetches skillset data for beatmaps from an external skillset analyzer and saves the results' +
+                ' to the database. ' +
+                'Supports filtering beatmaps using an optional SQL condition.',
+            arguments: [
+                {
+                    name: 'amount',
+                    type: 'number',
+                    required: true,
+                    description: 'The maximum number of beatmaps to process.',
+                },
+                {
+                    name: 'startId',
+                    type: 'number',
+                    required: true,
+                    description: 'The beatmap ID from which processing begins.',
+                },
+                {
+                    name: 'extraCondition',
+                    type: 'string | null',
+                    required: false,
+                    default: null,
+                    description:
+                        'An optional SQL condition used to filter beatmaps, without the WHERE keyword.',
+                },
+            ],
+            example: '/fetch-bms-skillsets 100 10000 "stars >= 5.5 AND mode = osu"',
+
+            body: async (amount: number, startId: number, extraCondition: string | null = null) => {
+                await skillsetsFetcher(
+                    app.modules.beatmaps.service,
+                    app.modules.beatmaps.repository,
+                    amount,
+                    startId,
+                    extraCondition,
+                )
+            },
         },
     }
 }

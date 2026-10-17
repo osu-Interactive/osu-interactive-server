@@ -1,7 +1,7 @@
 import type { BeatmapSearchConditions } from '@/modules/beatmaps/beatmaps.types'
 
 export function parseExtraConditions(extraConditionsRaw: string): BeatmapSearchConditions {
-    const conditions = extraConditionsRaw.split('and')
+    const conditions = extraConditionsRaw.split(/and/i)
 
     const res: BeatmapSearchConditions = []
 
