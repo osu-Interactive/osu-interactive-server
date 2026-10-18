@@ -5,9 +5,10 @@ import {
     type Category,
 } from '@/config/seeds/quests-categories-seed'
 import { AppError } from '@/errors/app-error'
+import { type Skillset } from '@/config/seeds/skillsets-seed'
 
 import type { FastifyInstance } from 'fastify'
-import type { QuestBeatmap } from './quests.types'
+import type { QuestBeatmap, PpBySkillset } from './quests.types'
 
 const ignoreQuestsExpiration = true
 
@@ -30,7 +31,7 @@ class QuestsApplication {
 
             const beatmapsIds = await this.generateUserQuests(userId, category)
 
-            await this.replaceUserQuests(userId, categoryId, beatmapsIds)
+            await this.replaceUserQuestsDB(userId, categoryId, beatmapsIds)
         } else {
             console.log('quests are not expired')
             return userQuests
@@ -50,7 +51,7 @@ class QuestsApplication {
             })
         }
 
-        const beatmapIds = this.getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps)
+        let beatmapIds = this.getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps)
 
         const quests = await this.app.modules.quests.service.generateUserQuests(
             beatmapIds,
@@ -58,8 +59,10 @@ class QuestsApplication {
             this.app.modules.beatmaps.service.getBMComboDifficulty,
         )
 
+        console.log(quests[0])
+
         console.log('Result:', quests)
-        return beatmaps.map((beatmap) => Object.values(beatmap)[0]!.beatmapId)
+        return beatmaps.map((beatmap) => beatmap.beatmapBody.beatmapId)
     }
 
     async generateUserQuestsBeatmaps(userId: number, maxQuestsPP: number, category: Category) {
@@ -76,11 +79,14 @@ class QuestsApplication {
         )
 
         return beatmaps.filter(
-            (beatmap) => typeof Object.values(beatmap)[0]?.beatmapId === 'number',
+            (item): item is { skillset: Skillset; beatmapBody: QuestBeatmap } =>
+                item != null &&
+                item.beatmapBody != null &&
+                typeof item.beatmapBody.beatmapId === 'number',
         )
     }
 
-    async replaceUserQuests(userId: number, categoryId: number, beatmapsIds: number[]) {
+    async replaceUserQuestsDB(userId: number, categoryId: number, beatmapsIds: number[]) {
         return await this.app.db.transaction(async (tx) => {
             const txQuestRepository = new this.app.modules.quests.RepositoryClass(tx)
             await txQuestRepository.deleteAllUserQuests(userId, categoryId)
@@ -104,14 +110,14 @@ class QuestsApplication {
         return quests.some((quest) => quest.expiresAt.getTime() < Date.now())
     }
 
-    getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps: { Skillset: QuestBeatmap }[]) {
+    getBeatmapIdsFromSkillsetBeatmapsObject(
+        beatmaps: { skillset: Skillset; beatmapBody: QuestBeatmap }[],
+    ): PpBySkillset[] {
         return beatmaps.map((beatmap) => {
-            const [skillset, beatmapBody] = Object.entries(beatmap)[0]
-
             return {
-                [skillset]: beatmapBody.beatmapId,
+                [beatmap.skillset]: beatmap.beatmapBody.beatmapId,
             }
-        }) as { Skillset: number }[]
+        })
     }
 }
 

@@ -10,6 +10,7 @@ import type {
     ForwardOrRerollSkillsetFunc,
 } from './quests.types'
 import type { Skillset } from '@/config/seeds/skillsets-seed'
+import type { PpBySkillset } from './quests.types'
 
 type BeatmapId = QuestBeatmap['beatmapId']
 
@@ -26,7 +27,7 @@ class QuestsService {
     constructor(private readonly questsRepository: QuestsRepository) {}
 
     async generateUserQuests(
-        beatmaps: { Skillset: BeatmapId }[],
+        beatmaps: PpBySkillset[],
         category: Category,
         getBMComboDifficulty: GetBMComboDifficulty,
     ) {
@@ -62,14 +63,14 @@ class QuestsService {
         getBMComboDifficulty: GetBMComboDifficulty,
         excludedBeatmapIds: number[] = [],
     ) {
-        const combo = await getBMComboDifficulty(
+        const res = await getBMComboDifficulty(
             beatmapId,
             this.getQuestCategoryAveragePP(category),
         )
 
         excludedBeatmapIds.push(beatmapId)
 
-        return { id: beatmapId, combo }
+        return { id: beatmapId, combo: res.combo }
     }
 
     async getQuestsBeatmaps(
@@ -102,10 +103,10 @@ class QuestsService {
             if (beatmap && beatmap.dominantSkillset !== skillset) {
                 throw new Error('Beatmap dominant skillset does not match skillset')
             }
-            res.push({ [skillset]: beatmap })
+            res.push({ skillset, beatmapBody: beatmap })
         }
 
-        return res as { Skillset: QuestBeatmap }[]
+        return res
     }
 
     async getBeatmaps(
@@ -114,11 +115,9 @@ class QuestsService {
         category: Category,
         excludeBeatmapIds: number[],
     ) {
-        //TODO: Decide what to do with highest quests category
-
         const averageSkillsetDifficulty = this.getDominativeSkillsetRangeDifficulty(
             category.minPP,
-            category.maxPP ?? 20000,
+            category.maxPP,
         )
 
         const skillsetDifficultyRange = [
@@ -170,12 +169,7 @@ class QuestsService {
      */
     getQuestCategoryAveragePP(questCategory: Category) {
         const ppReduction = questConfig.targetPPReductionPercent
-
-        if (questCategory.maxPP === null) {
-            // TODO: Decide what to do with the highest quest category
-        }
-
-        const averagePP = average(questCategory.minPP / 20, (questCategory.maxPP ?? 20000) / 20)
+        const averagePP = average(questCategory.minPP / 20, questCategory.maxPP / 20)
 
         return averagePP * (1 - ppReduction / 100)
     }

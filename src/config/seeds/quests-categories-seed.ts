@@ -5,7 +5,7 @@ export type QuestCategory = {
     code: number
     name: string
     minPP: number
-    maxPP: number | null
+    maxPP: number
 }
 
 const categories = [
@@ -55,7 +55,7 @@ const categories = [
         name: 'The God',
         code: 8,
         minPP: 15000,
-        maxPP: null,
+        maxPP: 25000,
     },
 ] as const satisfies readonly QuestCategory[]
 

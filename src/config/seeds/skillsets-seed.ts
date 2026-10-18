@@ -40,6 +40,10 @@ export const skillsetsSeed = [
     },
 ] as const
 
-export const codes = skillsetsSeed.map(({ code }) => code)
-
 export type Skillset = (typeof skillsetsSeed)[number]['code']
+
+export function isSkillsetCode(code: string): code is Skillset {
+    return skillsetsSeed.some((skillset) => skillset.code === code)
+}
+
+export const codes = skillsetsSeed.map(({ code }) => code)

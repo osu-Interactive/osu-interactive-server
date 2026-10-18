@@ -9,4 +9,6 @@ export type UserSkillsetsPreferences = {
     [key in Skillset]: number
 }
 
+export type PpBySkillset = Partial<Record<Skillset, number>>
+
 export type ForwardOrRerollSkillsetFunc = Fatigue['rerollSkillset']
