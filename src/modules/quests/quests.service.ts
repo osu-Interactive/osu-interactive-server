@@ -1,17 +1,10 @@
 import questsCategories, { type Category } from '@/config/seeds/quests-categories-seed'
 import questConfig from '@/config/quests.config'
-import SkillsetGenerator from '@/modules/quests/private/quests-generation/skillset-generator'
 import { average } from '@/utils/math'
 
 import type QuestsRepository from '@/modules/quests/quests.repository'
-import type {
-    QuestBeatmap,
-    UserSkillsetsPreferences,
-    ForwardOrRerollSkillsetFunc,
-} from './quests.types'
-import type { Skillset } from '@/config/seeds/skillsets-seed'
+import type { QuestBeatmap } from './quests.types'
 import type { PpBySkillset } from './quests.types'
-
 type BeatmapId = QuestBeatmap['beatmapId']
 
 type GetBMComboDifficulty = (
@@ -22,11 +15,9 @@ type GetBMComboDifficulty = (
 }>
 
 class QuestsService {
-    private readonly skillsetGenerator = new SkillsetGenerator()
-
     constructor(private readonly questsRepository: QuestsRepository) {}
 
-    async generateUserQuests(
+    async buildUserQuestsFromBeatmaps(
         beatmaps: PpBySkillset[],
         category: Category,
         getBMComboDifficulty: GetBMComboDifficulty,
@@ -40,7 +31,7 @@ class QuestsService {
                 throw new Error('Beatmap id is undefined')
             }
 
-            const quest = await this.generateQuest(
+            const quest = await this.buildQuest(
                 beatmapId,
                 category,
                 getBMComboDifficulty,
@@ -57,83 +48,17 @@ class QuestsService {
         return quests
     }
 
-    async generateQuest(
+    async buildQuest(
         beatmapId: BeatmapId,
         category: Category,
         getBMComboDifficulty: GetBMComboDifficulty,
         excludedBeatmapIds: number[] = [],
     ) {
-        const res = await getBMComboDifficulty(
-            beatmapId,
-            this.getQuestCategoryAveragePP(category),
-        )
+        const res = await getBMComboDifficulty(beatmapId, this.getQuestCategoryAveragePP(category))
 
         excludedBeatmapIds.push(beatmapId)
 
         return { id: beatmapId, combo: res.combo }
-    }
-
-    async getQuestsBeatmaps(
-        userId: number,
-        userPreferences: UserSkillsetsPreferences,
-        amount: number,
-        maxQuestsPP: number,
-        forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
-        category: Category,
-    ) {
-        const skillsets: Skillset[] = []
-
-        for (let i = 0; i < amount; i++) {
-            const skillset = await this.skillsetGenerator.getSkillset(
-                userId,
-                userPreferences,
-                forwardOrRerollSkillset,
-            )
-
-            skillsets.push(skillset)
-        }
-
-        const beatmaps = await this.getBeatmaps(skillsets, maxQuestsPP, category, [])
-        const res = []
-
-        let iteration = 0
-        for (const skillset of skillsets) {
-            iteration++
-            const beatmap = beatmaps[iteration - 1] ?? null
-            if (beatmap && beatmap.dominantSkillset !== skillset) {
-                throw new Error('Beatmap dominant skillset does not match skillset')
-            }
-            res.push({ skillset, beatmapBody: beatmap })
-        }
-
-        return res
-    }
-
-    async getBeatmaps(
-        skillsets: Skillset[],
-        maxQuestsPP: number,
-        category: Category,
-        excludeBeatmapIds: number[],
-    ) {
-        const averageSkillsetDifficulty = this.getDominativeSkillsetRangeDifficulty(
-            category.minPP,
-            category.maxPP,
-        )
-
-        const skillsetDifficultyRange = [
-            Math.max(0, averageSkillsetDifficulty - 20),
-            Math.min(100, averageSkillsetDifficulty + 20),
-        ] satisfies [number, number]
-
-        const minCombo = 100
-
-        return await this.questsRepository.getBeatmapsByDominatedSkillsets(
-            skillsets,
-            maxQuestsPP,
-            skillsetDifficultyRange,
-            minCombo,
-            excludeBeatmapIds,
-        )
     }
 
     async initQuestsCategories() {
@@ -143,16 +68,6 @@ class QuestsService {
     saveUserQuests(userId: number, beatmapIds: number[], categoryId: number) {
         const expiresAt = new Date(Date.now() + questConfig.lifetime * 1000)
         return this.questsRepository.setUserQuests(userId, beatmapIds, categoryId, expiresAt)
-    }
-
-    getDominativeSkillsetRangeDifficulty(categoryMinPP: number, categoryMaxPP: number) {
-        const averagePP = average(categoryMinPP, categoryMaxPP)
-        const roundedPP = Math.round(averagePP / 1000) * 1000
-        const thousands = Math.floor(roundedPP / 1000)
-
-        const coefficient = 1 + (thousands - 1) * 0.1
-
-        return 10 * thousands * coefficient
     }
 
     /**

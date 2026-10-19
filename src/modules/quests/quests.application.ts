@@ -1,4 +1,5 @@
 import questConfig from '@/config/quests.config'
+import BeatmapsSelector from '@/modules/quests/private/quests-generation/beatmaps-selector'
 import {
     getQuestCategoryByCode,
     isQuestCategoryCode,
@@ -13,7 +14,11 @@ import type { QuestBeatmap, PpBySkillset } from './quests.types'
 const ignoreQuestsExpiration = true
 
 class QuestsApplication {
-    constructor(private readonly app: FastifyInstance) {}
+    private readonly beatmapsSelector: BeatmapsSelector
+
+    constructor(private readonly app: FastifyInstance) {
+        this.beatmapsSelector = new BeatmapsSelector(app.modules.quests.repository)
+    }
 
     async getUserQuests(userId: number, categoryCode: number) {
         const categoryId = await this.getCategoryId(categoryCode)
@@ -41,7 +46,7 @@ class QuestsApplication {
     async generateUserQuests(userId: number, category: Category) {
         const maxQuestsPP = this.app.modules.quests.service.getQuestCategoryAveragePP(category)
 
-        const beatmaps = await this.generateUserQuestsBeatmaps(userId, maxQuestsPP, category)
+        const beatmaps = await this.selectUserQuestBeatmaps(userId, maxQuestsPP, category)
 
         if (beatmaps.length < 1) {
             throw new AppError('No user quests generated', { code: 'NO_QUESTS_GENERATED' })
@@ -53,7 +58,7 @@ class QuestsApplication {
 
         let beatmapIds = this.getBeatmapIdsFromSkillsetBeatmapsObject(beatmaps)
 
-        const quests = await this.app.modules.quests.service.generateUserQuests(
+        const quests = await this.app.modules.quests.service.buildUserQuestsFromBeatmaps(
             beatmapIds,
             category,
             this.app.modules.beatmaps.service.getBMComboDifficulty,
@@ -65,16 +70,17 @@ class QuestsApplication {
         return beatmaps.map((beatmap) => beatmap.beatmapBody.beatmapId)
     }
 
-    async generateUserQuestsBeatmaps(userId: number, maxQuestsPP: number, category: Category) {
+    async selectUserQuestBeatmaps(userId: number, maxQuestsPP: number, category: Category) {
+        const userFatigue = (await this.app.modules.user.repository.getFatigue(userId))[0]
+
         const userSkillsetsPreferences =
             await this.app.modules.user.service.getUserPreferences(userId)
 
-        const beatmaps = await this.app.modules.quests.service.getQuestsBeatmaps(
-            userId,
+        const beatmaps = await this.beatmapsSelector.selectUserQuestBeatmaps(
+            userFatigue,
             userSkillsetsPreferences,
             questConfig.questsPerGeneration,
             maxQuestsPP,
-            this.app.modules.user.service.forwardOrRerollSkillset,
             category,
         )
 

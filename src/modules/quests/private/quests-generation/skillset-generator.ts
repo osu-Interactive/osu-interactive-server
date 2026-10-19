@@ -1,5 +1,9 @@
-import BudgetHelper from '@/modules/quests/private/quests-generation/budget-helper'
-import type { UserSkillsetsPreferences, ForwardOrRerollSkillsetFunc } from '../../quests.types'
+import BudgetHelper from '@/modules/user/private/budget-helper'
+import type {
+    UserSkillsetsPreferences,
+    ForwardOrRerollSkillsetFunc,
+    UserFatigue,
+} from '../../quests.types'
 
 type OptionalUserSkillsetsPreferences = Partial<UserSkillsetsPreferences>
 
@@ -9,14 +13,14 @@ class SkillsetGenerator {
     private readonly budgetHelperService = new BudgetHelper()
 
     async getSkillset(
-        userId: number,
+        userFatigue: UserFatigue,
         userPreferences: UserSkillsetsPreferences,
         forwardOrRerollSkillset: ForwardOrRerollSkillsetFunc,
     ) {
         let preferences: OptionalUserSkillsetsPreferences = userPreferences
         let skillset = this.weightedRandom(preferences)
 
-        let reroll = await forwardOrRerollSkillset(userId, skillset)
+        let reroll = forwardOrRerollSkillset(userFatigue, skillset)
 
         while (reroll) {
             log && console.log(`${skillset} was selected, but will be rerolled due to fatigue`)
@@ -33,7 +37,7 @@ class SkillsetGenerator {
             preferences = this.budgetHelperService.normalizeTo100(preferences)
             skillset = this.weightedRandom(preferences)
 
-            reroll = await forwardOrRerollSkillset(userId, skillset)
+            reroll = await forwardOrRerollSkillset(userFatigue, skillset)
         }
 
         log && console.log(`Accepted skillset: ${skillset}`)
