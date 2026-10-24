@@ -8,6 +8,7 @@ import type { FastifyInstance } from 'fastify'
 
 export type Commands = ReturnType<typeof commands>
 
+//TODO: Implement parameters parser
 const commands = (app: FastifyInstance) => {
     const mapsetsCollector = new MapsetsCollector(app.modules.beatmaps.repository)
     const beatmapsCalculator = new BeatmapCalculator(app.modules.beatmaps.repository)
@@ -143,16 +144,33 @@ const commands = (app: FastifyInstance) => {
                     description:
                         'An optional SQL condition used to filter beatmaps, without the WHERE keyword.',
                 },
+                {
+                    name: 'enableBeatmapParametersLimits',
+                    type: 'boolean',
+                    required: false,
+                    default: true,
+                    description:
+                        'Adds upper and lower bounds for beatmap parameters, helping prevent corrupted or unusual beatmaps during sampling.',
+                },
             ],
             example: '/fetch-bms-skillsets 100 10000 "stars >= 5.5 AND mode = osu"',
 
-            body: async (amount: number, startId: number, extraCondition: string | null = null) => {
+            body: async (
+                amount: number,
+                startId: number,
+                extraCondition: string | null = null,
+                enableBeatmapParametersLimits: string | boolean = true,
+            ) => {
+                const enableBeatmapParametersLimitsParsed =
+                    enableBeatmapParametersLimits !== 'false'
+
                 await skillsetsFetcher(
                     app.modules.beatmaps.service,
                     app.modules.beatmaps.repository,
                     amount,
                     startId,
                     extraCondition,
+                    enableBeatmapParametersLimitsParsed,
                 )
             },
         },

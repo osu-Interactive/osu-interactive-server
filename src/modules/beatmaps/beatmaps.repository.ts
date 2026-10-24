@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull, sql, asc, gte, getTableColumns } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, sql, asc, gte, lte, getTableColumns } from 'drizzle-orm'
 import {
     calculatedBeatmaps,
     mapsets,
@@ -91,11 +91,16 @@ class BeatmapsRepository {
     getBeatmaps(
         limit: number | null = null,
         startId: number = 1,
-        extraConditions: BeatmapSearchConditions | null = null,
+        extraConditions: BeatmapSearchConditions = [],
+        enableBeatmapParametersLimits: boolean = true,
     ) {
         const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
         conditions.push(gte(mapsetsBeatmaps.id, startId))
+
+        if (enableBeatmapParametersLimits) {
+            conditions.push(...this.getLimitersBeatmapConditions())
+        }
 
         const query = this.db
             .select({
@@ -113,13 +118,12 @@ class BeatmapsRepository {
         isCalculated: boolean,
         limit: number | null = null,
         startId: number = 1,
-        extraConditions: BeatmapSearchConditions | null = null,
+        extraConditions: BeatmapSearchConditions = [],
     ) {
         const conditions = this.buildFieldsConditions('mapsets_beatmaps', extraConditions)
 
         conditions.push(
             isCalculated ? isNotNull(calculatedBeatmaps.id) : isNull(calculatedBeatmaps.id),
-
             gte(mapsetsBeatmaps.id, startId),
         )
 
@@ -137,16 +141,13 @@ class BeatmapsRepository {
         return limit !== null ? query.limit(limit) : query
     }
 
-    buildFieldsConditions(
-        tableName: string,
-        fieldsConditions: BeatmapSearchConditions | null = null,
-    ) {
+    buildFieldsConditions(tableName: string, fieldsConditions: BeatmapSearchConditions) {
         const fieldsWhitelist = Object.keys(getTableColumns(mapsetsBeatmaps))
         const conditionWhitelist = ['>', '>=', '=', '<=', '<', '!=']
 
         const conditions: ReturnType<typeof sql>[] = []
 
-        if (fieldsConditions !== null) {
+        if (fieldsConditions.length > 0) {
             for (const condition of fieldsConditions) {
                 if (
                     !fieldsWhitelist.includes(condition.field) ||
@@ -241,6 +242,31 @@ class BeatmapsRepository {
                 set: values,
             })
             .returning()
+    }
+
+    getLimitersBeatmapConditions() {
+        return [
+            gte(mapsetsBeatmaps.combo, 5000),
+            lte(mapsetsBeatmaps.combo, 5000),
+
+            gte(mapsetsBeatmaps.stars, 0.1),
+            lte(mapsetsBeatmaps.stars, 14),
+
+            gte(mapsetsBeatmaps.od, 1),
+            lte(mapsetsBeatmaps.od, 10),
+
+            gte(mapsetsBeatmaps.hp, 1),
+            lte(mapsetsBeatmaps.hp, 10),
+
+            gte(mapsetsBeatmaps.cs, 1),
+            lte(mapsetsBeatmaps.cs, 10),
+
+            gte(mapsetsBeatmaps.ar, 1),
+            lte(mapsetsBeatmaps.ar, 10),
+
+            gte(mapsetsBeatmaps.bpm, 50),
+            lte(mapsetsBeatmaps.bpm, 500),
+        ]
     }
 
     toDate(value: string | null) {

@@ -17,10 +17,16 @@ export async function skillsetsFetcher(
     amount: number,
     startId: number,
     extraConditions: string | null = null,
+    enableBeatmapParametersLimits: boolean = true,
 ) {
-    const parsedExtraCondition = extraConditions ? parseExtraConditions(extraConditions) : null
+    const parsedExtraCondition = extraConditions ? parseExtraConditions(extraConditions) : []
 
-    const beatmaps = await beatmapsRepository.getBeatmaps(amount, startId, parsedExtraCondition)
+    const beatmaps = await beatmapsRepository.getBeatmaps(
+        amount,
+        startId,
+        parsedExtraCondition,
+        enableBeatmapParametersLimits,
+    )
 
     for (const beatmap of beatmaps) {
         const res = await axios.post<unknown>(env.SKILLSETS_ANALYZER_URL, {
